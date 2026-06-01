@@ -1,31 +1,47 @@
 let produk = JSON.parse(localStorage.getItem("produk")) || [];
 
-// render produk
+// render
 function renderProduk() {
     const list = document.getElementById("produkList");
     list.innerHTML = "";
 
     produk.forEach((item, index) => {
         list.innerHTML += `
-            <li style="padding:10px; border:1px solid #39ff14; margin:10px 0;">
+            <li>
                 <strong>${item.nama}</strong>
                 <br>${item.kategori}
 
                 <br><br>
-                📏 Stok:
-                <br>S: ${item.stok.S}
-                <br>M: ${item.stok.M}
-                <br>L: ${item.stok.L}
-                <br>XL: ${item.stok.XL}
-                <br>XXL: ${item.stok.XXL}
+
+                S: ${item.stok.S}
+                <button onclick="ubahStok(${index},'S',1)">+</button>
+                <button onclick="ubahStok(${index},'S',-1)">-</button>
+
+                <br>
+                M: ${item.stok.M}
+                <button onclick="ubahStok(${index},'M',1)">+</button>
+                <button onclick="ubahStok(${index},'M',-1)">-</button>
+
+                <br>
+                L: ${item.stok.L}
+                <button onclick="ubahStok(${index},'L',1)">+</button>
+                <button onclick="ubahStok(${index},'L',-1)">-</button>
+
+                <br>
+                XL: ${item.stok.XL}
+                <button onclick="ubahStok(${index},'XL',1)">+</button>
+                <button onclick="ubahStok(${index},'XL',-1)">-</button>
+
+                <br>
+                XXL: ${item.stok.XXL}
+                <button onclick="ubahStok(${index},'XXL',1)">+</button>
+                <button onclick="ubahStok(${index},'XXL',-1)">-</button>
 
                 <br><br>
                 <button onclick="hapusProduk(${index})">Hapus</button>
             </li>
         `;
     });
-
-    updateDashboard();
 }
 
 // tambah produk (AUTO SIZE)
@@ -36,18 +52,12 @@ function tambahProduk() {
     const teman = document.getElementById("teman").value;
     const retail = document.getElementById("retail").value;
 
-    if (!nama) {
-        alert("Nama produk wajib diisi");
-        return;
-    }
-
     produk.push({
         nama,
         kategori,
         modal,
         teman,
         retail,
-
         stok: {
             S: 0,
             M: 0,
@@ -60,39 +70,26 @@ function tambahProduk() {
     localStorage.setItem("produk", JSON.stringify(produk));
 
     renderProduk();
-
-    document.getElementById("nama").value = "";
-    document.getElementById("kategori").value = "";
-    document.getElementById("modal").value = "";
-    document.getElementById("teman").value = "";
-    document.getElementById("retail").value = "";
 }
 
-// hapus produk
+// hapus
 function hapusProduk(index) {
     produk.splice(index, 1);
-
     localStorage.setItem("produk", JSON.stringify(produk));
-
     renderProduk();
 }
 
-// dashboard
-function updateDashboard() {
-    let totalProduk = produk.length;
-    let totalStok = 0;
+// tambah / kurang stok
+function ubahStok(index, size, value) {
+    produk[index].stok[size] += value;
 
-    produk.forEach(item => {
-        totalStok += item.stok.S;
-        totalStok += item.stok.M;
-        totalStok += item.stok.L;
-        totalStok += item.stok.XL;
-        totalStok += item.stok.XXL;
-    });
+    if (produk[index].stok[size] < 0) {
+        produk[index].stok[size] = 0;
+    }
 
-    document.getElementById("totalProduk").innerText = totalProduk;
-    document.getElementById("totalStok").innerText = totalStok;
+    localStorage.setItem("produk", JSON.stringify(produk));
+    renderProduk();
 }
 
-// start awal
+// start
 renderProduk();
