@@ -1,1 +1,0 @@
-# spectre-inventory-v2
