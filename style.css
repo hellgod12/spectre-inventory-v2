@@ -1,63 +1,44 @@
-body{
-    margin:0;
-    font-family:Arial;
-    background:#0a0a0a;
-    color:white;
-}
-
-.sidebar{
-    width:200px;
-    height:100vh;
-    position:fixed;
-    background:#111;
-    padding:20px;
-}
-
-.sidebar a{
-    display:block;
-    color:white;
-    margin:10px 0;
-    text-decoration:none;
-}
-
-.main{
-    margin-left:220px;
-    padding:20px;
-}
-
-.card{
-    background:#151515;
+.product-card{
     border:1px solid #39ff14;
-    padding:20px;
-    margin-bottom:20px;
-    border-radius:10px;
+    padding:15px;
+    border-radius:12px;
+    margin-bottom:15px;
 }
 
-input,button{
-    width:100%;
+.stock-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:10px;
+    margin-top:10px;
+}
+
+.stock-item{
+    background:#111;
     padding:10px;
-    margin:8px 0;
-    border-radius:8px;
-    border:none;
+    border-radius:10px;
+    text-align:center;
+    border:1px solid #222;
 }
 
-button{
-    background:#39ff14;
-    cursor:pointer;
+.stock-item span{
+    display:block;
+    margin-bottom:5px;
+    color:#39ff14;
     font-weight:bold;
 }
 
-button:hover{
-    opacity:0.8;
+.stock-item button{
+    width:30px;
+    height:30px;
+    margin:2px;
+    background:#39ff14;
+    border:none;
+    cursor:pointer;
+    border-radius:6px;
 }
 
-ul{
-    list-style:none;
-    padding:0;
-}
-
-li{
-    padding:10px;
-    border:1px solid #39ff14;
-    margin-bottom:10px;
+.delete-btn{
+    margin-top:10px;
+    background:red;
+    color:white;
 }
