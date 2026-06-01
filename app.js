@@ -1,95 +1,56 @@
-let produk = JSON.parse(localStorage.getItem("produk")) || [];
-
-// render
 function renderProduk() {
     const list = document.getElementById("produkList");
     list.innerHTML = "";
 
     produk.forEach((item, index) => {
         list.innerHTML += `
-            <li>
-                <strong>${item.nama}</strong>
-                <br>${item.kategori}
+            <li class="product-card">
+                <h3>${item.nama}</h3>
+                <p>${item.kategori}</p>
 
-                <br><br>
+                <div class="stock-grid">
 
-                S: ${item.stok.S}
-                <button onclick="ubahStok(${index},'S',1)">+</button>
-                <button onclick="ubahStok(${index},'S',-1)">-</button>
+                    <div class="stock-item">
+                        <span>S</span>
+                        <button onclick="ubahStok(${index},'S',-1)">-</button>
+                        <b>${item.stok.S}</b>
+                        <button onclick="ubahStok(${index},'S',1)">+</button>
+                    </div>
 
-                <br>
-                M: ${item.stok.M}
-                <button onclick="ubahStok(${index},'M',1)">+</button>
-                <button onclick="ubahStok(${index},'M',-1)">-</button>
+                    <div class="stock-item">
+                        <span>M</span>
+                        <button onclick="ubahStok(${index},'M',-1)">-</button>
+                        <b>${item.stok.M}</b>
+                        <button onclick="ubahStok(${index},'M',1)">+</button>
+                    </div>
 
-                <br>
-                L: ${item.stok.L}
-                <button onclick="ubahStok(${index},'L',1)">+</button>
-                <button onclick="ubahStok(${index},'L',-1)">-</button>
+                    <div class="stock-item">
+                        <span>L</span>
+                        <button onclick="ubahStok(${index},'L',-1)">-</button>
+                        <b>${item.stok.L}</b>
+                        <button onclick="ubahStok(${index},'L',1)">+</button>
+                    </div>
 
-                <br>
-                XL: ${item.stok.XL}
-                <button onclick="ubahStok(${index},'XL',1)">+</button>
-                <button onclick="ubahStok(${index},'XL',-1)">-</button>
+                    <div class="stock-item">
+                        <span>XL</span>
+                        <button onclick="ubahStok(${index},'XL',-1)">-</button>
+                        <b>${item.stok.XL}</b>
+                        <button onclick="ubahStok(${index},'XL',1)">+</button>
+                    </div>
 
-                <br>
-                XXL: ${item.stok.XXL}
-                <button onclick="ubahStok(${index},'XXL',1)">+</button>
-                <button onclick="ubahStok(${index},'XXL',-1)">-</button>
+                    <div class="stock-item">
+                        <span>XXL</span>
+                        <button onclick="ubahStok(${index},'XXL',-1)">-</button>
+                        <b>${item.stok.XXL}</b>
+                        <button onclick="ubahStok(${index},'XXL',1)">+</button>
+                    </div>
 
-                <br><br>
-                <button onclick="hapusProduk(${index})">Hapus</button>
+                </div>
+
+                <button class="delete-btn" onclick="hapusProduk(${index})">
+                    Hapus Produk
+                </button>
             </li>
         `;
     });
 }
-
-// tambah produk (AUTO SIZE)
-function tambahProduk() {
-    const nama = document.getElementById("nama").value;
-    const kategori = document.getElementById("kategori").value;
-    const modal = document.getElementById("modal").value;
-    const teman = document.getElementById("teman").value;
-    const retail = document.getElementById("retail").value;
-
-    produk.push({
-        nama,
-        kategori,
-        modal,
-        teman,
-        retail,
-        stok: {
-            S: 0,
-            M: 0,
-            L: 0,
-            XL: 0,
-            XXL: 0
-        }
-    });
-
-    localStorage.setItem("produk", JSON.stringify(produk));
-
-    renderProduk();
-}
-
-// hapus
-function hapusProduk(index) {
-    produk.splice(index, 1);
-    localStorage.setItem("produk", JSON.stringify(produk));
-    renderProduk();
-}
-
-// tambah / kurang stok
-function ubahStok(index, size, value) {
-    produk[index].stok[size] += value;
-
-    if (produk[index].stok[size] < 0) {
-        produk[index].stok[size] = 0;
-    }
-
-    localStorage.setItem("produk", JSON.stringify(produk));
-    renderProduk();
-}
-
-// start
-renderProduk();
