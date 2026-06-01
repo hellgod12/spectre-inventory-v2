@@ -6,12 +6,24 @@ function renderProduk() {
 
     produk.forEach((item, index) => {
         list.innerHTML += `
-            <li>
-                ${item.nama} - ${item.kategori}
-                <button onclick="hapusProduk(${index})">
-                    Hapus
-                </button>
-            </li>
+    <li>
+        <strong>${item.nama}</strong>
+        <br>Kategori: ${item.kategori}
+
+        <br><br>
+
+        S : ${item.stokS}
+        <br>M : ${item.stokM}
+        <br>L : ${item.stokL}
+        <br>XL : ${item.stokXL}
+        <br>XXL : ${item.stokXXL}
+
+        <br><br>
+
+        <button onclick="hapusProduk(${index})">
+            Hapus
+        </button>
+    </li>
         `;
     });
 }
