@@ -1,0 +1,43 @@
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#0a0a0a;
+    color:white;
+}
+
+.sidebar{
+    width:220px;
+    height:100vh;
+    background:#111;
+    position:fixed;
+    padding:20px;
+}
+
+.sidebar h2{
+    color:#39ff14;
+}
+
+.sidebar a{
+    display:block;
+    color:white;
+    text-decoration:none;
+    margin:15px 0;
+}
+
+.main{
+    margin-left:240px;
+    padding:20px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:20px;
+}
+
+.card{
+    background:#151515;
+    border:1px solid #39ff14;
+    padding:25px;
+    border-radius:10px;
+}
