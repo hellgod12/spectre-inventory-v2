@@ -29,11 +29,16 @@ function tambahProduk() {
     }
 
     produk.push({
-        nama,
-        kategori,
-        modal,
-        teman,
-        retail
+     nama,
+    kategori,
+    modal,
+    teman,
+    retail,
+    stokS,
+    stokM,
+    stokL,
+    stokXL,
+    stokXXL
     });
 
     localStorage.setItem(
