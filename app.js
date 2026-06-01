@@ -40,18 +40,21 @@ function tambahProduk() {
         return;
     }
 
-    produk.push({
-     nama,
+produk.push({
+    nama,
     kategori,
     modal,
     teman,
     retail,
-    stokS,
-    stokM,
-    stokL,
-    stokXL,
-    stokXXL
-    });
+
+    stok: {
+        S: 0,
+        M: 0,
+        L: 0,
+        XL: 0,
+        XXL: 0
+    }
+});
 
     localStorage.setItem(
         "produk",
