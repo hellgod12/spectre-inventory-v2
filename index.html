@@ -1,19 +1,62 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <title>SPECTRE</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPECTRE Dashboard</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 </head>
 <body>
 
-  <h1>SPECTRE Dashboard</h1>
+<div class="sidebar">
+    <h2>SPECTRE</h2>
 
-  <h2>Total Barang: <span id="totalBarang">0</span></h2>
-  <h2>Total Member: <span id="totalMember">0</span></h2>
+    <ul>
+        <li>📊 Dashboard</li>
+        <li>📦 Barang</li>
+        <li>👥 Member</li>
+        <li>💰 Penjualan</li>
+        <li>💸 Pengeluaran</li>
+    </ul>
+</div>
 
-  <script src="script.js"></script>
+<div class="main">
+
+    <div class="header">
+        <h1>Dashboard Pembukuan</h1>
+        <p>Selamat Datang Admin</p>
+    </div>
+
+    <div class="cards">
+
+        <div class="card">
+            <h3>Total Barang</h3>
+            <span id="totalBarang">0</span>
+        </div>
+
+        <div class="card">
+            <h3>Total Member</h3>
+            <span id="totalMember">0</span>
+        </div>
+
+        <div class="card">
+            <h3>Total Penjualan</h3>
+            <span id="totalSales">Rp 0</span>
+        </div>
+
+        <div class="card">
+            <h3>Total Pengeluaran</h3>
+            <span id="totalExpenses">Rp 0</span>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="script.js"></script>
 
 </body>
 </html>
