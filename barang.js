@@ -71,19 +71,7 @@ productForm.addEventListener('submit', async (e) => {
                 <span>${stok} unit ${nama_barang.toUpperCase()} berhasil disuntik ke gudang.</span>
             `;
         }
-        if (progressFill) {
-            const value = Math.min(100, Math.max(12, stok * 3));
-            progressFill.style.width = `${value}%`;
-        }
-        if (capacityText) {
-            capacityText.innerText = `${Math.min(100, Math.max(12, stok * 3))}% terserap oleh candel`; 
-        }
-        if (capacityLabel) {
-            capacityLabel.innerText = 'KAPASITAS-RAHASIA';
-        }
-        if (statusNote) {
-            statusNote.innerText = `Sistem mengunci ${stok} barang baru. Gudang semakin pekat.`;
-        }
+        await refreshStockProgress();
     }
 
     btnSimpan.innerText = 'KIRIM DATA KE GUDANG';
