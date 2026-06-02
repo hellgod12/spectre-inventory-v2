@@ -85,27 +85,50 @@ function showSaleSuccess(message) {
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
 async function initTerminalData() {
     // Ambil Produk
-    const { data: prods } = await supabaseClient.from('products').select('*').order('nama_barang');
-    if (prods) {
-        allProducts = prods;
-        selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
-        prods.forEach(p => {
-            const sizeInfo = p.ukuran ? ` [${p.ukuran}]` : '';
-            selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()}${sizeInfo} [STOK: ${p.stok}]</option>`;
-        });
+    try {
+        const { data: prods, error: prodErr } = await supabaseClient
+            .from('products')
+            .select('*')
+            .order('nama_barang');
+
+        if (prodErr) {
+            console.error('Gagal memuat products:', prodErr);
+            selectProduct.innerHTML = '<option value="">>> GAGAL MEMUAT PRODUK (SERVER)</option>';
+            allProducts = [];
+        } else if (prods) {
+            allProducts = prods;
+            selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
+            prods.forEach(p => {
+                const sizeInfo = p.ukuran ? ` [${p.ukuran}]` : '';
+                selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()}${sizeInfo} [STOK: ${p.stok}]</option>`;
+            });
+        }
+    } catch (e) {
+        console.error('Exception saat memuat products:', e);
+        selectProduct.innerHTML = '<option value="">>> GAGAL MEMUAT PRODUK (NETWORK)</option>';
+        allProducts = [];
     }
 
     await updateLedgerBookkeeping();
 
     // Ambil No Telepon Member
-    const { data: mems } = await supabaseClient.from('members').select('*').order('nama');
-    if (mems) {
-        selectMember.innerHTML = '<option value="">-- PILIH NO TELEPON MEMBER --</option>';
-        mems.forEach(m => {
-            selectMember.innerHTML += `<option value="${m.telepon}">${m.telepon} [${m.nama.toUpperCase()}]</option>`;
-        });
+    try {
+        const { data: mems, error: memErr } = await supabaseClient.from('members').select('*').order('nama');
+        if (memErr) {
+            console.error('Gagal memuat members:', memErr);
+            selectMember.innerHTML = '<option value="">>> GAGAL MEMUAT MEMBER</option>';
+        } else if (mems) {
+            selectMember.innerHTML = '<option value="">-- PILIH NO TELEPON MEMBER --</option>';
+            mems.forEach(m => {
+                selectMember.innerHTML += `<option value="${m.telepon}">${m.telepon} [${m.nama.toUpperCase()}]</option>`;
+            });
+        }
+    } catch (e) {
+        console.error('Exception saat memuat members:', e);
+        selectMember.innerHTML = '<option value="">>> GAGAL MEMUAT MEMBER</option>';
     }
 }
+
 
 // 2. Tampilkan/Sembunyikan Pilihan No Telepon Tergantung Radio Button yang Dipilih
 function handleTypeChange() {
