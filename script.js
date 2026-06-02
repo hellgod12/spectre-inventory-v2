@@ -68,6 +68,7 @@ async function loadDashboard() {
                     <tr class="bg-stone-950 text-red-500/70 border-b border-red-950 uppercase tracking-wider text-[10px]">
                         <th class="p-4 font-bold">NAMA_BARANG</th>
                         <th class="p-4 font-bold">SEKTOR_KATEGORI</th>
+                        <th class="p-4 font-bold">UKURAN</th>
                         <th class="p-4 font-bold text-center">TINGKAT_STOK</th>
                         <th class="p-4 font-bold">HARGA_MODAL</th>
                         <th class="p-4 font-bold">HARGA_UMUM</th>
@@ -81,7 +82,12 @@ async function loadDashboard() {
         products.forEach(item => {
             let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 font-bold text-[9px] uppercase">${item.kategori || 'Apparel'}</span>`;
             if (item.kategori === 'Skateboard') katBadge = `<span class="bg-red-950/60 text-red-500 px-2 py-0.5 border border-red-800/50 font-bold text-[9px] uppercase">🛹 PAPAN_SKATE</span>`;
+            if (item.kategori === 'Perlengkapan') katBadge = `<span class="bg-zinc-900 text-zinc-400 px-2 py-0.5 border border-zinc-700 font-bold text-[9px] uppercase">🛠️ HARDWARE</span>`;
             
+            const ukuranBadge = item.ukuran 
+                ? `<span class="bg-stone-900 text-yellow-500 border border-yellow-900/50 px-2 py-0.5 font-bold text-[10px] uppercase">${item.ukuran}</span>`
+                : `<span class="text-slate-700 text-[9px]">—</span>`;
+
             const currentStock = parseInt(item.stok || 0);
             const stokBadge = currentStock <= 5 
                 ? `<span class="bg-red-950 text-red-500 border border-red-600 px-2 py-0.5 font-bold text-[10px] animate-pulse">☠️ KRITIS_${currentStock}</span>`
@@ -91,6 +97,7 @@ async function loadDashboard() {
                 <tr class="hover:bg-red-950/10 transition-colors">
                     <td class="p-4 font-bold text-white uppercase tracking-wide">${item.nama_barang}</td>
                     <td class="p-4">${katBadge}</td>
+                    <td class="p-4">${ukuranBadge}</td>
                     <td class="p-4 text-center">${stokBadge}</td>
                     <td class="p-4 text-slate-500">Rp ${Number(item.harga_modal).toLocaleString('id-ID')}</td>
                     <td class="p-4 text-red-400 font-bold">Rp ${Number(item.harga_jual).toLocaleString('id-ID')}</td>
