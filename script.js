@@ -557,10 +557,8 @@ async function loadDashboard() {
 
             candleContainer.innerHTML = cards.join('');
 
-            // Trigger a gentle pulse so it doesn't feel static
-            try {
-                window.CandleManager?.applyPaymentDelta?.();
-            } catch (e) {}
+            // Tidak trigger candle animasi global di sini supaya hanya profit yang terlihat (diminta di atas saja)
+
         }
     }
 
