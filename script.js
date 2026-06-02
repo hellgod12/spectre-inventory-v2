@@ -509,58 +509,39 @@ async function loadDashboard() {
         soldContainer.innerHTML = soldHtml;
     }
 
-    // Render candle profit per produk (modal + revenue terjual)
-    const candleContainer = document.getElementById('productCandleContainer');
-    if (candleContainer) {
-        if (!profitProduk || profitProduk.size === 0) {
-            candleContainer.innerHTML = `<div class="col-span-full p-4 text-center text-slate-600 text-xs uppercase">>> Belum ada transaksi profit per produk...</div>`;
-        } else {
-            // ambil max abs profit untuk scaling
+    // Render 1 candle profit (hanya 1 candle di bagian atas)
+    // Kita pilih produk dengan abs(profit) terbesar, lalu mapping ke progress fill atas.
+    try {
+        const topFill = document.getElementById('dashboardProgressFill');
+        const topText = document.getElementById('dashboardProgressText');
+        const topSub = document.getElementById('dashboardProgressSub');
+        if (topFill && topText && topSub && profitProduk && profitProduk.size > 0) {
+            let best = null;
             let maxAbs = 0;
             profitProduk.forEach(v => {
-                const abs = Math.abs(v.profit || 0);
-                if (abs > maxAbs) maxAbs = abs;
+                const p = v.profit || 0;
+                const abs = Math.abs(p);
+                if (abs > maxAbs) {
+                    maxAbs = abs;
+                    best = v;
+                }
             });
-            if (!maxAbs) maxAbs = 1;
+            if (!best) return;
 
-            const cards = [];
-            profitProduk.forEach((v, key) => {
-                const profit = v.profit || 0;
-                const percent = Math.min(100, Math.round((Math.abs(profit) / maxAbs) * 100));
-                const isNeg = profit < 0;
-                const badgeBg = isNeg ? 'bg-red-950/60 text-red-400' : 'bg-emerald-950/60 text-emerald-300';
-                const fillBg = isNeg ? 'linear-gradient(90deg, #ef4444, #7f1d1d)' : 'linear-gradient(90deg, #10b981, #34d399)';
+            const percent = Math.min(100, Math.round((Math.abs(best.profit || 0) / (maxAbs || 1)) * 100));
+            const isNeg = (best.profit || 0) < 0;
+            topFill.style.transition = 'width 600ms ease, filter 300ms ease';
+            topFill.style.width = `${percent}%`;
+            topFill.style.background = isNeg ? 'linear-gradient(90deg, #ef4444, #7f1d1d)' : 'linear-gradient(90deg, #10b981, #34d399)';
 
-                const safeNama = (v.nama_barang || key || '').toString().toUpperCase();
-                const candleCard = `
-                    <div class="ghost-panel panel-glow p-3 rounded-none border border-red-950/20 bg-black/30 flex flex-col gap-2">
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0">
-                                <div class="text-[10px] text-slate-300 uppercase font-bold truncate">${safeNama}</div>
-                                <div class="text-[9px] text-slate-500 uppercase">Modal: Rp ${(v.modalTotal||0).toLocaleString('id-ID')}</div>
-                            </div>
-                            <span class="badge ${badgeBg} text-[10px] whitespace-nowrap">${profit < 0 ? 'NEG' : 'POS'} ${percent}%</span>
-                        </div>
-                        <div class="candle-progress" style="margin-top:0; padding:0.65rem;">
-                            <div class="candle-flame" style="width:12px; height:20px; opacity:0.95;"></div>
-                            <div class="progress-track">
-                                <div class="progress-fill" style="height:10px; width:${percent}%; background:${fillBg}; box-shadow:none;"></div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] font-bold text-right ${isNeg ? 'text-red-400' : 'text-emerald-300'}">
-                            Profit: Rp ${(profit||0).toLocaleString('id-ID')}
-                        </div>
-                    </div>
-                `;
-                cards.push(candleCard);
-            });
+            topText.innerText = `${percent}% profit terpantau — candel memanas`;
+            topSub.innerText = `Produk fokus: ${(best.nama_barang || '').toString().toUpperCase()} • Modal Rp ${(best.modalTotal || 0).toLocaleString('id-ID')}`;
 
-            candleContainer.innerHTML = cards.join('');
-
-            // Tidak trigger candle animasi global di sini supaya hanya profit yang terlihat (diminta di atas saja)
-
+            // partikel kecil arah profit
+            try { window.CandleManager?.applyPaymentDelta?.(); } catch (e) {}
         }
-    }
+    } catch (e) {}
+
 
     await loadPayments();
     await loadExpenses();
