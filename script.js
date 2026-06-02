@@ -297,6 +297,7 @@ async function loadDashboard() {
                         <th class="p-4 font-bold">WAKTU_MUTASI (TANGGAL/JAM)</th>
                         <th class="p-4 font-bold">ITEM_TERJUAL</th>
                         <th class="p-4 font-bold">STRUKTUR_ORANG</th>
+                        <th class="p-4 font-bold">UKURAN</th>
                         <th class="p-4 font-bold text-center">KUANTITAS</th>
                         <th class="p-4 font-bold">TOTAL_DANA_MASUK</th>
                         <th class="p-4 font-bold text-center">AKSI</th>
@@ -320,6 +321,7 @@ async function loadDashboard() {
                     <td class="p-4 text-red-500 font-bold tracking-tight">${tanggalLokalan} WIB</td>
                     <td class="p-4 font-bold text-white uppercase">${sale.nama_barang}</td>
                     <td class="p-4">${orangBadge}</td>
+                    <td class="p-4">${sale.ukuran || '—'}</td>
                     <td class="p-4 text-center text-rose-400 font-bold">${sale.jumlah} PCS</td>
                     <td class="p-4 text-emerald-400 font-bold">Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</td>
                     <td class="p-4 text-center">
@@ -469,10 +471,10 @@ async function deleteFromSalesHistory(id, namaBarang) {
 }
 
 async function deleteProduct(id, namaBarang) {
-    const konfirmasi = confirm(`[PERINGATAN] HANCURKAN "${namaBarang.toUpperCase()}" PERMANEN?`);
+    const konfirmasi = confirm(`[PERINGATAN] HAPUS PRODUK "${namaBarang.toUpperCase()}"?`);
     if (konfirmasi) {
         await supabaseClient.from('products').delete().eq('id', id);
-        loadDashboard();
+        await loadDashboard();
     }
 }
 
