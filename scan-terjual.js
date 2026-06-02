@@ -53,13 +53,14 @@ function setSelectedProductByBarcode(raw) {
   const kodeMatch = normalized.match(/^(?:kode|sku)\s*[:=]\s*([^|]+)$/i);
   const kode = kodeMatch?.[1] ? String(kodeMatch[1]).trim() : null;
 
-  // generic token: last alphanumeric segment
+  // Extract potential last alphanumeric segment (NOT used as matching id to avoid ngaco)
+  // (We only match by id/productid/kode/sku or by name substring.)
   const tokens = normalized.split(/[^a-zA-Z0-9]+/).filter(Boolean);
-  const lastToken = tokens.length ? tokens[tokens.length - 1] : null;
-  const tokenNumeric = lastToken && lastToken.match(/^\d+$/) ? lastToken : null;
 
   // Try to match in priority order
   let match = null;
+
+
 
 
   // 1) by numeric value => option.value
