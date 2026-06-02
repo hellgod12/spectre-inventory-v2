@@ -359,18 +359,9 @@ async function loadExpenses() {
     }
 
     let html = `
-        <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
-            <thead>
-                <tr class="bg-stone-950 text-red-500/70 border-b border-red-950 uppercase tracking-wider text-[10px]">
-                    <th class="p-4 font-bold">TANGGAL</th>
-                    <th class="p-4 font-bold">KETERANGAN</th>
-                    <th class="p-4 font-bold">KATEGORI</th>
-                    <th class="p-4 font-bold text-right">NOMINAL</th>
-                    <th class="p-4 font-bold text-center">AKSI</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-red-950/20 bg-black/40">
-    `;
+        <div class="block sm:hidden">
+            <div class="space-y-2">
+    `
 
     expenses.forEach(expense => {
         const tanggalObj = new Date(expense.tanggal);
@@ -383,19 +374,26 @@ async function loadExpenses() {
         if (expense.kategori === 'Listrik') katBadge = `<span class="bg-yellow-950/60 text-yellow-400 px-2 py-0.5 border border-yellow-800/50 text-[9px]">⚡ LISTRIK</span>`;
 
         html += `
-            <tr class="hover:bg-red-950/10 transition-colors">
-                <td class="p-4 text-red-500 font-bold">${tanggalFormat}</td>
-                <td class="p-4 font-bold text-white uppercase">${expense.keterangan}</td>
-                <td class="p-4">${katBadge}</td>
-                <td class="p-4 text-right text-red-400 font-bold">Rp ${Number(expense.nominal).toLocaleString('id-ID')}</td>
-                <td class="p-4 text-center">
-                    <button onclick="deleteExpense(${expense.id})" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
-                </td>
-            </tr>
+            <div class="p-3 border border-red-950/40 bg-black/40">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <div class="text-[10px] text-red-500 font-bold">${tanggalFormat}</div>
+                        <div class="text-[11px] font-bold text-white uppercase leading-4">${expense.keterangan}</div>
+                        <div class="mt-2">${katBadge}</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-[11px] text-red-400 font-bold">Rp ${Number(expense.nominal).toLocaleString('id-ID')}</div>
+                        <button onclick="deleteExpense(${expense.id})" class="mt-2 px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                    </div>
+                </div>
+            </div>
         `;
     });
 
-    html += `</tbody></table>`;
+    html += `
+            </div>
+        </div>
+    `;
     expenseContainer.innerHTML = html;
 }
 async function deleteExpense(id) {
