@@ -1,21 +1,20 @@
-// Konfigurasi Supabase Anda (Berdasarkan gambar_1.png)
+// Konfigurasi Supabase Resmi (Sudah diisi otomatis)
 const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-// GANTI DENGAN ANON KEY ANDA SENDIRI
-const SUPABASE_ANON_KEY = 'MASUKKAN_ANON_KEY_SUPABASE_ANDA';
+const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 async function loadDashboard() {
     const container = document.getElementById('productContainer');
     
-    // Ambil data produk
+    // Ambil data produk terbaru dari tabel 'products'
     const { data, error } = await supabaseClient
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
 
     if (error) {
-        container.innerHTML = `<p style="color: #ef4444;">Error: ${error.message}</p>`;
+        container.innerHTML = `<p style="color: #ef4444; padding: 20px;">Error: ${error.message}</p>`;
         return;
     }
 
@@ -24,11 +23,11 @@ async function loadDashboard() {
         return;
     }
 
-    // Variabel untuk menghitung statistik widget dashboard
+    // Variabel untuk menghitung statistik widget dashboard otomatis
     let totalStock = 0;
     let totalAsset = 0;
 
-    // Buat element Table dengan CSS styling modern langsung di JS agar rapi
+    // Membuat struktur tabel HTML modern
     let tableHtml = `
         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 14px;">
             <thead>
@@ -44,7 +43,7 @@ async function loadDashboard() {
     `;
 
     data.forEach(item => {
-        // Tambahkan ke kalkulasi widget
+        // Kalkulasi data untuk widget atas
         totalStock += parseInt(item.stok || 0);
         totalAsset += parseFloat(item.harga_modal || 0) * parseInt(item.stok || 0);
 
@@ -62,7 +61,7 @@ async function loadDashboard() {
     tableHtml += `</tbody></table>`;
     container.innerHTML = tableHtml;
 
-    // Masukkan data hasil perhitungan ke widget dashboard luar
+    // Memasang angka hasil kalkulasi ke widget halaman depan
     document.getElementById('totalItems').innerText = data.length;
     document.getElementById('totalStock').innerText = totalStock;
     document.getElementById('totalAsset').innerText = 'Rp ' + totalAsset.toLocaleString('id-ID');
