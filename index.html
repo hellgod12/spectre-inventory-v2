@@ -1,47 +1,19 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Spectre Inventory</title>
-<link rel="stylesheet" href="style.css">
-</head>
+  <title>SPECTRE</title>
+  <link rel="stylesheet" href="style.css">
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
 <body>
 
-<div class="sidebar">
-    <h2>SPECTRE</h2>
-    <a href="#">Dashboard</a>
-    <a href="#">Produk</a>
-    <a href="#">Inventory</a>
-    <a href="#">Penjualan</a>
-    <a href="#">Pengeluaran</a>
-</div>
+  <h1>SPECTRE Dashboard</h1>
 
-<div class="main">
+  <h2>Total Barang: <span id="totalBarang">0</span></h2>
+  <h2>Total Member: <span id="totalMember">0</span></h2>
 
-    <h1>📦 Produk Spectre</h1>
+  <script src="script.js"></script>
 
-    <div class="card">
-
-        <input type="text" id="nama" placeholder="Nama Produk">
-        <input type="text" id="kategori" placeholder="Kategori">
-
-        <input type="number" id="modal" placeholder="Harga Modal">
-        <input type="number" id="teman" placeholder="Harga Teman">
-        <input type="number" id="retail" placeholder="Harga Retail">
-
-        <button onclick="tambahProduk()">Simpan Produk</button>
-
-    </div>
-
-    <div class="card">
-        <h3>Daftar Produk</h3>
-        <ul id="produkList"></ul>
-    </div>
-
-</div>
-
-<script src="app.js"></script>
 </body>
 </html>
