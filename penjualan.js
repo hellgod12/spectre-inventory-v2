@@ -12,6 +12,12 @@ const previewHargaSatuan = document.getElementById('previewHargaSatuan');
 const previewTotal = document.getElementById('previewTotal');
 const productDetail = document.getElementById('productDetail');
 const salesForm = document.getElementById('salesForm');
+const salesPanel = document.getElementById('salesPanel');
+const ledgerSalesCount = document.getElementById('ledgerSalesCount');
+const ledgerPaidCount = document.getElementById('ledgerPaidCount');
+const ledgerUnpaidCount = document.getElementById('ledgerUnpaidCount');
+const ledgerProgressFill = document.getElementById('ledgerProgressFill');
+const ledgerProgressText = document.getElementById('ledgerProgressText');
 
 let allProducts = [];
 let selectedProduct = null;
@@ -27,6 +33,49 @@ function savePaymentRecord(record) {
     localStorage.setItem('payments', JSON.stringify(payments));
 }
 
+function mergePayments(remotePayments = []) {
+    const merged = new Map();
+    remotePayments.forEach(p => { if (p && p.id) merged.set(p.id, p); });
+    loadPayments().forEach(p => { if (p && p.id) merged.set(p.id, p); });
+    return Array.from(merged.values());
+}
+
+async function updateLedgerBookkeeping() {
+    let allPayments = loadPayments();
+    try {
+        const { data: remotePayments } = await supabaseClient.from('payments').select('*');
+        if (remotePayments) {
+            allPayments = mergePayments(remotePayments);
+        }
+    } catch (err) {
+        console.warn('Tidak bisa memuat data pembayaran remote untuk bookkeeping:', err.message || err);
+    }
+
+    const confirmedCount = allPayments.filter(p => p.status === 'Sudah Bayar').length;
+    const unpaidCount = allPayments.filter(p => p.status === 'Belum Bayar').length;
+    const totalAmount = allPayments.reduce((sum, p) => sum + (parseFloat(p.total_harga) || 0), 0);
+    const totalCount = confirmedCount + unpaidCount;
+    const progress = totalCount ? Math.min(100, Math.round((confirmedCount / totalCount) * 100)) : 0;
+
+    if (ledgerSalesCount) ledgerSalesCount.innerText = confirmedCount;
+    if (ledgerPaidCount) ledgerPaidCount.innerText = 'Rp ' + totalAmount.toLocaleString('id-ID');
+    if (ledgerUnpaidCount) ledgerUnpaidCount.innerText = unpaidCount;
+    if (ledgerProgressFill) ledgerProgressFill.style.width = progress + '%';
+    if (ledgerProgressText) ledgerProgressText.innerText = progress + '%';
+}
+
+function showSaleSuccess(message) {
+    if (salesPanel) {
+        salesPanel.classList.add('sale-flash');
+        setTimeout(() => salesPanel.classList.remove('sale-flash'), 900);
+    }
+    const toast = document.createElement('div');
+    toast.className = 'toast-notice';
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 2800);
+}
+
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
 async function initTerminalData() {
     // Ambil Produk
@@ -39,6 +88,8 @@ async function initTerminalData() {
             selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()}${sizeInfo} [STOK: ${p.stok}]</option>`;
         });
     }
+
+    await updateLedgerBookkeeping();
 
     // Ambil No Telepon Member
     const { data: mems } = await supabaseClient.from('members').select('*').order('nama');
@@ -192,8 +243,10 @@ salesForm.addEventListener('submit', async (e) => {
         alert('🎉 EKSEKUSI BERHASIL // Transaksi terikat nomor telepon member sukses!');
         salesForm.reset();
         boxMemberSelect.classList.add('hidden');
-        initTerminalData();
+        await initTerminalData();
         updatePricePreview();
+        await updateLedgerBookkeeping();
+        showSaleSuccess('TRANSAKSI TERJUAL // Buku kas menjadi lebih hidup.');
     }
 });
 

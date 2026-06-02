@@ -72,12 +72,13 @@
             overflow: hidden;
         }
         .progress-fill {
-            width: 74%;
+            width: 0%;
             height: 100%;
             border-radius: 999px;
             background: linear-gradient(90deg, #f97316, #facc15);
             box-shadow: 0 0 16px rgba(249, 115, 22, 0.35);
             position: relative;
+            transition: width 1.4s ease;
         }
         .progress-fill::after {
             content: '';
@@ -109,6 +110,13 @@
         @keyframes flicker {
             0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
             50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
+        }
+        @keyframes drift {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(1px); }
+        }
+        .candle-flame {
+            animation: flicker 1.4s infinite ease-in-out, drift 3.2s infinite ease-in-out;
         }
         .panel-glow {
             box-shadow: 0 0 30px rgba(248, 113, 113, 0.18), inset 0 0 25px rgba(255, 255, 255, 0.02);
@@ -146,10 +154,11 @@
                 </div>
                 <div class="candle-progress">
                     <div class="candle-flame"></div>
-                    <div class="progress-track"><div class="progress-fill"></div></div>
+                    <div class="progress-track"><div id="dashboardProgressFill" class="progress-fill"></div></div>
                     <div class="progress-meta">
                         <span>PROGRESS CANDEL</span>
-                        <strong>74% menuju malam penuh bayangan</strong>
+                        <strong id="dashboardProgressText">0% dikonfirmasi — neraka rekening semakin mendekat</strong>
+                        <span id="dashboardProgressSub" class="text-[10px] text-slate-400 uppercase tracking-wider">Belum ada data pembayaran</span>
                     </div>
                 </div>
             </div>

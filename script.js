@@ -21,6 +21,24 @@ function normalizePayments(payments) {
     }));
 }
 
+function updateDashboardProgress(payments = []) {
+    const fill = document.getElementById('dashboardProgressFill');
+    const progressText = document.getElementById('dashboardProgressText');
+    const progressSub = document.getElementById('dashboardProgressSub');
+    if (!fill || !progressText || !progressSub) return;
+
+    const total = payments.length;
+    const paid = payments.filter(p => p.status === 'Sudah Bayar').length;
+    const unpaid = total - paid;
+    const percent = total === 0 ? 0 : Math.round((paid / total) * 100);
+
+    fill.style.width = `${percent}%`;
+    progressText.innerText = `${percent}% dikonfirmasi — neraka rekening semakin mendekat`;
+    progressSub.innerText = total === 0
+        ? 'Belum ada data pembayaran'
+        : `${paid} Lunas • ${unpaid} Belum Bayar • ${total} total order`;
+}
+
 async function loadPayments() {
     const paymentsContainer = document.getElementById('paymentsContainer');
     if (!paymentsContainer) return;
@@ -50,11 +68,13 @@ async function loadPayments() {
     }
 
     if ((!payments || payments.length === 0) && supabaseError) {
+        updateDashboardProgress([]);
         paymentsContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat pembayaran</div>`;
         return;
     }
 
     if (!payments || payments.length === 0) {
+        updateDashboardProgress([]);
         paymentsContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Belum ada pembayaran</div>`;
         return;
     }
@@ -94,6 +114,7 @@ async function loadPayments() {
 
     html += `</tbody></table>`;
     paymentsContainer.innerHTML = html;
+    updateDashboardProgress(payments);
 }
 
 async function confirmPayment(id) {
