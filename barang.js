@@ -1,7 +1,6 @@
-// Konfigurasi Supabase Anda (Berdasarkan gambar_1.png)
+// Konfigurasi Supabase Resmi (Sudah diisi otomatis)
 const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-// GANTI DENGAN ANON KEY ANDA SENDIRI
-const SUPABASE_ANON_KEY = 'MASUKKAN_ANON_KEY_SUPABASE_ANDA';
+const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -11,19 +10,19 @@ const btnSimpan = document.getElementById('btnSimpan');
 productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Mengubah tampilan tombol menjadi Loading status
+    // Animasi tombol loading pas di-klik biar user tahu proses sedang berjalan
     btnSimpan.innerText = 'Menyimpan ke Supabase...';
     btnSimpan.disabled = true;
     btnSimpan.style.background = '#475569';
 
-    // Mengambil value dari Form Input
+    // Menangkap isi form input dari halaman barang.html
     const nama_barang = document.getElementById('nama_barang').value;
     const stok = parseInt(document.getElementById('stok').value);
     const harga_modal = parseFloat(document.getElementById('harga_modal').value);
     const harga_jual = parseFloat(document.getElementById('harga_jual').value);
     const harga_member = parseFloat(document.getElementById('harga_member').value);
 
-    // Kirim data ke tabel 'products' di Supabase
+    // Kirim data baru masuk ke tabel 'products'
     const { data, error } = await supabaseClient
         .from('products')
         .insert([
@@ -40,11 +39,11 @@ productForm.addEventListener('submit', async (e) => {
         alert('❌ Gagal menyimpan data: ' + error.message);
         console.error(error);
     } else {
-        alert('🎉 Sukses! Produk "' + nama_barang + '" berhasil ditambahkan.');
-        productForm.reset(); // Kosongkan kolom input kembali
+        alert('🎉 Sukses! Produk "' + nama_barang + '" berhasil ditambahkan ke SPECTRE database.');
+        productForm.reset(); // Mereset form biar bersih kembali
     }
 
-    // Mengembalikan tombol ke keadaan semula
+    // Mengembalikan tombol ke mode normal setelah selesai input
     btnSimpan.innerText = 'Simpan ke Database';
     btnSimpan.disabled = false;
     btnSimpan.style.background = '#10b981';
