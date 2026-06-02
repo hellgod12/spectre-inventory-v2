@@ -85,8 +85,10 @@ async function loadPayments() {
                 <tr class="bg-stone-950 text-red-500/70 uppercase text-[10px]">
                     <th class="p-3 font-bold">PEMBELI</th>
                     <th class="p-3 font-bold">PRODUK</th>
+                    <th class="p-3 font-bold">UKURAN</th>
                     <th class="p-3 font-bold text-center">JUMLAH</th>
                     <th class="p-3 font-bold">TOTAL</th>
+
                     <th class="p-3 font-bold">METODE</th>
                     <th class="p-3 font-bold">STATUS</th>
                     <th class="p-3 font-bold">AKSI</th>
@@ -101,6 +103,7 @@ async function loadPayments() {
             <tr class="hover:bg-red-950/10 transition-colors">
                 <td class="p-3 font-bold">${payment.buyer}</td>
                 <td class="p-3">${payment.product}</td>
+                <td class="p-3">${payment.ukuran || '—'}</td>
                 <td class="p-3 text-center">${payment.jumlah}</td>
                 <td class="p-3">${formatCurrency(payment.total_harga)}</td>
                 <td class="p-3">${payment.method}</td>
@@ -312,9 +315,11 @@ async function loadDashboard() {
             const opsiFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
             const tanggalLokalan = dateObj.toLocaleDateString('id-ID', opsiFormat).replace(',', ' //');
 
-            const orangBadge = sale.tipe_pembeli === 'Member'
-                ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 SOUL_MEMBER</span>`
-                : `<span class="bg-zinc-900 text-zinc-400 border border-zinc-700 text-[10px] px-2 py-0.5 font-bold">👤 TARGET_UMUM</span>`;
+            const isMember = (sale.tipe_pembeli || '').toLowerCase().startsWith('member');
+            const orangBadge = isMember
+                ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 MEMBER</span>`
+                : `<span class="bg-zinc-900 text-zinc-400 border border-zinc-700 text-[10px] px-2 py-0.5 font-bold">👤 NON-MEMBER</span>`;
+
 
             soldHtml += `
                 <tr class="hover:bg-rose-950/10 transition-colors">
