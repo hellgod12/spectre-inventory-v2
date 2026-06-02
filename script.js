@@ -389,7 +389,7 @@ async function loadExpenses() {
                 <td class="p-4">${katBadge}</td>
                 <td class="p-4 text-right text-red-400 font-bold">Rp ${Number(expense.nominal).toLocaleString('id-ID')}</td>
                 <td class="p-4 text-center">
-                    <button onclick="deleteExpense(${expense.id}, '${expense.keterangan}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                    <button onclick="deleteExpense(${expense.id})" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
                 </td>
             </tr>
         `;
@@ -398,8 +398,8 @@ async function loadExpenses() {
     html += `</tbody></table>`;
     expenseContainer.innerHTML = html;
 }
-async function deleteExpense(id, keterangan) {
-    const konfirmasi = confirm(`[PERINGATAN] HAPUS PENGELUARAN "${keterangan.toUpperCase()}"? Tidak bisa dikembalikan.`);
+async function deleteExpense(id) {
+    const konfirmasi = confirm('[PERINGATAN] HAPUS PENGELUARAN? Tidak bisa dikembalikan.');
     if (!konfirmasi) return;
 
     try {
