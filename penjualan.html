@@ -14,14 +14,8 @@
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 4px, 6px 100%;
         }
-        .scary-logo {
-            font-family: 'Creepster', cursive;
-            text-shadow: 0 0 10px #ef4444;
-        }
-        .ghost-panel { 
-            background: rgba(6, 6, 10, 0.9);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
+        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 10px #ef4444; }
+        .ghost-panel { background: rgba(6, 6, 10, 0.9); border: 1px solid rgba(239, 68, 68, 0.2); }
         .neon-glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
     </style>
 </head>
@@ -40,7 +34,7 @@
                 <form id="salesForm" class="space-y-4 text-xs">
                     <div>
                         <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// PILIH_PRODUK_TARGET</label>
-                        <select id="selectProduct" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-100 font-medium focus:outline-none focus:border-red-600 tracking-wide uppercase" required>
+                        <select id="selectProduct" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-100 font-medium focus:outline-none focus:border-red-600 uppercase" required>
                             <option value="">-- MENGAMBIL DATA SERVER... --</option>
                         </select>
                     </div>
@@ -55,6 +49,14 @@
                             </label>
                         </div>
                     </div>
+
+                    <div id="boxMemberSelect" class="hidden animate-fade-in">
+                        <label class="block text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5">// KUNCI_NOMOR_TELEPON_MEMBER</label>
+                        <select id="selectMember" class="w-full bg-stone-950 border border-purple-950 rounded-none px-3 py-3 text-purple-300 font-bold focus:outline-none focus:border-purple-600">
+                            <option value="">-- PILIH NO TELEPON MEMBER --</option>
+                        </select>
+                    </div>
+
                     <div>
                         <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// JUMLAH_BARANG_KELUAR</label>
                         <input type="number" id="inputJumlah" min="1" value="1" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 font-bold text-sm" required>
