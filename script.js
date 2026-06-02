@@ -481,4 +481,5 @@ window.confirmPayment = confirmPayment;
 window.deletePayment = deletePayment;
 window.deleteFromSalesHistory = deleteFromSalesHistory;
 window.deleteExpense = deleteExpense;
+window.deleteProduct = deleteProduct;
 document.addEventListener('DOMContentLoaded', loadDashboard);
