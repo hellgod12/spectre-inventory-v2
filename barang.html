@@ -14,37 +14,73 @@
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 4px, 6px 100%;
         }
-        .scary-logo {
-            font-family: 'Creepster', cursive;
-            text-shadow: 0 0 10px #ef4444;
-        }
-        .ghost-panel { 
-            background: rgba(6, 6, 10, 0.9);
-            border: 1px solid rgba(239, 68, 68, 0.2);
-        }
-        .neon-glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 12px #ef4444, 0 0 24px #7f1d1d; letter-spacing: 0.16em; }
+        .ghost-panel { background: rgba(6, 6, 10, 0.94); border: 1px solid rgba(239, 68, 68, 0.2); box-shadow: 0 0 28px rgba(255, 0, 0, 0.08); backdrop-filter: blur(6px); }
+        .panel-glow { box-shadow: 0 0 30px rgba(248, 113, 113, 0.22), inset 0 0 24px rgba(255, 255, 255, 0.02); }
+        .input-field { width: 100%; background: #09090f; border: 1px solid rgba(248, 113, 113, 0.16); color: #f8fafc; border-radius: 0; padding: 0.9rem 1rem; transition: border-color .2s ease, box-shadow .2s ease; }
+        .input-field:focus { outline: none; border-color: #fb7185; box-shadow: 0 0 18px rgba(251, 113, 133, 0.22); }
+        .form-label { display: block; color: #f8fafc; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; margin-bottom: 0.5rem; }
+        .action-btn { transition: all .25s ease; }
+        .action-btn:hover { transform: translateY(-1px); }
+        .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.22); background: rgba(17, 24, 39, 0.8); }
+        .progress-track { flex: 1; height: 10px; border-radius: 999px; background: rgba(248, 113, 113, 0.14); overflow: hidden; }
+        .progress-fill { width: 72%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f97316, #facc15); box-shadow: 0 0 18px rgba(249, 115, 22, 0.35); position: relative; }
+        .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fde68a; box-shadow: 0 0 18px rgba(251, 191, 36, 0.4); }
+        .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%); animation: flicker 1.6s infinite ease-in-out; box-shadow: 0 0 20px rgba(253, 224, 71, 0.42); }
+        .candle-base { width: 10px; height: 34px; background: linear-gradient(180deg, #f7f7f7, #c4b29a); border-radius: 5px; margin: 0 auto; }
+        @keyframes flicker { 0%, 100% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; } }
     </style>
 </head>
 <body class="text-rose-100 min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-md my-4">
-        <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest mb-4">
-            << BACK_TO_CORE
+    <div class="max-w-6xl mx-auto space-y-6">
+        <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest mb-2">
+            << KEMBALI_KE_CORE
         </a>
 
-        <div class="ghost-panel p-6 rounded-none shadow-2xl border-t-4 border-t-red-600">
+        <div class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-red-600">
+            <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
+                <div>
+                    <h2 class="text-4xl text-red-500 scary-logo mb-2 tracking-wider">INJECT_STOCK</h2>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-3">// PROTOKOL_INJEKSI_STOK</p>
+                    <p class="text-slate-500 text-[11px] leading-6">Suntikkan barang baru ke gudang dengan teknologi gelap. Setiap entry akan terlihat seram, rapi, dan kuat.</p>
+                </div>
+                <div class="ghost-panel panel-glow p-5 bg-black/70 border border-red-950/20">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div>
+                            <div class="candle-flame"></div>
+                            <div class="candle-base"></div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[.24em] text-rose-300">Candel Inventori</p>
+                            <p class="text-slate-100 text-sm font-bold">Proses transfer barang terpantau.</p>
+                        </div>
+                    </div>
+                    <div class="candle-progress">
+                        <div class="progress-track"><div class="progress-fill"></div></div>
+                        <div class="text-right">
+                            <span class="block text-[10px] uppercase text-slate-400">Kapasitas</span>
+                            <strong class="text-white text-sm">74% siap</strong>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: stok rapi, nalar tajam, dan gelapnya kasir tetap terjaga.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="ghost-panel panel-glow p-6 rounded-none shadow-2xl border-t-4 border-t-red-600">
             <h2 class="text-3xl text-red-500 scary-logo mb-1 tracking-wider">INJECT_STOCK</h2>
             <p class="text-slate-500 text-[9px] uppercase tracking-widest mb-6">Database injection protocol for apparel & skate hardware</p>
 
             <form id="productForm" class="space-y-4 text-xs">
                 <div>
-                    <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// ITEM_IDENTIFIER</label>
-                    <input type="text" id="nama_barang" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 uppercase tracking-wide" placeholder="E.G. SPECTRE SLICK DECK" required>
+                    <label class="form-label">// ITEM_IDENTIFIER</label>
+                    <input type="text" id="nama_barang" class="input-field uppercase" placeholder="E.G. SPECTRE SLICK DECK" required>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// SECTOR_CATEGORY</label>
-                    <select id="kategori" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-300 focus:outline-none focus:border-red-600" required>
+                    <label class="form-label">// SECTOR_CATEGORY</label>
+                    <select id="kategori" class="input-field" required>
                         <option value="Apparel">👕 APPAREL (CLOTHING, HOODIES)</option>
                         <option value="Skateboard">🛹 SKATEBOARD (DECKS, TRUCKS, FULLSET)</option>
                         <option value="Perlengkapan">🛠️ HARDWARE (BEARINGS, GRIPTAPES)</option>
@@ -52,33 +88,33 @@
                 </div>
 
                 <div id="sizeContainer" class="hidden">
-                    <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// SIZE_VARIANT</label>
-                    <select id="ukuran" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-300 focus:outline-none focus:border-red-600">
+                    <label class="form-label">// SIZE_VARIANT</label>
+                    <select id="ukuran" class="input-field">
                         <option value="">-- PILIH UKURAN --</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// QUANTITY_LOAD</label>
-                    <input type="number" id="stok" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 font-bold" placeholder="0" required>
+                    <label class="form-label">// QUANTITY_LOAD</label>
+                    <input type="number" id="stok" class="input-field" placeholder="0" required>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-500 uppercase mb-1">BASE_COST</label>
-                        <input type="number" id="harga_modal" class="w-full bg-stone-950 border border-red-950 rounded-none px-2 py-3 text-white focus:outline-none focus:border-red-600 font-bold" placeholder="Rp" required>
+                        <label class="form-label">BASE_COST</label>
+                        <input type="number" id="harga_modal" class="input-field" placeholder="Rp" required>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-500 uppercase mb-1">PUBLIC</label>
-                        <input type="number" id="harga_jual" class="w-full bg-stone-950 border border-red-950 rounded-none px-2 py-3 text-red-400 focus:outline-none focus:border-red-600 font-bold" placeholder="Rp" required>
+                        <label class="form-label">PUBLIC</label>
+                        <input type="number" id="harga_jual" class="input-field text-red-400" placeholder="Rp" required>
                     </div>
                     <div>
-                        <label class="block text-[9px] font-bold text-slate-500 uppercase mb-1">SOUL_MEMBER</label>
-                        <input type="number" id="harga_member" class="w-full bg-stone-950 border border-red-950 rounded-none px-2 py-3 text-rose-400 focus:outline-none focus:border-red-600 font-bold" placeholder="Rp" required>
+                        <label class="form-label">SOUL_MEMBER</label>
+                        <input type="number" id="harga_member" class="input-field text-rose-400" placeholder="Rp" required>
                     </div>
                 </div>
 
-                <button type="submit" id="btnSimpan" class="w-full bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-none transition-all duration-300 mt-2 neon-glow-red">
+                <button type="submit" id="btnSimpan" class="action-btn w-full bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-3.5 neon-glow-red">
                     EXECUTE_INJECTION
                 </button>
             </form>

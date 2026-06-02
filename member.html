@@ -14,30 +14,70 @@
             background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             background-size: 100% 4px, 6px 100%;
         }
-        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 10px #ef4444; }
-        .ghost-panel { background: rgba(6, 6, 10, 0.9); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 12px #ef4444, 0 0 24px #7f1d1d; letter-spacing: 0.16em; }
+        .ghost-panel { background: rgba(6, 6, 10, 0.94); border: 1px solid rgba(239, 68, 68, 0.2); box-shadow: 0 0 28px rgba(255, 0, 0, 0.08); backdrop-filter: blur(6px); }
+        .panel-glow { box-shadow: 0 0 30px rgba(248, 113, 113, 0.22), inset 0 0 24px rgba(255, 255, 255, 0.02); }
+        .input-field { width: 100%; background: #09090f; border: 1px solid rgba(248, 113, 113, 0.16); color: #f8fafc; border-radius: 0; padding: 0.9rem 1rem; transition: border-color .2s ease, box-shadow .2s ease; }
+        .input-field:focus { outline: none; border-color: #fb7185; box-shadow: 0 0 18px rgba(251, 113, 133, 0.22); }
+        .form-label { display: block; color: #f8fafc; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; margin-bottom: 0.5rem; }
+        .action-btn { transition: all .25s ease; }
+        .action-btn:hover { transform: translateY(-1px); }
+        .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.22); background: rgba(17, 24, 39, 0.8); }
+        .progress-track { flex: 1; height: 10px; border-radius: 999px; background: rgba(248, 113, 113, 0.14); overflow: hidden; }
+        .progress-fill { width: 72%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f97316, #facc15); box-shadow: 0 0 18px rgba(249, 115, 22, 0.35); position: relative; }
+        .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fde68a; box-shadow: 0 0 18px rgba(251, 191, 36, 0.4); }
+        .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%); animation: flicker 1.6s infinite ease-in-out; box-shadow: 0 0 20px rgba(253, 224, 71, 0.42); }
+        .candle-base { width: 10px; height: 34px; background: linear-gradient(180deg, #f7f7f7, #c4b29a); border-radius: 5px; margin: 0 auto; }
+        @keyframes flicker { 0%, 100% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; } }
     </style>
 </head>
 <body class="text-rose-100 min-h-screen p-4 md:p-8">
-    <div class="max-w-md mx-auto space-y-4">
+    <div class="max-w-6xl mx-auto space-y-6">
         <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest">
-            << KEMBALI_KE_DASHBOARD
+            << KEMBALI_KE_CORE
         </a>
 
-        <div class="ghost-panel p-6 border-t-4 border-t-purple-600">
-            <h2 class="text-3xl text-purple-500 scary-logo mb-1 tracking-wider">KUNCI_MEMBER</h2>
-            <p class="text-slate-500 text-[9px] uppercase tracking-widest mb-6">// REGISTRASI_SOUL_MEMBER</p>
+        <div class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-purple-600">
+            <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
+                <div class="max-w-2xl">
+                    <h2 class="text-4xl text-purple-400 scary-logo mb-2 tracking-wider">KUNCI_MEMBER</h2>
+                    <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-4">// REGISTRASI SOUL MEMBER</p>
+                    <p class="text-slate-500 text-[11px] leading-6">Suntikkan data anggota dengan protokol rahasia. Setiap member terdaftar, setiap nomor telepon menjadi identitas akses elite.</p>
+                </div>
+                <div class="ghost-panel panel-glow p-5 bg-black/70 border border-red-950/20">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div>
+                            <div class="candle-flame"></div>
+                            <div class="candle-base"></div>
+                        </div>
+                        <div>
+                            <p class="text-[10px] uppercase tracking-[.24em] text-rose-300">Candel Pembukuan</p>
+                            <p class="text-slate-100 text-sm font-bold">Jejak member terbakar pelan, tapi aman.</p>
+                        </div>
+                    </div>
+                    <div class="candle-progress">
+                        <div class="progress-track"><div class="progress-fill"></div></div>
+                        <div class="text-right">
+                            <span class="block text-[10px] uppercase text-slate-400">Progres</span>
+                            <strong class="text-white text-sm">74%</strong>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: anggota setia adalah arwah yang memberimu keuntungan.</p>
+                </div>
+            </div>
+        </div>
 
-            <form id="memberForm" class="space-y-4 text-xs">
+        <div class="ghost-panel panel-glow p-6 rounded-none border-t-4 border-t-purple-600">
+            <form id="memberForm" class="space-y-5">
                 <div>
-                    <label class="block text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5">// NAMA_TARGET</label>
-                    <input type="text" id="inputNama" class="w-full bg-stone-950 border border-purple-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-purple-600 uppercase" placeholder="CONTOH: JOHN DOE" required>
+                    <label class="form-label">// NAMA_TARGET</label>
+                    <input type="text" id="inputNama" class="input-field uppercase" placeholder="CONTOH: JOHN DOE" required>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5">// NOMOR_TELEPON (ID_KASIR)</label>
-                    <input type="text" id="inputTelepon" class="w-full bg-stone-950 border border-purple-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-purple-600" placeholder="CONTOH: 0812345678" required>
+                    <label class="form-label">// NOMOR_TELEPON (ID_KASIR)</label>
+                    <input type="text" id="inputTelepon" class="input-field" placeholder="CONTOH: 0812345678" required>
                 </div>
-                <button type="submit" class="w-full bg-purple-800 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-widest py-3.5 transition-all">
+                <button type="submit" class="action-btn w-full bg-purple-800 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-widest py-3.5 neon-glow-red">
                     SUNTIK_DATA_MEMBER
                 </button>
             </form>
