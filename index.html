@@ -202,6 +202,26 @@
                 <p id="totalProfit" class="text-lg md:text-xl font-black text-rose-400 mt-2">Rp 0</p>
                 <span class="text-[9px] text-slate-600 block mt-1">KEUNTUNGAN_BERSIH</span>
             </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-900 bg-red-950/15">
+                <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// PENGELUARAN_TOTAL]</p>
+                <p id="totalExpenses" class="text-lg md:text-xl font-black text-red-500 mt-2">Rp 0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">DANA_KELUAR</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-lime-600 bg-lime-950/10">
+                <p class="text-lime-400 text-[10px] font-bold uppercase tracking-widest">[// PROFIT_BERSIH_NERACA]</p>
+                <p id="netProfit" class="text-lg md:text-xl font-black text-lime-400 mt-2">Rp 0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">NERACA_AKHIR</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-900 bg-red-950/15">
+                <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// PENGELUARAN_TOTAL]</p>
+                <p id="totalExpenses" class="text-lg md:text-xl font-black text-red-500 mt-2">Rp 0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">DANA_KELUAR</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-lime-600 bg-lime-950/10">
+                <p class="text-lime-400 text-[10px] font-bold uppercase tracking-widest">[// PROFIT_BERSIH_NERACA]</p>
+                <p id="netProfit" class="text-lg md:text-xl font-black text-lime-400 mt-2">Rp 0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">NERACA_AKHIR</span>
+            </div>
             <div class="ghost-panel p-4 rounded-none border-b-2 border-b-stone-600">
                 <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">[// ITEM_TERJUAL]</p>
                 <p id="totalSalesCount" class="text-xl md:text-2xl font-black text-white mt-2">0</p>
@@ -210,7 +230,7 @@
             <div class="ghost-panel p-4 rounded-none border-b-2 border-b-purple-600">
                 <p class="text-purple-400 text-[10px] font-bold uppercase tracking-widest">[// ANGGOTA_TERKUNCI]</p>
                 <p id="totalMembers" class="text-xl md:text-2xl font-black text-purple-500 mt-2">0 Jiwa</p>
-                <span class="text-[9px] text-slate-600 block mt-1">JUMLAH_MEMBER</span>
+                <span class="text-[9px] text-slate-600 block mt-1\">JUMLAH_MEMBER</span>
             </div>
             <div class="ghost-panel p-4 rounded-none border-b-2 border-b-zinc-700">
                 <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">[// VARIAN_MODEL]</p>
@@ -248,6 +268,18 @@
                     <div class="p-8 text-center text-slate-600 text-xs uppercase">
                         >> Tidak ada aktivitas keluar kasir baru-baru ini.
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl bg-black/20">
+            <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-orange-500">// LOG_PENGELUARAN_DANA</h2>
+                <span class="text-[9px] text-orange-800 font-bold">ALIRAN_UANG_KELUAR</span>
+            </div>
+            <div class="overflow-x-auto border border-red-950 bg-black/90">
+                <div id="expenseContainer">
+                    <div class="p-8 text-center text-slate-600 text-xs uppercase">>> Tidak ada pengeluaran tercatat baru-baru ini.</div>
                 </div>
             </div>
         </div>

@@ -192,9 +192,19 @@ async function loadDashboard() {
         });
     }
 
+    // Tarik data pengeluaran
+    const { data: expenses } = await supabaseClient.from('expenses').select('*');
+    let totalExpenses = 0;
+    if (expenses) {
+        totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.nominal || 0)), 0);
+    }
+    const profitBersih = profitAsli - totalExpenses;
+
     document.getElementById('totalStock').innerText = totalStock;
     document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
     document.getElementById('totalProfit').innerText = 'Rp ' + profitAsli.toLocaleString('id-ID');
+    document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
+    document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
 
     // --- RENDERING TABEL 1: STOK GUDANG ---
@@ -294,6 +304,59 @@ async function loadDashboard() {
     }
 
     await loadPayments();
+    await loadExpenses();
+}
+
+async function loadExpenses() {
+    const expenseContainer = document.getElementById('expenseContainer');
+    if (!expenseContainer) return;
+
+    const { data: expenses } = await supabaseClient
+        .from('expenses')
+        .select('*')
+        .order('tanggal', { ascending: false })
+        .limit(10);
+
+    if (!expenses || expenses.length === 0) {
+        expenseContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Belum ada pengeluaran tercatat</div>`;
+        return;
+    }
+
+    let html = `
+        <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
+            <thead>
+                <tr class="bg-stone-950 text-red-500/70 border-b border-red-950 uppercase tracking-wider text-[10px]">
+                    <th class="p-4 font-bold">TANGGAL</th>
+                    <th class="p-4 font-bold">KETERANGAN</th>
+                    <th class="p-4 font-bold">KATEGORI</th>
+                    <th class="p-4 font-bold text-right">NOMINAL</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-red-950/20 bg-black/40">
+    `;
+
+    expenses.forEach(expense => {
+        const tanggalObj = new Date(expense.tanggal);
+        const tanggalFormat = tanggalObj.toLocaleDateString('id-ID', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+        let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 text-[9px] uppercase">${expense.kategori}</span>`;
+        if (expense.kategori === 'Pembelian Stok') katBadge = `<span class="bg-blue-950/60 text-blue-400 px-2 py-0.5 border border-blue-800/50 text-[9px]">📦 STOK</span>`;
+        if (expense.kategori === 'Operasional') katBadge = `<span class="bg-purple-950/60 text-purple-400 px-2 py-0.5 border border-purple-800/50 text-[9px]">💼 OP</span>`;
+        if (expense.kategori === 'Gaji') katBadge = `<span class="bg-green-950/60 text-green-400 px-2 py-0.5 border border-green-800/50 text-[9px]">👥 GAJI</span>`;
+        if (expense.kategori === 'Listrik') katBadge = `<span class="bg-yellow-950/60 text-yellow-400 px-2 py-0.5 border border-yellow-800/50 text-[9px]">⚡ LISTRIK</span>`;
+
+        html += `
+            <tr class="hover:bg-red-950/10 transition-colors">
+                <td class="p-4 text-red-500 font-bold">${tanggalFormat}</td>
+                <td class="p-4 font-bold text-white uppercase">${expense.keterangan}</td>
+                <td class="p-4">${katBadge}</td>
+                <td class="p-4 text-right text-red-400 font-bold">Rp ${Number(expense.nominal).toLocaleString('id-ID')}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>`;
+    expenseContainer.innerHTML = html;
 }
 
 async function deleteProduct(id, namaBarang) {
