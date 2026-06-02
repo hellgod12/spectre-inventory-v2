@@ -42,7 +42,6 @@ function updatePricePreview() {
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
 
-    // Mengganti Label Sektor Kategori ke Bahasa Indonesia
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
     if (selectedProduct.kategori === 'Skateboard') {
         sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
@@ -54,48 +53,55 @@ function updatePricePreview() {
 
     productDetail.innerHTML = `
         <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
-            <div>
-                <span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> 
-                <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b>
-            </div>
-            <div>
-                <span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> 
-                ${sectorLabel}
-            </div>
-            <div>
-                <span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> 
-                <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b>
-            </div>
+            <div><span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b></div>
+            <div><span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> ${sectorLabel}</div>
+            <div><span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b></div>
         </div>
     `;
 }
 
 selectProduct.addEventListener('change', updatePricePreview);
 inputJumlah.addEventListener('input', updatePricePreview);
-document.getElementById('typeUmum').addEventListener('change', updatePricePreview);
-document.getElementById('typeMember').addEventListener('change', updatePricePreview);
+document.querySelectorAll('input[name="tipe_pembeli"]').forEach(r => r.addEventListener('change', updatePricePreview));
 
 salesForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!selectedProduct) return alert('[ALARM_SISTEM] GAGAL PROSES: PRODUK BELUM DIKUNCI.');
+    if (!selectedProduct) return alert('[ALARM] GAGAL: PRODUK BELUM DIKUNCI.');
     const jumlahJual = parseInt(inputJumlah.value);
 
     if (selectedProduct.stok < jumlahJual) {
-        alert(`[GAGAL_KRITIS] STOK GUDANG KURANG! Sisa stok hanya: ${selectedProduct.stok}`);
+        alert(`[GAGAL] STOK GUDANG KURANG! Sisa: ${selectedProduct.stok}`);
         return;
     }
 
-    const sisaStokBaru = selectedProduct.stok - jumlahJual;
+    const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
+    const hargaSatuan = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+    const totalHarga = hargaSatuan * jumlahJual;
 
+    // 1. Potong Stok di Tabel Products
+    const sisaStokBaru = selectedProduct.stok - jumlahJual;
     const { error: updateError } = await supabaseClient
         .from('products')
         .update({ stok: sisaStokBaru })
         .eq('id', selectedProduct.id);
 
-    if (updateError) {
-        alert('[ERROR_SERVER] Pemotongan stok dibatalkan: ' + updateError.message);
+    if (updateError) return alert('Gagal potong stok: ' + updateError.message);
+
+    // 2. Suntik Data Transaksi Riwayat Ke Tabel sales_history (Tanggal otomatis diisi database)
+    const { error: historyError } = await supabaseClient
+        .from('sales_history')
+        .insert([{ 
+            nama_barang: selectedProduct.nama_barang, 
+            kategori: selectedProduct.kategori, 
+            jumlah: jumlahJual, 
+            total_harga: totalHarga, 
+            tipe_pembeli: tipePembeli 
+        }]);
+
+    if (historyError) {
+        alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
     } else {
-        alert('🎉 EKSEKUSI BERHASIL // Transaksi sukses dicatat, stok database otomatis terpotong!');
+        alert('🎉 EKSEKUSI BERHASIL // Mutasi keluar dicatat & Tanggal distempel otomatis!');
         salesForm.reset();
         fetchProductsForSales();
         updatePricePreview();
