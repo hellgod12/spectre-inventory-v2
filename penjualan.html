@@ -3,79 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SPECTRE // Sales Terminal</title>
+    <title>SPECTRE // Terminal Kasir Rahasia</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070f; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        .cyber-panel { 
-            background: linear-gradient(135deg, rgba(13, 17, 33, 0.7) 0%, rgba(8, 10, 21, 0.9) 100%);
-            border: 1px solid rgba(56, 189, 248, 0.1);
+        body { 
+            font-family: 'Share Tech Mono', monospace; 
+            background-color: #020205;
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
         }
-        .neon-glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+        .scary-logo {
+            font-family: 'Creepster', cursive;
+            text-shadow: 0 0 10px #ef4444;
+        }
+        .ghost-panel { 
+            background: rgba(6, 6, 10, 0.9);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        .neon-glow-red { box-shadow: 0 0 15px rgba(239, 68, 68, 0.3); }
     </style>
 </head>
-<body class="text-slate-200 min-h-screen p-4 md:p-10">
+<body class="text-rose-100 min-h-screen p-4 md:p-8">
 
     <div class="max-w-4xl mx-auto space-y-4">
-        <a href="index.html" class="inline-flex items-center text-xs text-slate-500 hover:text-cyan-400 transition-colors uppercase font-bold tracking-widest mono mb-2">
-            << Dashboard
+        <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest mb-2">
+            << KEMBALI_KE_DASHBOARD
         </a>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <div class="cyber-panel p-6 rounded-xl shadow-2xl md:col-span-2 border-t-4 border-t-emerald-500">
-                <h2 class="text-lg font-black mb-1 uppercase tracking-wider mono text-white">🛒 TERMINAL_POS</h2>
-                <p class="text-slate-500 text-[10px] uppercase tracking-widest mono mb-6">Pencatatan Penjualan Real-time</p>
+            <div class="ghost-panel p-6 rounded-none shadow-2xl md:col-span-2 border-t-4 border-t-red-600">
+                <h2 class="text-3xl text-red-500 scary-logo mb-1 tracking-wider">TERMINAL_KASIR</h2>
+                <p class="text-slate-500 text-[9px] uppercase tracking-widest mb-6">// PROTOKOL_MUTASI_KELUAR_BARANG</p>
                 
-                <form id="salesForm" class="space-y-4">
+                <form id="salesForm" class="space-y-4 text-xs">
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mono mb-1.5">// SELECT_PRODUK</label>
-                        <select id="selectProduct" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500 mono" required>
-                            <option value="">-- SINKRONISASI SERVER --</option>
+                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// PILIH_PRODUK_TARGET</label>
+                        <select id="selectProduct" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-100 font-medium focus:outline-none focus:border-red-600 tracking-wide uppercase" required>
+                            <option value="">-- MENGAMBIL DATA SERVER... --</option>
                         </select>
                     </div>
-
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mono mb-1.5">// KATEGORI_HARGA</label>
+                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// KATEGORI_TARIF_DANA</label>
                         <div class="flex gap-2">
-                            <label class="flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-3 py-3 rounded-lg flex-1 cursor-pointer text-[11px] mono text-slate-300">
-                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum" class="accent-cyan-500"> UMUM
+                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-slate-400 font-bold">
+                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum" class="accent-red-600"> PELANGGAN_UMUM
                             </label>
-                            <label class="flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-3 py-3 rounded-lg flex-1 cursor-pointer text-[11px] mono text-slate-300">
-                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember" class="accent-purple-500"> MEMBER
+                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-rose-400 font-bold">
+                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember" class="accent-rose-600"> MEMBER_TERDAFTAR
                             </label>
                         </div>
                     </div>
-
                     <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mono mb-1.5">// JUMLAH_BELI</label>
-                        <input type="number" id="inputJumlah" min="1" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 mono font-bold" required>
+                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// JUMLAH_BARANG_KELUAR</label>
+                        <input type="number" id="inputJumlah" min="1" value="1" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 font-bold text-sm" required>
                     </div>
-
-                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-900 space-y-1.5 mono">
+                    
+                    <div class="bg-stone-950 p-4 border border-red-950/60 space-y-1.5">
                         <div class="flex justify-between text-[10px] text-slate-500 uppercase">
-                            <span>Harga Satuan:</span>
-                            <span id="previewHargaSatuan" class="text-slate-300">Rp 0</span>
+                            <span>NILAI_SATUAN:</span>
+                            <span id="previewHargaSatuan" class="text-slate-300 font-bold">Rp 0</span>
                         </div>
-                        <div class="flex justify-between text-xs font-bold uppercase pt-1.5 border-t border-slate-900">
-                            <span class="text-slate-400">Total Tagihan:</span>
-                            <span id="previewTotal" class="text-emerald-400">Rp 0</span>
+                        <div class="flex justify-between text-xs font-bold uppercase pt-1.5 border-t border-red-950">
+                            <span class="text-red-500/80">TOTAL_TAGIHAN_DANA:</span>
+                            <span id="previewTotal" class="text-red-500 text-base font-black tracking-wider">Rp 0</span>
                         </div>
                     </div>
-
-                    <button type="submit" id="btnProses" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-widest py-3.5 rounded-lg transition-all duration-300 neon-glow-emerald">
-                        EKSEKUSI TRANSAKSI
+                    
+                    <button type="submit" id="btnProses" class="w-full bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-none transition-all duration-300 neon-glow-red">
+                        EKSEKUSI_POTONG_STOK
                     </button>
                 </form>
             </div>
 
-            <div class="cyber-panel p-5 rounded-xl flex flex-col justify-between bg-slate-950/40">
+            <div class="ghost-panel p-5 rounded-none flex flex-col justify-between bg-stone-950/40 border-l-2 border-l-red-900">
                 <div class="space-y-3">
-                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mono">// LIVE_LOG</h3>
-                    <div id="productDetail" class="space-y-3 text-xs mono text-slate-400">
-                        <p class="text-slate-600 text-[10px] uppercase animate-pulse">>> Menunggu input data produk...</p>
+                    <h3 class="text-[10px] font-bold text-red-500 uppercase tracking-widest">// SPESIFIKASI_TARGET_BARANG</h3>
+                    <div id="productDetail" class="space-y-3 text-xs text-slate-400">
+                        <p class="text-red-900/60 text-[10px] uppercase animate-pulse">>> Menunggu input parameter data...</p>
                     </div>
                 </div>
             </div>
