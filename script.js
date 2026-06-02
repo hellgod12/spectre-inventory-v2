@@ -6,16 +6,50 @@ function formatCurrency(value) {
     return 'Rp ' + Number(value).toLocaleString('id-ID');
 }
 
+function loadLocalPayments() {
+    try {
+        return JSON.parse(localStorage.getItem('payments') || '[]');
+    } catch (error) {
+        return [];
+    }
+}
+
+function normalizePayments(payments) {
+    return (payments || []).map(p => ({
+        ...p,
+        created_at: p.created_at || p.createdAt || new Date().toISOString()
+    }));
+}
+
 async function loadPayments() {
     const paymentsContainer = document.getElementById('paymentsContainer');
     if (!paymentsContainer) return;
 
-    const { data: payments, error } = await supabaseClient
-        .from('payments')
-        .select('*')
-        .order('created_at', { ascending: false });
+    let payments = [];
+    let supabaseError = null;
 
-    if (error) {
+    try {
+        const { data, error } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) supabaseError = error;
+        else payments = normalizePayments(data);
+    } catch (error) {
+        supabaseError = error;
+    }
+
+    const localPayments = normalizePayments(loadLocalPayments());
+    if (localPayments.length > 0) {
+        const merged = new Map();
+        [...localPayments, ...payments].forEach(payment => {
+            if (payment && payment.id) merged.set(payment.id, payment);
+        });
+        payments = Array.from(merged.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    }
+
+    if ((!payments || payments.length === 0) && supabaseError) {
         paymentsContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat pembayaran</div>`;
         return;
     }
@@ -69,6 +103,16 @@ async function confirmPayment(id) {
         .eq('id', id);
 
     if (error) {
+        const localPayments = loadLocalPayments();
+        const index = localPayments.findIndex(p => p.id === id);
+        if (index !== -1) {
+            localPayments[index].status = 'Sudah Bayar';
+            localPayments[index].confirmed_at = new Date().toISOString();
+            localStorage.setItem('payments', JSON.stringify(localPayments));
+            await loadPayments();
+            return;
+        }
+
         alert('Gagal konfirmasi pembayaran: ' + error.message);
         return;
     }
