@@ -3,56 +3,127 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>SPECTRE Dashboard</title>
 
 <link rel="stylesheet" href="style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </head>
 <body>
 
 <div class="sidebar">
-    <h2>SPECTRE</h2>
 
-    <ul>
-        <li>📊 Dashboard</li>
-        <li>📦 Barang</li>
-        <li>👥 Member</li>
-        <li>💰 Penjualan</li>
-        <li>💸 Pengeluaran</li>
-    </ul>
+<div class="logo">
+<h2>SPECTRE</h2>
+<p>Inventory System</p>
 </div>
 
-<div class="main">
+<ul>
+<li class="active">📊 Dashboard</li>
+<li>📦 Barang</li>
+<li>👥 Member</li>
+<li>🛒 Penjualan</li>
+<li>💸 Pengeluaran</li>
+<li>📑 Laporan</li>
+</ul>
 
-    <div class="header">
-        <h1>Dashboard Pembukuan</h1>
-        <p>Selamat Datang Admin</p>
-    </div>
+</div>
 
-    <div class="cards">
+<div class="content">
 
-        <div class="card">
-            <h3>Total Barang</h3>
-            <span id="totalBarang">0</span>
-        </div>
+<div class="topbar">
 
-        <div class="card">
-            <h3>Total Member</h3>
-            <span id="totalMember">0</span>
-        </div>
+<input
+type="text"
+placeholder="Cari data..."
+class="search">
 
-        <div class="card">
-            <h3>Total Penjualan</h3>
-            <span id="totalSales">Rp 0</span>
-        </div>
+<div class="profile">
+Admin
+</div>
 
-        <div class="card">
-            <h3>Total Pengeluaran</h3>
-            <span id="totalExpenses">Rp 0</span>
-        </div>
+</div>
 
-    </div>
+<h1>Dashboard</h1>
+
+<div class="cards">
+
+<div class="card purple">
+<h4>Total Barang</h4>
+<h2 id="totalBarang">0</h2>
+</div>
+
+<div class="card blue">
+<h4>Total Member</h4>
+<h2 id="totalMember">0</h2>
+</div>
+
+<div class="card green">
+<h4>Total Penjualan</h4>
+<h2 id="totalSales">Rp 0</h2>
+</div>
+
+<div class="card red">
+<h4>Total Pengeluaran</h4>
+<h2 id="totalExpenses">Rp 0</h2>
+</div>
+
+</div>
+
+<div class="grid">
+
+<div class="box">
+
+<h3>Penjualan Terakhir</h3>
+
+<table>
+
+<thead>
+<tr>
+<th>Tanggal</th>
+<th>Member</th>
+<th>Total</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td>--</td>
+<td>--</td>
+<td>Rp 0</td>
+</tr>
+</tbody>
+
+</table>
+
+</div>
+
+<div class="box">
+
+<h3>Ringkasan</h3>
+
+<div class="summary">
+
+<div>
+<span>Total Barang</span>
+<b id="barangRingkas">0</b>
+</div>
+
+<div>
+<span>Total Member</span>
+<b id="memberRingkas">0</b>
+</div>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
 
