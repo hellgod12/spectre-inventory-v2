@@ -51,6 +51,13 @@
                     </select>
                 </div>
 
+                <div id="sizeContainer" class="hidden">
+                    <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// SIZE_VARIANT</label>
+                    <select id="ukuran" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-300 focus:outline-none focus:border-red-600">
+                        <option value="">-- PILIH UKURAN --</option>
+                    </select>
+                </div>
+
                 <div>
                     <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// QUANTITY_LOAD</label>
                     <input type="number" id="stok" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 font-bold" placeholder="0" required>
@@ -78,6 +85,34 @@
         </div>
     </div>
 
+    <script>
+        const sizeApparel = ['XS','S','M','L','XL','XXL','XXXL'];
+        const sizeSkateboard = ['7.5"','7.75"','8.0"','8.25"','8.5"','8.75"','9.0"'];
+
+        const kategoriEl = document.getElementById('kategori');
+        const sizeContainer = document.getElementById('sizeContainer');
+        const ukuranEl = document.getElementById('ukuran');
+
+        function updateSizeOptions() {
+            const val = kategoriEl.value;
+            sizeContainer.classList.add('hidden');
+            ukuranEl.innerHTML = '<option value="">-- PILIH UKURAN --</option>';
+            ukuranEl.required = false;
+
+            if (val === 'Apparel') {
+                sizeApparel.forEach(s => ukuranEl.innerHTML += `<option value="${s}">${s}</option>`);
+                sizeContainer.classList.remove('hidden');
+                ukuranEl.required = true;
+            } else if (val === 'Skateboard') {
+                sizeSkateboard.forEach(s => ukuranEl.innerHTML += `<option value="${s}">${s}</option>`);
+                sizeContainer.classList.remove('hidden');
+                ukuranEl.required = true;
+            }
+        }
+
+        kategoriEl.addEventListener('change', updateSizeOptions);
+        updateSizeOptions();
+    </script>
     <script src="barang.js"></script>
 </body>
 </html>
