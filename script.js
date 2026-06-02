@@ -1,56 +1,21 @@
-function renderProduk() {
-    const list = document.getElementById("produkList");
-    list.innerHTML = "";
+const supabase = window.supabase.createClient(
+  "https://kbaltquoajrmpixgsiec.supabase.co",
+  "KEY_ANON_KAMU"
+);
 
-    produk.forEach((item, index) => {
-        list.innerHTML += `
-            <li class="product-card">
-                <h3>${item.nama}</h3>
-                <p>${item.kategori}</p>
+async function loadDashboard() {
 
-                <div class="stock-grid">
+  const { count: barang } = await supabase
+    .from("product")
+    .select("*", { count: "exact", head: true });
 
-                    <div class="stock-item">
-                        <span>S</span>
-                        <button onclick="ubahStok(${index},'S',-1)">-</button>
-                        <b>${item.stok.S}</b>
-                        <button onclick="ubahStok(${index},'S',1)">+</button>
-                    </div>
+  document.getElementById("totalBarang").textContent = barang || 0;
 
-                    <div class="stock-item">
-                        <span>M</span>
-                        <button onclick="ubahStok(${index},'M',-1)">-</button>
-                        <b>${item.stok.M}</b>
-                        <button onclick="ubahStok(${index},'M',1)">+</button>
-                    </div>
+  const { count: member } = await supabase
+    .from("member")
+    .select("*", { count: "exact", head: true });
 
-                    <div class="stock-item">
-                        <span>L</span>
-                        <button onclick="ubahStok(${index},'L',-1)">-</button>
-                        <b>${item.stok.L}</b>
-                        <button onclick="ubahStok(${index},'L',1)">+</button>
-                    </div>
-
-                    <div class="stock-item">
-                        <span>XL</span>
-                        <button onclick="ubahStok(${index},'XL',-1)">-</button>
-                        <b>${item.stok.XL}</b>
-                        <button onclick="ubahStok(${index},'XL',1)">+</button>
-                    </div>
-
-                    <div class="stock-item">
-                        <span>XXL</span>
-                        <button onclick="ubahStok(${index},'XXL',-1)">-</button>
-                        <b>${item.stok.XXL}</b>
-                        <button onclick="ubahStok(${index},'XXL',1)">+</button>
-                    </div>
-
-                </div>
-
-                <button class="delete-btn" onclick="hapusProduk(${index})">
-                    Hapus Produk
-                </button>
-            </li>
-        `;
-    });
+  document.getElementById("totalMember").textContent = member || 0;
 }
+
+loadDashboard();
