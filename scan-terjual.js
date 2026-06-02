@@ -9,46 +9,74 @@ const inputJumlah = document.getElementById('inputJumlah');
 function setSelectedProductByBarcode(raw) {
   if (!selectProduct) return false;
 
-  // Recommended universal scan payload (same as barang masuk):
-  // NAMA_BARANG|qty|harga_modal|harga_jual|harga_member|kategori
-  // Example: T-SHIRT L|10|50000|90000|85000|Apparel
-
-  const text = String(raw || '').trim();
+  const text = String(raw || '').replace(/\u0000/g, '').trim();
   if (!text) return false;
 
-  // Parse qty if present
-  let payloadNama = text;
-  let parsedQty = null;
+  const options = Array.from(selectProduct.options || []);
+  if (!options.length) return false;
 
+  // Parse qty if present
+  let parsedQty = null;
   if (text.includes('|')) {
+    // payload: NAMA_BARANG|qty|...
     const parts = text.split('|').map(s => String(s).trim());
-    payloadNama = parts[0] || '';
     if (parts.length >= 2) {
       const q = Number(parts[1]);
       parsedQty = Number.isFinite(q) ? q : null;
     }
+  } else {
+    // support: qty=10 or QTY:10
+    const mQty = text.match(/(?:qty|jumlah)\s*[:=]\s*(\d+)/i);
+    if (mQty && mQty[1]) {
+      const q = Number(mQty[1]);
+      parsedQty = Number.isFinite(q) ? q : null;
+    }
   }
 
-  // Support additional formats (legacy):
-  // - rawValue = product.id
-  // - rawValue = nama_barang (case-insensitive)
-  // - rawValue = "id:123" or "kode:XYZ"
-  const cleaned = payloadNama.trim();
+  // Normalize for matching
+  const cleaned = text.trim();
   const lower = cleaned.toLowerCase();
 
-  let match = null;
-  const options = Array.from(selectProduct.options || []);
+  // Extract potential identifiers
+  const numericOnly = cleaned.match(/^\d+$/) ? cleaned : null;
+  const idMatch = cleaned.match(/^id\s*[:=]\s*(\d+)$/i) || cleaned.match(/^productid\s*[:=]\s*(\d+)$/i);
+  const id = idMatch?.[1] || null;
 
-  // Try by id first (only if scan wasn't using | format)
-  if (/^\d+$/.test(cleaned)) {
-    match = options.find(o => o.value === cleaned);
+  const kodeMatch = cleaned.match(/^(?:kode|sku)\s*[:=]\s*([^|]+)$/i);
+  const kode = kodeMatch?.[1] ? String(kodeMatch[1]).trim() : null;
+
+  // Try to match in priority order
+  let match = null;
+
+  // 1) by numeric value => option.value
+  if (!match && numericOnly) {
+    match = options.find(o => String(o.value) === numericOnly);
   }
-  // Try by 'id:NUM'
-  if (!match && /^id:\s*\d+$/i.test(cleaned)) {
-    const id = cleaned.split(':')[1].trim();
-    match = options.find(o => o.value === id);
+
+  // 2) by id=123 => option.value
+  if (!match && id) {
+    match = options.find(o => String(o.value) === String(id));
   }
-  // Try by nama_barang text
+
+  // 3) by kode/SKU matching option.value (if option.value is kode)
+  if (!match && kode) {
+    match = options.find(o => String(o.value).toLowerCase() === String(kode).toLowerCase());
+    if (!match) {
+      // or match within option text
+      match = options.find(o => (o.textContent || '').toLowerCase() === String(kode).toLowerCase() || (o.textContent || '').toLowerCase().includes(String(kode).toLowerCase()));
+    }
+  }
+
+  // 4) fallback: if payload is "NAMA_BARANG|..." use first segment
+  if (!match && cleaned.includes('|')) {
+    const first = cleaned.split('|')[0]?.trim() || '';
+    const firstLower = first.toLowerCase();
+    if (firstLower) {
+      match = options.find(o => (o.textContent || '').toLowerCase().includes(firstLower));
+    }
+  }
+
+  // 5) broad fallback: try exact-ish match on option text
   if (!match) {
     match = options.find(o => (o.textContent || '').toLowerCase().includes(lower));
   }
@@ -58,7 +86,7 @@ function setSelectedProductByBarcode(raw) {
   selectProduct.value = match.value;
   selectProduct.dispatchEvent(new Event('change', { bubbles: true }));
 
-  // Set qty from QR if available
+  // qty from QR
   if (parsedQty != null && inputJumlah) {
     const qInt = parseInt(parsedQty, 10);
     if (Number.isFinite(qInt) && qInt > 0) {
@@ -69,6 +97,7 @@ function setSelectedProductByBarcode(raw) {
 
   return true;
 }
+
 
 function attachScanUIHandlers() {
   const btnScan = document.getElementById('btnScanTerjual');
