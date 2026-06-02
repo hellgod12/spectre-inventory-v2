@@ -18,9 +18,9 @@ async function fetchProductsForSales() {
     if (error) return console.error(error);
     
     allProducts = data;
-    selectProduct.innerHTML = '<option value="">-- Pilih Produk --</option>';
+    selectProduct.innerHTML = '<option value="">-- PILIH PRODUK --</option>';
     data.forEach(p => {
-        selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang} (Stok: ${p.stok})</option>`;
+        selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()} (STOK: ${p.stok})</option>`;
     });
 }
 
@@ -31,7 +31,7 @@ function updatePricePreview() {
     if (!selectedProduct) {
         previewHargaSatuan.innerText = 'Rp 0';
         previewTotal.innerText = 'Rp 0';
-        productDetail.innerHTML = '<p>Silakan pilih produk untuk melihat detail stok tersisa.</p>';
+        productDetail.innerHTML = '<p class="text-slate-600 text-[10px] uppercase">>> Menunggu pilihan...</p>';
         return;
     }
 
@@ -44,10 +44,10 @@ function updatePricePreview() {
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
 
     productDetail.innerHTML = `
-        <div class="space-y-2">
-            <div><span class="text-slate-500">Produk:</span> <b class="text-slate-200">${selectedProduct.nama_barang}</b></div>
-            <div><span class="text-slate-500">Stok Saat Ini:</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-400' : 'text-emerald-400'}">${selectedProduct.stok} unit</b></div>
-            <div><span class="text-slate-500">Harga Modal:</span> <span>Rp ${Number(selectedProduct.harga_modal).toLocaleString('id-ID')}</span></div>
+        <div class="space-y-2 border border-slate-800 p-3 rounded bg-slate-950/80 text-[11px]">
+            <div><span class="text-slate-600 block text-[9px]">// ITEM</span> <b class="text-white">${selectedProduct.nama_barang.toUpperCase()}</b></div>
+            <div><span class="text-slate-600 block text-[9px]">// GUDANG</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-400 animate-pulse' : 'text-emerald-400'}">${selectedProduct.stok} UNIT</b></div>
+            <div><span class="text-slate-600 block text-[9px]">// MODAL</span> <span class="text-slate-300">Rp ${Number(selectedProduct.harga_modal).toLocaleString('id-ID')}</span></div>
         </div>
     `;
 }
@@ -64,22 +64,21 @@ salesForm.addEventListener('submit', async (e) => {
     const jumlahJual = parseInt(inputJumlah.value);
 
     if (selectedProduct.stok < jumlahJual) {
-        alert(`❌ Stok tidak mencukupi! Sisa stok hanya: ${selectedProduct.stok}`);
+        alert(`❌ TRANSAKSI DITOLAK: Stok kurang! Sisa stok: ${selectedProduct.stok}`);
         return;
     }
 
     const sisaStokBaru = selectedProduct.stok - jumlahJual;
 
-    // Kurangi stok di Supabase
     const { error: updateError } = await supabaseClient
         .from('products')
         .update({ stok: sisaStokBaru })
         .eq('id', selectedProduct.id);
 
     if (updateError) {
-        alert('Gagal memotong stok: ' + updateError.message);
+        alert('CRITICAL ERROR // Gagal memotong stok: ' + updateError.message);
     } else {
-        alert('🎉 Transaksi Sukses! Stok gudang telah otomatis dikurangi.');
+        alert('🎉 BERHASIL // Transaksi disetujui, stok terpotong otomatis.');
         salesForm.reset();
         fetchProductsForSales();
         updatePricePreview();
