@@ -258,9 +258,14 @@ salesForm.addEventListener('submit', async (e) => {
         } catch (e) {}
 
         // Animasi candel pembayaran (visual)
+        // Jika metode cash/transfer => payment langsung Sudah Bayar
+        // Jika metode Belum Bayar => pembayaran akan terselesaikan saat user konfirmasi di dashboard.
         try {
-            window.CandleManager?.applyPaymentDelta?.();
+            if (!isUnpaidMethod) {
+                window.CandleManager?.applyPaymentDelta?.();
+            }
         } catch (e) {}
+
 
         // Broadcast pembayaran juga (dashboard/HP)
         try {

@@ -146,13 +146,85 @@
     }
   }
 
+  function animateProductCandlesImpact({ delta, namaProduk }) {
+    // saat ini dashboard belum punya UI candle per-produk, jadi kita tampilkan efek overlay partikel.
+    // nanti kalau kamu mau benar-benar candle per produk, kita akan tambah markup di dashboard.
+
+    // Dashboard ingin candle per-produk: buat minimal "bars" di #soldContainer atau #productContainer kalau ada.
+    // Namun dataset yang ada di dashboard belum punya UI candle per produk, jadi kita siapkan placeholder:
+    // - tidak akan error jika elemen tidak ada
+
+    const productContainer = document.getElementById('productContainer');
+    if (!productContainer) return;
+
+    // cari container candle-area yang mungkin ada
+    let layer = productContainer.querySelector('[data-candle-layer="products"]');
+    if (!layer) {
+      layer = document.createElement('div');
+      layer.setAttribute('data-candle-layer', 'products');
+      // overlay ringan, tidak mengubah layout
+      layer.style.position = 'absolute';
+      layer.style.inset = '0';
+      layer.style.pointerEvents = 'none';
+      productContainer.style.position = productContainer.style.position || 'relative';
+      productContainer.appendChild(layer);
+    }
+
+    // efek partikel kecil per mutasi (kaya trading ticker)
+    const sign = delta >= 0 ? 1 : -1;
+    const count = Math.max(1, Math.min(6, Math.round(Math.abs(delta) / 2)));
+
+    for (let i = 0; i < count; i++) {
+      const dot = document.createElement('span');
+      dot.textContent = sign >= 0 ? '⬆' : '⬇';
+      dot.style.position = 'absolute';
+      dot.style.left = (30 + Math.random() * 40) + '%';
+      dot.style.top = (10 + Math.random() * 80) + '%';
+      dot.style.fontSize = '12px';
+      dot.style.fontWeight = '900';
+      dot.style.opacity = '0.95';
+      dot.style.color = sign >= 0 ? '#facc15' : '#fca5a5';
+      dot.style.textShadow = '0 0 18px rgba(251,191,36,0.3)';
+      dot.style.pointerEvents = 'none';
+      layer.appendChild(dot);
+
+      const dx = (sign >= 0 ? 1 : -1) * (10 + Math.random() * 12);
+      const dy = (sign >= 0 ? -1 : 1) * (6 + Math.random() * 10);
+      dot.animate(
+        [
+          { transform: 'translate(0px,0px) scale(1)', opacity: 0.95 },
+          { transform: `translate(${dx}px,${dy}px) scale(1.12)`, opacity: 0.35 }
+        ],
+        { duration: 520, easing: 'ease-out' }
+      );
+
+      setTimeout(() => dot.remove(), 560);
+    }
+  }
+
   window.CandleManager = {
     // deltaStok: masuk(+)/keluar(-)
-    applyStockDelta: function (deltaStok) {
+    applyStockDelta: function (deltaStok, meta = {}) {
       const delta = safeNumber(deltaStok, 0);
       if (!delta) return;
 
+      // Visual trading-like: shake + glide + candle pulse
       flashCandle(delta, { scope: 'stock' });
+      try {
+        // trigger a light "trade" sweep without layout shift
+        const track = document.getElementById('stockProgressFill');
+        if (track) {
+          const dir = delta >= 0 ? 1 : -1;
+          track.animate(
+            [
+              { transform: `translateX(0px) scaleX(1)`, filter: 'brightness(1)' },
+              { transform: `translateX(${dir * 6}px) scaleX(1.02)`, filter: 'brightness(1.2)' },
+              { transform: 'translateX(0px) scaleX(1)', filter: 'brightness(1)' }
+            ],
+            { duration: 520, easing: 'cubic-bezier(.2,.8,.2,1)' }
+          );
+        }
+      } catch (e) {}
 
       // Update progress berdasarkan estimasi total dari DOM
       const currentTotal = getStockTotalFromDOMFallback();
@@ -164,6 +236,7 @@
         localStorage.setItem('candle_stock_delta', JSON.stringify({ delta, t: Date.now() }));
       } catch (e) {}
     },
+
 
     // deltaPayment hanya efek visual
     applyPaymentDelta: function () {

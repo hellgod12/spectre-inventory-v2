@@ -177,6 +177,14 @@ async function deletePayment(id) {
             console.error('Gagal hapus payment:', delPayment);
             alert('❌ Gagal menghapus: ' + delPayment.message);
         } else {
+            // jika pembayaran dihapus => turunkan animasi pembayaran
+            try {
+                // untuk kesan "turun" kita panggil applyPaymentDelta juga (candle manager sudah punya pulse)
+                // namun kita biarkan sebagai visual umum.
+                window.CandleManager?.applyPaymentDelta?.();
+                localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+            } catch (e) {}
+
             alert('✅ RECORD PEMBAYARAN BERHASIL DIHAPUS');
             await loadPayments();
         }
@@ -185,6 +193,7 @@ async function deletePayment(id) {
         alert('❌ Error: ' + err.message);
     }
 }
+
 
 async function confirmPayment(id) {
     const { error } = await supabaseClient
@@ -199,6 +208,13 @@ async function confirmPayment(id) {
             localPayments[index].status = 'Sudah Bayar';
             localPayments[index].confirmed_at = new Date().toISOString();
             localStorage.setItem('payments', JSON.stringify(localPayments));
+
+            // animasi pembayaran turun/naik saat konfirmasi (di HP)
+            try {
+                window.CandleManager?.applyPaymentDelta?.();
+                localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+            } catch (e) {}
+
             await loadPayments();
             return;
         }
@@ -207,8 +223,15 @@ async function confirmPayment(id) {
         return;
     }
 
+    // sukses remote => animasi pembayaran (naik)
+    try {
+        window.CandleManager?.applyPaymentDelta?.();
+        localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+    } catch (e) {}
+
     await loadPayments();
 }
+
 
 async function loadDashboard() {
     const container = document.getElementById('productContainer');
@@ -241,6 +264,10 @@ async function loadDashboard() {
     let profitAsli = 0;
     let totalTerjualCount = 0;
 
+    // Profit per produk (modal vs revenue terjual)
+    // profitProduk[p.nama_barang] = { nama_barang, kategori, ukuran, profit, revenue, modalTotal, qty }
+    const profitProduk = new Map();
+
     // Hitung sisa stok di gudang saat ini
     if (products) {
         products.forEach(item => { totalStock += parseInt(item.stok || 0); });
@@ -249,15 +276,39 @@ async function loadDashboard() {
 
     // Hitung total penjualan dari tabel riwayat
     if (salesHistory) {
+        // Pre-map produk modal per nama_barang
+        const modalMap = new Map();
+        (products || []).forEach(p => {
+            modalMap.set(String(p.nama_barang || '').toUpperCase(), parseFloat(p.harga_modal || 0));
+        });
+
         salesHistory.forEach(sale => {
-            omsetAsli += parseFloat(sale.total_harga || 0);
-            totalTerjualCount += parseInt(sale.jumlah || 0);
-            
-            // Cari kecocokan modal untuk hitung profit bersih asli
-            const dataBarang = products ? products.find(p => p.nama_barang === sale.nama_barang) : null;
-            const modalSatuan = dataBarang ? parseFloat(dataBarang.harga_modal || 0) : 0;
-            const totalModal = modalSatuan * parseInt(sale.jumlah || 0);
-            profitAsli += (parseFloat(sale.total_harga || 0) - totalModal);
+            const nama = String(sale.nama_barang || '').toUpperCase();
+            const qty = parseInt(sale.jumlah || 0);
+            const revenue = parseFloat(sale.total_harga || 0);
+            const modalSatuan = modalMap.get(nama) || 0;
+            const totalModal = modalSatuan * qty;
+
+            omsetAsli += revenue;
+            totalTerjualCount += qty;
+            profitAsli += (revenue - totalModal);
+
+            const prev = profitProduk.get(nama) || {
+                nama_barang: sale.nama_barang,
+                kategori: (products || []).find(p => String(p.nama_barang||'').toUpperCase() === nama)?.kategori || 'Apparel',
+                ukuran: (products || []).find(p => String(p.nama_barang||'').toUpperCase() === nama)?.ukuran || '',
+                profit: 0,
+                revenue: 0,
+                modalTotal: 0,
+                qty: 0
+            };
+
+            prev.revenue += revenue;
+            prev.modalTotal += totalModal;
+            prev.profit += (revenue - totalModal);
+            prev.qty += qty;
+
+            profitProduk.set(nama, prev);
         });
     }
 
@@ -458,9 +509,65 @@ async function loadDashboard() {
         soldContainer.innerHTML = soldHtml;
     }
 
+    // Render candle profit per produk (modal + revenue terjual)
+    const candleContainer = document.getElementById('productCandleContainer');
+    if (candleContainer) {
+        if (!profitProduk || profitProduk.size === 0) {
+            candleContainer.innerHTML = `<div class="col-span-full p-4 text-center text-slate-600 text-xs uppercase">>> Belum ada transaksi profit per produk...</div>`;
+        } else {
+            // ambil max abs profit untuk scaling
+            let maxAbs = 0;
+            profitProduk.forEach(v => {
+                const abs = Math.abs(v.profit || 0);
+                if (abs > maxAbs) maxAbs = abs;
+            });
+            if (!maxAbs) maxAbs = 1;
+
+            const cards = [];
+            profitProduk.forEach((v, key) => {
+                const profit = v.profit || 0;
+                const percent = Math.min(100, Math.round((Math.abs(profit) / maxAbs) * 100));
+                const isNeg = profit < 0;
+                const badgeBg = isNeg ? 'bg-red-950/60 text-red-400' : 'bg-emerald-950/60 text-emerald-300';
+                const fillBg = isNeg ? 'linear-gradient(90deg, #ef4444, #7f1d1d)' : 'linear-gradient(90deg, #10b981, #34d399)';
+
+                const safeNama = (v.nama_barang || key || '').toString().toUpperCase();
+                const candleCard = `
+                    <div class="ghost-panel panel-glow p-3 rounded-none border border-red-950/20 bg-black/30 flex flex-col gap-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0">
+                                <div class="text-[10px] text-slate-300 uppercase font-bold truncate">${safeNama}</div>
+                                <div class="text-[9px] text-slate-500 uppercase">Modal: Rp ${(v.modalTotal||0).toLocaleString('id-ID')}</div>
+                            </div>
+                            <span class="badge ${badgeBg} text-[10px] whitespace-nowrap">${profit < 0 ? 'NEG' : 'POS'} ${percent}%</span>
+                        </div>
+                        <div class="candle-progress" style="margin-top:0; padding:0.65rem;">
+                            <div class="candle-flame" style="width:12px; height:20px; opacity:0.95;"></div>
+                            <div class="progress-track">
+                                <div class="progress-fill" style="height:10px; width:${percent}%; background:${fillBg}; box-shadow:none;"></div>
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-bold text-right ${isNeg ? 'text-red-400' : 'text-emerald-300'}">
+                            Profit: Rp ${(profit||0).toLocaleString('id-ID')}
+                        </div>
+                    </div>
+                `;
+                cards.push(candleCard);
+            });
+
+            candleContainer.innerHTML = cards.join('');
+
+            // Trigger a gentle pulse so it doesn't feel static
+            try {
+                window.CandleManager?.applyPaymentDelta?.();
+            } catch (e) {}
+        }
+    }
+
     await loadPayments();
     await loadExpenses();
 }
+
 
 async function loadExpenses() {
     const expenseContainer = document.getElementById('expenseContainer');
