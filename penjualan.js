@@ -3,6 +3,8 @@ const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const selectProduct = document.getElementById('selectProduct');
+const selectMember = document.getElementById('selectMember');
+const boxMemberSelect = document.getElementById('boxMemberSelect');
 const inputJumlah = document.getElementById('inputJumlah');
 const previewHargaSatuan = document.getElementById('previewHargaSatuan');
 const previewTotal = document.getElementById('previewTotal');
@@ -12,15 +14,40 @@ const salesForm = document.getElementById('salesForm');
 let allProducts = [];
 let selectedProduct = null;
 
-async function fetchProductsForSales() {
-    const { data, error } = await supabaseClient.from('products').select('*').order('nama_barang');
-    if (error) return console.error(error);
-    
-    allProducts = data;
-    selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
-    data.forEach(p => {
-        selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()} [SISA_STOK: ${p.stok}]</option>`;
-    });
+// 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
+async function initTerminalData() {
+    // Ambil Produk
+    const { data: prods } = await supabaseClient.from('products').select('*').order('nama_barang');
+    if (prods) {
+        allProducts = prods;
+        selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
+        prods.forEach(p => {
+            selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()} [STOK: ${p.stok}]</option>`;
+        });
+    }
+
+    // Ambil No Telepon Member
+    const { data: mems } = await supabaseClient.from('members').select('*').order('nama');
+    if (mems) {
+        selectMember.innerHTML = '<option value="">-- PILIH NO TELEPON MEMBER --</option>';
+        mems.forEach(m => {
+            selectMember.innerHTML += `<option value="${m.telepon}">${m.telepon} [${m.nama.toUpperCase()}]</option>`;
+        });
+    }
+}
+
+// 2. Tampilkan/Sembunyikan Pilihan No Telepon Tergantung Radio Button yang Dipilih
+function handleTypeChange() {
+    const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
+    if (tipePembeli === 'Member') {
+        boxMemberSelect.classList.remove('hidden');
+        selectMember.setAttribute('required', 'true');
+    } else {
+        boxMemberSelect.classList.add('hidden');
+        selectMember.removeAttribute('required');
+        selectMember.value = "";
+    }
+    updatePricePreview();
 }
 
 function updatePricePreview() {
@@ -43,13 +70,9 @@ function updatePricePreview() {
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
-    if (selectedProduct.kategori === 'Skateboard') {
-        sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
-    } else if (selectedProduct.kategori === 'Perlengkapan') {
-        sectorLabel = `<span class="text-orange-400 font-bold">[SPAREPART_GEAR] 🛠️</span>`;
-    } else if (selectedProduct.kategori === 'Apparel') {
-        sectorLabel = `<span class="text-zinc-400 font-bold">[APPAREL_BAJU] 👕</span>`;
-    }
+    if (selectedProduct.kategori === 'Skateboard') sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
+    else if (selectedProduct.kategori === 'Perlengkapan') sectorLabel = `<span class="text-orange-400 font-bold">[SPAREPART_GEAR] 🛠️</span>`;
+    else if (selectedProduct.kategori === 'Apparel') sectorLabel = `<span class="text-zinc-400 font-bold">[APPAREL_BAJU] 👕</span>`;
 
     productDetail.innerHTML = `
         <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
@@ -62,7 +85,8 @@ function updatePricePreview() {
 
 selectProduct.addEventListener('change', updatePricePreview);
 inputJumlah.addEventListener('input', updatePricePreview);
-document.querySelectorAll('input[name="tipe_pembeli"]').forEach(r => r.addEventListener('change', updatePricePreview));
+document.getElementById('typeUmum').addEventListener('change', handleTypeChange);
+document.getElementById('typeMember').addEventListener('change', handleTypeChange);
 
 salesForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -75,37 +99,37 @@ salesForm.addEventListener('submit', async (e) => {
     }
 
     const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
+    const nomorTelpInfo = selectMember.value; 
+    
+    // Format struktur orang untuk disimpan ke sales_history (misal: "Member (08123456)")
+    const identitasPembeli = tipePembeli === 'Member' ? `Member (${nomorTelpInfo})` : 'Umum';
+
     const hargaSatuan = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
     const totalHarga = hargaSatuan * jumlahJual;
 
-    // 1. Potong Stok di Tabel Products
+    // 1. Potong Stok
     const sisaStokBaru = selectedProduct.stok - jumlahJual;
-    const { error: updateError } = await supabaseClient
-        .from('products')
-        .update({ stok: sisaStokBaru })
-        .eq('id', selectedProduct.id);
-
+    const { error: updateError } = await supabaseClient.from('products').update({ stok: sisaStokBaru }).eq('id', selectedProduct.id);
     if (updateError) return alert('Gagal potong stok: ' + updateError.message);
 
-    // 2. Suntik Data Transaksi Riwayat Ke Tabel sales_history (Tanggal otomatis diisi database)
-    const { error: historyError } = await supabaseClient
-        .from('sales_history')
-        .insert([{ 
-            nama_barang: selectedProduct.nama_barang, 
-            kategori: selectedProduct.kategori, 
-            jumlah: jumlahJual, 
-            total_harga: totalHarga, 
-            tipe_pembeli: tipePembeli 
-        }]);
+    // 2. Simpan Riwayat
+    const { error: historyError } = await supabaseClient.from('sales_history').insert([{ 
+        nama_barang: selectedProduct.nama_barang, 
+        kategori: selectedProduct.kategori, 
+        jumlah: jumlahJual, 
+        total_harga: totalHarga, 
+        tipe_pembeli: identitasPembeli
+    }]);
 
     if (historyError) {
         alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
     } else {
-        alert('🎉 EKSEKUSI BERHASIL // Mutasi keluar dicatat & Tanggal distempel otomatis!');
+        alert('🎉 EKSEKUSI BERHASIL // Transaksi terikat nomor telepon member sukses!');
         salesForm.reset();
-        fetchProductsForSales();
+        boxMemberSelect.classList.add('hidden');
+        initTerminalData();
         updatePricePreview();
     }
 });
 
-document.addEventListener('DOMContentLoaded', fetchProductsForSales);
+document.addEventListener('DOMContentLoaded', initTerminalData);
