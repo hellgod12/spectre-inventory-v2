@@ -5,53 +5,123 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SPECTRE // Panel Operasi Rahasia</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Share Tech Mono', monospace; background-color: #020205; background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; }
-        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 10px #ef4444, 0 0 20px #7f1d1d; letter-spacing: 0.15em; }
-        .ghost-panel { background: rgba(6, 6, 10, 0.9); border: 1px solid rgba(239, 68, 68, 0.2); box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.05); }
+        body { 
+            font-family: 'Share Tech Mono', monospace; 
+            background-color: #020205;
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+        }
+        .scary-logo {
+            font-family: 'Creepster', cursive;
+            text-shadow: 0 0 10px #ef4444, 0 0 20px #7f1d1d;
+            letter-spacing: 0.15em;
+        }
+        .ghost-panel { 
+            background: rgba(6, 6, 10, 0.9);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.05);
+        }
         .neon-glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
-        @keyframes glitch { 0% { opacity: 1; } 50% { opacity: 0.8; text-shadow: -2px 0 red, 2px 0 blue; } 100% { opacity: 1; } }
+        @keyframes glitch {
+            0% { opacity: 1; }
+            50% { opacity: 0.8; text-shadow: -2px 0 red, 2px 0 blue; }
+            100% { opacity: 1; }
+        }
         .glitch-text { animation: glitch 2s infinite; }
     </style>
 </head>
 <body class="text-rose-100 min-h-screen p-4 md:p-8 selection:bg-red-600 selection:text-white">
+
     <div class="max-w-7xl mx-auto space-y-6">
+        
         <div class="ghost-panel p-6 rounded-none flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-red-600">
             <div>
                 <div class="flex items-baseline gap-3">
                     <h1 class="text-4xl md:text-5xl text-red-500 scary-logo glitch-text">SPECTRE</h1>
                     <span class="text-xs font-bold tracking-widest text-red-600 animate-pulse">// SISTEM_OVERLOAD</span>
                 </div>
+                <p class="text-slate-500 text-[9px] uppercase tracking-widest mt-1">PERINGATAN: AKSES TANPA IZIN KE TERMINAL INI AKAN DIKUNCI DAN DIHANCURKAN.</p>
             </div>
+            
             <div class="flex flex-wrap gap-2 w-full md:w-auto">
-                <a href="member.html" class="flex-1 md:flex-none text-center bg-purple-950/40 text-purple-400 border border-purple-500/30 font-bold text-[11px] uppercase px-4 py-3">👤 MEMBER</a>
-                <a href="penjualan.html" class="flex-1 md:flex-none text-center bg-transparent text-red-400 border border-red-500/40 font-bold text-[11px] uppercase px-4 py-3">☠️ KASIR</a>
-                <a href="barang.html" class="flex-1 md:flex-none text-center bg-red-700 text-white font-bold text-[11px] uppercase px-4 py-3 neon-glow-red">+ SUNTIK BARANG</a>
+                <a href="member.html" class="flex-1 md:flex-none text-center bg-purple-950/40 hover:bg-purple-900/40 text-purple-400 border border-purple-500/30 font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all">
+                    👤 + DAFTAR MEMBER
+                </a>
+                <a href="penjualan.html" class="flex-1 md:flex-none text-center bg-transparent hover:bg-red-500/10 text-red-400 border border-red-500/40 font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all duration-300">
+                    ☠️ TERMINAL KASIR
+                </a>
+                <a href="barang.html" class="flex-1 md:flex-none text-center bg-red-700 hover:bg-red-600 text-white font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all duration-300 neon-glow-red">
+                    + SUNTIK BARANG
+                </a>
             </div>
         </div>
 
-        <div class="ghost-panel p-6 border-l-4 border-l-purple-700 bg-stone-950/60 text-center">
-            <div id="quoteBox" class="text-lg text-rose-200 font-bold italic tracking-wider animate-pulse">"MEMUAT_PROTOKOL..."</div>
-        </div>
-        <div class="ghost-panel rounded-none p-6 border-t-2 border-t-emerald-500 bg-stone-950/30">
-            <h2 class="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-4">// ANALISIS_CANDLE_FINANSIAL</h2>
-            <div id="candleChart" class="w-full"></div>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-600 bg-red-950/10">
+                <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// OMSET_KOTOR]</p>
+                <p id="totalOmset" class="text-lg md:text-xl font-black text-red-400 mt-2">Rp 0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">VALUASI_BRUTO</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-rose-500">
+                <p class="text-rose-400/70 text-[10px] font-bold uppercase tracking-widest">[// PROFIT_BERSIH]</p>
+                <p id="totalProfit" class="text-lg md:text-xl font-black text-rose-400 mt-2">Rp 0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">KEUNTUNGAN_BERSIH</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-stone-600">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">[// ITEM_TERJUAL]</p>
+                <p id="totalSalesCount" class="text-xl md:text-2xl font-black text-white mt-2">0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">TOTAL_DIKASIRKAN</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-purple-600">
+                <p class="text-purple-400 text-[10px] font-bold uppercase tracking-widest">[// ANGGOTA_TERKUNCI]</p>
+                <p id="totalMembers" class="text-xl md:text-2xl font-black text-purple-500 mt-2">0 Jiwa</p>
+                <span class="text-[9px] text-slate-600 block mt-1">JUMLAH_MEMBER</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-zinc-700">
+                <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">[// VARIAN_MODEL]</p>
+                <p id="totalItems" class="text-xl md:text-2xl font-black text-zinc-300 mt-2">0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">SKU_TERDAFTAR</span>
+            </div>
+            <div class="ghost-panel p-4 rounded-none border-b-2 border-b-orange-700">
+                <p class="text-orange-500/70 text-[10px] font-bold uppercase tracking-widest">[// AMUNISI_STOK]</p>
+                <p id="totalStock" class="text-xl md:text-2xl font-black text-orange-400 mt-2">0</p>
+                <span class="text-[9px] text-slate-600 block mt-1">STOK_FISIK_GUDANG</span>
+            </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-6 gap-4">
-            <div class="ghost-panel p-4 border-b-2 border-b-red-600"><p class="text-[10px] uppercase">OMSET</p><p id="totalOmset" class="text-xl font-black text-red-400">Rp 0</p></div>
-            <div class="ghost-panel p-4 border-b-2 border-b-rose-500"><p class="text-[10px] uppercase">PROFIT</p><p id="totalProfit" class="text-xl font-black text-rose-400">Rp 0</p></div>
-            <div class="ghost-panel p-4 border-b-2 border-b-stone-600"><p class="text-[10px] uppercase">TERJUAL</p><p id="totalSalesCount" class="text-xl font-black text-white">0</p></div>
-            <div class="ghost-panel p-4 border-b-2 border-b-purple-600"><p class="text-[10px] uppercase">MEMBER</p><p id="totalMembers" class="text-xl font-black text-purple-500">0</p></div>
-            <div class="ghost-panel p-4 border-b-2 border-b-zinc-700"><p class="text-[10px] uppercase">VARIAN</p><p id="totalItems" class="text-xl font-black text-zinc-300">0</p></div>
-            <div class="ghost-panel p-4 border-b-2 border-b-orange-700"><p class="text-[10px] uppercase">STOK</p><p id="totalStock" class="text-xl font-black text-orange-400">0</p></div>
+        <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// DATABASE_STOK_BARANG</h2>
+                <span class="text-[9px] text-red-700 font-bold animate-pulse">KONEKSI_AMAN_TERSEDIA</span>
+            </div>
+            <div class="overflow-x-auto border border-red-950 bg-black/80">
+                <div id="productContainer">
+                    <div class="p-12 text-center text-red-600 text-xs uppercase animate-pulse">
+                        >> MENGEKSTRAKSI ENKRIPSI DATA SERVER UTAMA...
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="productContainer" class="ghost-panel p-6"></div>
-        <div id="soldContainer" class="ghost-panel p-6 bg-black/20"></div>
+
+        <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl bg-black/20">
+            <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-rose-500">// LOG_BARANG_TERJUAL_REALTIME</h2>
+                <span class="text-[9px] text-rose-800 font-bold">MUTASI_KASIR_AKTIF</span>
+            </div>
+            <div class="overflow-x-auto border border-red-950 bg-black/90">
+                <div id="soldContainer">
+                    <div class="p-8 text-center text-slate-600 text-xs uppercase">
+                        >> Tidak ada aktivitas keluar kasir baru-baru ini.
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
