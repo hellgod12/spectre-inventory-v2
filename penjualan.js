@@ -235,6 +235,7 @@ salesForm.addEventListener('submit', async (e) => {
 
     // 2. Simpan Riwayat
     const { error: historyError } = await supabaseClient.from('sales_history').insert([{ 
+        payment_id: paymentRecord.id,
         nama_barang: selectedProduct.nama_barang, 
         kategori: selectedProduct.kategori,
         ukuran: selectedProduct.ukuran || null,

@@ -119,15 +119,26 @@ async function loadPayments() {
 }
 
 async function deletePayment(id) {
-    const konfirmasi = confirm('[PERINGATAN] HAPUS RECORD PEMBAYARAN INI? Tidak bisa dikembalikan.');
+    const konfirmasi = confirm('[PERINGATAN] HAPUS RECORD PEMBAYARAN INI? Log penjualan tetap jalan. Tidak bisa dikembalikan.');
     if (!konfirmasi) return;
 
-    const { error } = await supabaseClient.from('payments').delete().eq('id', id);
-    if (error) {
-        console.error('Gagal hapus payment:', error);
-        alert('Gagal menghapus: ' + error.message);
-    } else {
-        await loadPayments();
+    try {
+        // Hapus payment record saja, sales_history tetap ada
+        const { error: delPayment } = await supabaseClient
+            .from('payments')
+            .delete()
+            .eq('id', id);
+
+        if (delPayment) {
+            console.error('Gagal hapus payment:', delPayment);
+            alert('❌ Gagal menghapus: ' + delPayment.message);
+        } else {
+            alert('✅ RECORD PEMBAYARAN BERHASIL DIHAPUS');
+            await loadPayments();
+        }
+    } catch (err) {
+        console.error('Error deleting payment:', err);
+        alert('❌ Error: ' + err.message);
     }
 }
 
