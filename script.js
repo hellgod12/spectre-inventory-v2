@@ -106,7 +106,8 @@ async function loadPayments() {
                 <td class="p-3">${payment.method}</td>
                 <td class="p-3"><span class="badge ${statusClass}">${payment.status}</span></td>
                 <td class="p-3 text-center">
-                    ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold uppercase">Konfirmasi</button>` : `-`}
+                    ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold uppercase mr-2">Konfirmasi</button>` : ``}
+                    <button onclick="deletePayment('${payment.id}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
                 </td>
             </tr>
         `;
@@ -115,6 +116,19 @@ async function loadPayments() {
     html += `</tbody></table>`;
     paymentsContainer.innerHTML = html;
     updateDashboardProgress(payments);
+}
+
+async function deletePayment(id) {
+    const konfirmasi = confirm('[PERINGATAN] HAPUS RECORD PEMBAYARAN INI? Tidak bisa dikembalikan.');
+    if (!konfirmasi) return;
+
+    const { error } = await supabaseClient.from('payments').delete().eq('id', id);
+    if (error) {
+        console.error('Gagal hapus payment:', error);
+        alert('Gagal menghapus: ' + error.message);
+    } else {
+        await loadPayments();
+    }
 }
 
 async function confirmPayment(id) {
@@ -369,4 +383,5 @@ async function deleteProduct(id, namaBarang) {
 
 document.getElementById('refreshPaymentsBtn')?.addEventListener('click', loadPayments);
 window.confirmPayment = confirmPayment;
+window.deletePayment = deletePayment;
 document.addEventListener('DOMContentLoaded', loadDashboard);

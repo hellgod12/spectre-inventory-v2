@@ -192,9 +192,9 @@ salesForm.addEventListener('submit', async (e) => {
     const hargaSatuan = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
     const totalHarga = hargaSatuan * jumlahJual;
 
-    // Metode Pembayaran (Cash / Transfer / Belum Bayar)
+    // Metode Pembayaran (Cash / Transfer = Sudah Bayar) | (Belum Bayar = Unpaid)
     const metodePembayaran = document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Cash';
-    const isUnpaidMethod = metodePembayaran === 'Transfer' || metodePembayaran === 'Belum Bayar';
+    const isUnpaidMethod = metodePembayaran === 'Belum Bayar';
 
     const paymentRecord = {
         id: 'pay_' + Date.now(),
