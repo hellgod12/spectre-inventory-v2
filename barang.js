@@ -1,4 +1,3 @@
-// Konfigurasi Supabase Resmi (Sudah diisi otomatis)
 const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 
@@ -6,45 +5,47 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const productForm = document.getElementById('productForm');
 const btnSimpan = document.getElementById('btnSimpan');
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toastMessage');
+
+// Fungsi untuk memicu notifikasi toast meluncur dari samping
+function showToast(message) {
+    toastMessage.innerText = message;
+    toast.style.transform = "translateX(0)";
+    
+    setTimeout(() => {
+        toast.style.transform = "translateX(150%)";
+    }, 4000);
+}
 
 productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    // Animasi tombol loading pas di-klik biar user tahu proses sedang berjalan
-    btnSimpan.innerText = 'Menyimpan ke Supabase...';
+    // Berikan efek transisi loading pada tombol
+    btnSimpan.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Menyimpan data...`;
     btnSimpan.disabled = true;
-    btnSimpan.style.background = '#475569';
+    btnSimpan.classList.replace('bg-emerald-600', 'bg-slate-700');
 
-    // Menangkap isi form input dari halaman barang.html
     const nama_barang = document.getElementById('nama_barang').value;
     const stok = parseInt(document.getElementById('stok').value);
     const harga_modal = parseFloat(document.getElementById('harga_modal').value);
     const harga_jual = parseFloat(document.getElementById('harga_jual').value);
     const harga_member = parseFloat(document.getElementById('harga_member').value);
 
-    // Kirim data baru masuk ke tabel 'products'
+    // Kirim data baru ke Supabase
     const { data, error } = await supabaseClient
         .from('products')
-        .insert([
-            {
-                nama_barang,
-                stok,
-                harga_modal,
-                harga_jual,
-                harga_member
-            }
-        ]);
+        .insert([{ nama_barang, stok, harga_modal, harga_jual, harga_member }]);
 
     if (error) {
-        alert('❌ Gagal menyimpan data: ' + error.message);
-        console.error(error);
+        alert('❌ Error: ' + error.message);
     } else {
-        alert('🎉 Sukses! Produk "' + nama_barang + '" berhasil ditambahkan ke SPECTRE database.');
-        productForm.reset(); // Mereset form biar bersih kembali
+        showToast(`Sukses! "${nama_barang}" berhasil disimpan.`);
+        productForm.reset();
     }
 
-    // Mengembalikan tombol ke mode normal setelah selesai input
-    btnSimpan.innerText = 'Simpan ke Database';
+    // Kembalikan status tombol seperti semula
+    btnSimpan.innerHTML = 'Simpan ke Database';
     btnSimpan.disabled = false;
-    btnSimpan.style.background = '#10b981';
+    btnSimpan.classList.replace('bg-slate-700', 'bg-emerald-600');
 });
