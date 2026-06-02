@@ -4,7 +4,9 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const selectProduct = document.getElementById('selectProduct');
 const selectMember = document.getElementById('selectMember');
+const selectUkuran = document.getElementById('selectUkuran');
 const boxMemberSelect = document.getElementById('boxMemberSelect');
+const boxUkuranSelect = document.getElementById('boxUkuranSelect');
 const inputJumlah = document.getElementById('inputJumlah');
 const previewHargaSatuan = document.getElementById('previewHargaSatuan');
 const previewTotal = document.getElementById('previewTotal');
@@ -22,7 +24,8 @@ async function initTerminalData() {
         allProducts = prods;
         selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
         prods.forEach(p => {
-            selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()} [STOK: ${p.stok}]</option>`;
+            const sizeInfo = p.ukuran ? ` [${p.ukuran}]` : '';
+            selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()}${sizeInfo} [STOK: ${p.stok}]</option>`;
         });
     }
 
@@ -58,7 +61,20 @@ function updatePricePreview() {
         previewHargaSatuan.innerText = 'Rp 0';
         previewTotal.innerText = 'Rp 0';
         productDetail.innerHTML = '<p class="text-red-900/60 text-[10px] uppercase">>> MENUNGGU PILIHAN PRODUK...</p>';
+        boxUkuranSelect.classList.add('hidden');
+        selectUkuran.removeAttribute('required');
         return;
+    }
+
+    // Tampilkan ukuran kalau ada
+    if (selectedProduct.ukuran) {
+        selectUkuran.innerHTML = `<option value="${selectedProduct.ukuran}">${selectedProduct.ukuran}</option>`;
+        boxUkuranSelect.classList.remove('hidden');
+        selectUkuran.setAttribute('required', 'true');
+    } else {
+        boxUkuranSelect.classList.add('hidden');
+        selectUkuran.removeAttribute('required');
+        selectUkuran.value = '';
     }
 
     const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
@@ -78,6 +94,7 @@ function updatePricePreview() {
         <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
             <div><span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b></div>
             <div><span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> ${sectorLabel}</div>
+            ${selectedProduct.ukuran ? `<div><span class="text-red-700 block text-[9px] uppercase">// UKURAN</span> <b class="text-yellow-400">${selectedProduct.ukuran}</b></div>` : ''}
             <div><span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b></div>
         </div>
     `;
@@ -115,7 +132,8 @@ salesForm.addEventListener('submit', async (e) => {
     // 2. Simpan Riwayat
     const { error: historyError } = await supabaseClient.from('sales_history').insert([{ 
         nama_barang: selectedProduct.nama_barang, 
-        kategori: selectedProduct.kategori, 
+        kategori: selectedProduct.kategori,
+        ukuran: selectedProduct.ukuran || null,
         jumlah: jumlahJual, 
         total_harga: totalHarga, 
         tipe_pembeli: identitasPembeli
