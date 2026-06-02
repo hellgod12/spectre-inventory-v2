@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Barang - SPECTRE</title>
+
+<link rel="stylesheet" href="style.css">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</head>
+<body>
+
+<div class="content">
+
+<h1>Data Barang</h1>
+
+<div class="toolbar">
+
+<input
+type="text"
+id="search"
+placeholder="Cari barang..."
+onkeyup="cariBarang()">
+
+<button onclick="tampilForm()">
++ Tambah Barang
+</button>
+
+</div>
+
+<div class="form-box" id="formBox">
+
+<input type="hidden" id="id">
+
+<input type="text" id="nama_barang" placeholder="Nama Barang">
+
+<input type="number" id="stok" placeholder="Stok">
+
+<input type="number" id="harga_modal" placeholder="Harga Modal">
+
+<input type="number" id="harga_jual" placeholder="Harga Jual">
+
+<input type="number" id="harga_member" placeholder="Harga Member">
+
+<button onclick="simpanBarang()">
+Simpan
+</button>
+
+</div>
+
+<table>
+
+<thead>
+<tr>
+<th>ID</th>
+<th>Nama</th>
+<th>Stok</th>
+<th>Modal</th>
+<th>Jual</th>
+<th>Member</th>
+<th>Aksi</th>
+</tr>
+</thead>
+
+<tbody id="tbodyBarang">
+
+</tbody>
+
+</table>
+
+</div>
+
+<script src="barang.js"></script>
+
+</body>
+</html>
