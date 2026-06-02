@@ -57,13 +57,13 @@
                         </div>
                     </div>
                     <div class="candle-progress">
-                        <div class="progress-track"><div class="progress-fill"></div></div>
+                        <div class="progress-track"><div id="stockProgressFill" class="progress-fill"></div></div>
                         <div class="text-right">
-                            <span class="block text-[10px] uppercase text-slate-400">Kapasitas</span>
-                            <strong class="text-white text-sm">74% siap</strong>
+                            <span id="stockCapacityLabel" class="block text-[10px] uppercase text-slate-400">Kapasitas</span>
+                            <strong id="stockCapacityText" class="text-white text-sm">74% siap</strong>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: stok rapi, nalar tajam, dan gelapnya kasir tetap terjaga.</p>
+                    <p id="stockStatusNote" class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: stok rapi, nalar tajam, dan gelapnya kasir tetap terjaga.</p>
                 </div>
             </div>
         </div>
@@ -95,7 +95,7 @@
                 </div>
 
                 <div>
-                    <label class="form-label">// QUANTITY_LOAD</label>
+                    <label class="form-label">// STOCK_INJECTION</label>
                     <input type="number" id="stok" class="input-field" placeholder="0" required>
                 </div>
 
@@ -115,8 +115,12 @@
                 </div>
 
                 <button type="submit" id="btnSimpan" class="action-btn w-full bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-3.5 neon-glow-red">
-                    EXECUTE_INJECTION
+                    SUMMON_STOK
                 </button>
+                <div id="stockEntryStatus" class="mt-4 rounded-sm border border-red-900/40 bg-red-950/10 p-4 text-[11px] text-slate-300 uppercase tracking-[.25em]">
+                    <strong class="block text-red-400 mb-2">STATUS: MENUNGGU KONFIRMASI INJEKSI</strong>
+                    <span>Masukkan stok baru untuk melihat efek gudang seram.</span>
+                </div>
             </form>
         </div>
     </div>
