@@ -299,6 +299,7 @@ async function loadDashboard() {
                         <th class="p-4 font-bold">STRUKTUR_ORANG</th>
                         <th class="p-4 font-bold text-center">KUANTITAS</th>
                         <th class="p-4 font-bold">TOTAL_DANA_MASUK</th>
+                        <th class="p-4 font-bold text-center">AKSI</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-red-950/20 bg-black/60">
@@ -321,6 +322,9 @@ async function loadDashboard() {
                     <td class="p-4">${orangBadge}</td>
                     <td class="p-4 text-center text-rose-400 font-bold">${sale.jumlah} PCS</td>
                     <td class="p-4 text-emerald-400 font-bold">Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteFromSalesHistory(${sale.id}, '${sale.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                    </td>
                 </tr>
             `;
         });
@@ -384,6 +388,29 @@ async function loadExpenses() {
     expenseContainer.innerHTML = html;
 }
 
+async function deleteFromSalesHistory(id, namaBarang) {
+    const konfirmasi = confirm(`[PERINGATAN] HAPUS RECORD PENJUALAN "${namaBarang.toUpperCase()}"? Tidak bisa dikembalikan.`);
+    if (!konfirmasi) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('sales_history')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Gagal hapus sales_history:', error);
+            alert('❌ Gagal menghapus: ' + error.message);
+        } else {
+            alert('✅ RECORD PENJUALAN BERHASIL DIHAPUS');
+            await loadDashboard();
+        }
+    } catch (err) {
+        console.error('Error deleting sales_history:', err);
+        alert('❌ Error: ' + err.message);
+    }
+}
+
 async function deleteProduct(id, namaBarang) {
     const konfirmasi = confirm(`[PERINGATAN] HANCURKAN "${namaBarang.toUpperCase()}" PERMANEN?`);
     if (konfirmasi) {
@@ -395,4 +422,5 @@ async function deleteProduct(id, namaBarang) {
 document.getElementById('refreshPaymentsBtn')?.addEventListener('click', loadPayments);
 window.confirmPayment = confirmPayment;
 window.deletePayment = deletePayment;
+window.deleteFromSalesHistory = deleteFromSalesHistory;
 document.addEventListener('DOMContentLoaded', loadDashboard);
