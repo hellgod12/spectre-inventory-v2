@@ -2,6 +2,80 @@ const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function formatCurrency(value) {
+    return 'Rp ' + Number(value).toLocaleString('id-ID');
+}
+
+async function loadPayments() {
+    const paymentsContainer = document.getElementById('paymentsContainer');
+    if (!paymentsContainer) return;
+
+    const { data: payments, error } = await supabaseClient
+        .from('payments')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        paymentsContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat pembayaran</div>`;
+        return;
+    }
+
+    if (!payments || payments.length === 0) {
+        paymentsContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Belum ada pembayaran</div>`;
+        return;
+    }
+
+    let html = `
+        <table class="w-full text-left border-collapse text-xs">
+            <thead>
+                <tr class="bg-stone-950 text-red-500/70 uppercase text-[10px]">
+                    <th class="p-3 font-bold">PEMBELI</th>
+                    <th class="p-3 font-bold">PRODUK</th>
+                    <th class="p-3 font-bold text-center">JUMLAH</th>
+                    <th class="p-3 font-bold">TOTAL</th>
+                    <th class="p-3 font-bold">METODE</th>
+                    <th class="p-3 font-bold">STATUS</th>
+                    <th class="p-3 font-bold">AKSI</th>
+                </tr>
+            </thead>
+            <tbody class="bg-black/60 divide-y divide-red-950/20">
+    `;
+
+    payments.forEach(payment => {
+        const statusClass = payment.status === 'Belum Bayar' ? 'status-belumbayar' : 'status-sudahbayar';
+        html += `
+            <tr class="hover:bg-red-950/10 transition-colors">
+                <td class="p-3 font-bold">${payment.buyer}</td>
+                <td class="p-3">${payment.product}</td>
+                <td class="p-3 text-center">${payment.jumlah}</td>
+                <td class="p-3">${formatCurrency(payment.total_harga)}</td>
+                <td class="p-3">${payment.method}</td>
+                <td class="p-3"><span class="badge ${statusClass}">${payment.status}</span></td>
+                <td class="p-3 text-center">
+                    ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-3 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold uppercase">Konfirmasi</button>` : `-`}
+                </td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>`;
+    paymentsContainer.innerHTML = html;
+}
+
+async function confirmPayment(id) {
+    const { error } = await supabaseClient
+        .from('payments')
+        .update({ status: 'Sudah Bayar', confirmed_at: new Date().toISOString() })
+        .eq('id', id);
+
+    if (error) {
+        alert('Gagal konfirmasi pembayaran: ' + error.message);
+        return;
+    }
+
+    await loadPayments();
+}
+
 async function loadDashboard() {
     const container = document.getElementById('productContainer');
     const soldContainer = document.getElementById('soldContainer');
@@ -153,6 +227,8 @@ async function loadDashboard() {
         soldHtml += `</tbody></table>`;
         soldContainer.innerHTML = soldHtml;
     }
+
+    await loadPayments();
 }
 
 async function deleteProduct(id, namaBarang) {
@@ -163,4 +239,6 @@ async function deleteProduct(id, namaBarang) {
     }
 }
 
+document.getElementById('refreshPaymentsBtn')?.addEventListener('click', loadPayments);
+window.confirmPayment = confirmPayment;
 document.addEventListener('DOMContentLoaded', loadDashboard);

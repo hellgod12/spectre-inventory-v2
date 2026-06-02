@@ -1,0 +1,12 @@
+/* Status badge styles */
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700;font-size:12px}
+.status-belumbayar{background:#1f2937;color:#f97316;border:1px solid rgba(249,115,22,0.12)}
+.status-sudahbayar{background:#052e16;color:#bbf7d0;border:1px solid rgba(34,197,94,0.12)}
+
+/* small helpers for dashboard */
+.confirmBtn{cursor:pointer}
+
+/* optional: status in penjualan form */
+.status-pill{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:700}
+.status-pill.belum{background:#2b1b04;color:#ffdca6}
+.status-pill.sudah{background:#042c2e;color:#bff7ef}

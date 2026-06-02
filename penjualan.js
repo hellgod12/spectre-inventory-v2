@@ -16,6 +16,17 @@ const salesForm = document.getElementById('salesForm');
 let allProducts = [];
 let selectedProduct = null;
 
+// LocalStorage payments helpers
+function loadPayments() {
+    try { return JSON.parse(localStorage.getItem('payments') || '[]'); } catch (e) { return []; }
+}
+
+function savePaymentRecord(record) {
+    const payments = loadPayments();
+    payments.push(record);
+    localStorage.setItem('payments', JSON.stringify(payments));
+}
+
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
 async function initTerminalData() {
     // Ambil Produk
@@ -123,6 +134,74 @@ salesForm.addEventListener('submit', async (e) => {
 
     const hargaSatuan = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
     const totalHarga = hargaSatuan * jumlahJual;
+
+    // Metode Pembayaran (default Cash / Transfer)
+    const metodePembayaran = document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Cash';
+
+    // Jika metode Transfer => buat pencatatan status di localStorage (Belum Bayar)
+    if (metodePembayaran === 'Transfer') {
+        const paymentRecord = {
+            id: 'pay_' + Date.now(),
+            buyer: identitasPembeli,
+            product: selectedProduct.nama_barang,
+            jumlah: jumlahJual,
+            total_harga: totalHarga,
+            method: 'Transfer',
+            status: 'Belum Bayar',
+            created_at: new Date().toISOString()
+        };
+        // Try to save to Supabase payments table; fallback to localStorage
+        try {
+            const { error: payErr } = await supabaseClient.from('payments').insert([{
+                id: paymentRecord.id,
+                buyer: paymentRecord.buyer,
+                product: paymentRecord.product,
+                jumlah: paymentRecord.jumlah,
+                total_harga: paymentRecord.total_harga,
+                method: paymentRecord.method,
+                status: paymentRecord.status,
+                created_at: paymentRecord.created_at
+            }]);
+            if (payErr) {
+                console.warn('Supabase insert payments failed, saving locally:', payErr.message);
+                savePaymentRecord(paymentRecord);
+            }
+        } catch (err) {
+            console.warn('Supabase unavailable, saving payment locally', err);
+            savePaymentRecord(paymentRecord);
+        }
+    } else {
+        // Optional: record immediate payment as already paid
+        const paymentRecord = {
+            id: 'pay_' + Date.now(),
+            buyer: identitasPembeli,
+            product: selectedProduct.nama_barang,
+            jumlah: jumlahJual,
+            total_harga: totalHarga,
+            method: 'Cash',
+            status: 'Sudah Bayar',
+            created_at: new Date().toISOString()
+        };
+        try {
+            const { error: payErr } = await supabaseClient.from('payments').insert([{
+                id: paymentRecord.id,
+                buyer: paymentRecord.buyer,
+                product: paymentRecord.product,
+                jumlah: paymentRecord.jumlah,
+                total_harga: paymentRecord.total_harga,
+                method: paymentRecord.method,
+                status: paymentRecord.status,
+                created_at: paymentRecord.created_at
+            }]);
+            if (payErr) {
+                console.warn('Supabase insert payments failed, saving locally:', payErr.message);
+                savePaymentRecord(paymentRecord);
+            }
+        } catch (err) {
+            console.warn('Supabase unavailable, saving payment locally', err);
+            savePaymentRecord(paymentRecord);
+        }
+    }
 
     // 1. Potong Stok
     const sisaStokBaru = selectedProduct.stok - jumlahJual;
