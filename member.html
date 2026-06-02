@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // Pendaftaran Anggota</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { 
+            font-family: 'Share Tech Mono', monospace; 
+            background-color: #020205;
+            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%;
+        }
+        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 10px #ef4444; }
+        .ghost-panel { background: rgba(6, 6, 10, 0.9); border: 1px solid rgba(239, 68, 68, 0.2); }
+    </style>
+</head>
+<body class="text-rose-100 min-h-screen p-4 md:p-8">
+    <div class="max-w-md mx-auto space-y-4">
+        <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest">
+            << KEMBALI_KE_DASHBOARD
+        </a>
+
+        <div class="ghost-panel p-6 border-t-4 border-t-purple-600">
+            <h2 class="text-3xl text-purple-500 scary-logo mb-1 tracking-wider">KUNCI_MEMBER</h2>
+            <p class="text-slate-500 text-[9px] uppercase tracking-widest mb-6">// REGISTRASI_SOUL_MEMBER</p>
+
+            <form id="memberForm" class="space-y-4 text-xs">
+                <div>
+                    <label class="block text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5">// NAMA_TARGET</label>
+                    <input type="text" id="inputNama" class="w-full bg-stone-950 border border-purple-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-purple-600" placeholder="CONTOH: JOHN DOE" required>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5">// NOMOR_TELEPON (ID_KASIR)</label>
+                    <input type="text" id="inputTelepon" class="w-full bg-stone-950 border border-purple-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-purple-600" placeholder="CONTOH: 0812345678" required>
+                </div>
+                <button type="submit" class="w-full bg-purple-800 hover:bg-purple-700 text-white font-black text-xs uppercase tracking-widest py-3.5 transition-all">
+                    SUNTIK_DATA_MEMBER
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        document.getElementById('memberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama = document.getElementById('inputNama').value;
+            const telepon = document.getElementById('inputTelepon').value;
+
+            const { error } = await supabaseClient.from('members').insert([{ nama, telepon }]);
+
+            if (error) {
+                alert('Gagal registrasi: ' + error.message);
+            } else {
+                alert('🎉 MEMBER BERHASIL DIKUNCI KE DATABASE!');
+                document.getElementById('memberForm').reset();
+            }
+        });
+    </script>
+</body>
+</html>
