@@ -24,7 +24,7 @@
         .action-btn:hover { transform: translateY(-1px); }
         .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.22); background: rgba(17, 24, 39, 0.8); }
         .progress-track { flex: 1; height: 10px; border-radius: 999px; background: rgba(248, 113, 113, 0.14); overflow: hidden; }
-        .progress-fill { width: 72%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f97316, #facc15); box-shadow: 0 0 18px rgba(249, 115, 22, 0.35); position: relative; transition: width .6s ease; }
+        .progress-fill { width: 0%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f97316, #facc15); box-shadow: 0 0 18px rgba(249, 115, 22, 0.35); position: relative; transition: width .9s ease; }
         .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fde68a; box-shadow: 0 0 18px rgba(251, 191, 36, 0.4); }
         .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%); animation: flicker 1.6s infinite ease-in-out; box-shadow: 0 0 20px rgba(253, 224, 71, 0.42); }
         .candle-base { width: 10px; height: 34px; background: linear-gradient(180deg, #f7f7f7, #c4b29a); border-radius: 5px; margin: 0 auto; }
@@ -67,10 +67,10 @@
                         </div>
                     </div>
                     <div class="candle-progress">
-                        <div class="progress-track"><div class="progress-fill"></div></div>
+                        <div class="progress-track"><div id="kasirProgressFill" class="progress-fill"></div></div>
                         <div class="text-right">
-                            <span class="block text-[10px] uppercase text-slate-400">Status</span>
-                            <strong class="text-white text-sm">74% selesai</strong>
+                            <span id="kasirProgressLabel" class="block text-[10px] uppercase text-slate-400">Status</span>
+                            <strong id="kasirProgressText" class="text-white text-sm">0% selesai</strong>
                         </div>
                     </div>
                     <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: kasir yang kuat adalah yang bisa mengendalikan uang dan bayangan.</p>

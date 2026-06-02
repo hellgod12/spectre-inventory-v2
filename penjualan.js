@@ -18,6 +18,9 @@ const ledgerPaidCount = document.getElementById('ledgerPaidCount');
 const ledgerUnpaidCount = document.getElementById('ledgerUnpaidCount');
 const ledgerProgressFill = document.getElementById('ledgerProgressFill');
 const ledgerProgressText = document.getElementById('ledgerProgressText');
+const kasirProgressFill = document.getElementById('kasirProgressFill');
+const kasirProgressText = document.getElementById('kasirProgressText');
+const kasirProgressLabel = document.getElementById('kasirProgressLabel');
 
 let allProducts = [];
 let selectedProduct = null;
@@ -62,6 +65,9 @@ async function updateLedgerBookkeeping() {
     if (ledgerUnpaidCount) ledgerUnpaidCount.innerText = unpaidCount;
     if (ledgerProgressFill) ledgerProgressFill.style.width = progress + '%';
     if (ledgerProgressText) ledgerProgressText.innerText = progress + '%';
+    if (kasirProgressFill) kasirProgressFill.style.width = progress + '%';
+    if (kasirProgressText) kasirProgressText.innerText = progress + '% selesai';
+    if (kasirProgressLabel) kasirProgressLabel.innerText = totalCount ? 'Progres Transaksi' : 'Status';
 }
 
 function showSaleSuccess(message) {

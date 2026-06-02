@@ -5,6 +5,32 @@ const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const productForm = document.getElementById('productForm');
 const btnSimpan = document.getElementById('btnSimpan');
+const stockProgressFill = document.getElementById('stockProgressFill');
+const stockCapacityText = document.getElementById('stockCapacityText');
+const stockCapacityLabel = document.getElementById('stockCapacityLabel');
+const stockStatusNote = document.getElementById('stockStatusNote');
+const stockEntryStatus = document.getElementById('stockEntryStatus');
+
+async function refreshStockProgress() {
+    let totalStock = 0;
+    try {
+        const { data: products } = await supabaseClient.from('products').select('stok');
+        if (products) {
+            totalStock = products.reduce((sum, item) => sum + (parseInt(item.stok || 0)), 0);
+        }
+    } catch (error) {
+        console.warn('Tidak bisa memuat stok untuk progres candel:', error?.message || error);
+    }
+
+    const target = 120;
+    const percent = totalStock ? Math.min(100, Math.round((Math.min(totalStock, target) / target) * 100)) : 0;
+    if (stockProgressFill) stockProgressFill.style.width = percent + '%';
+    if (stockCapacityText) stockCapacityText.innerText = `${percent}% terserap oleh candel`;
+    if (stockCapacityLabel) stockCapacityLabel.innerText = 'STOK_GELAP';
+    if (stockStatusNote) stockStatusNote.innerText = totalStock
+        ? `Total stok: ${totalStock} unit. Gudang berjalan makin pekat.`
+        : 'Gudang masih kosong, candel tidur.';
+}
 
 productForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -63,3 +89,5 @@ productForm.addEventListener('submit', async (e) => {
     btnSimpan.innerText = 'KIRIM DATA KE GUDANG';
     btnSimpan.disabled = false;
 });
+
+document.addEventListener('DOMContentLoaded', refreshStockProgress);
