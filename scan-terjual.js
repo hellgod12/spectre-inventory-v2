@@ -37,16 +37,30 @@ function setSelectedProductByBarcode(raw) {
   const cleaned = text.trim();
   const lower = cleaned.toLowerCase();
 
+  // More tolerant normalization (barcode generators often add brackets/spaces)
+  const normalized = cleaned
+    .replace(/\[|\]|\(|\)|\{|\}|</g, ' ')
+    .replace(/\-|_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const normalizedLower = normalized.toLowerCase();
+
   // Extract potential identifiers
-  const numericOnly = cleaned.match(/^\d+$/) ? cleaned : null;
-  const idMatch = cleaned.match(/^id\s*[:=]\s*(\d+)$/i) || cleaned.match(/^productid\s*[:=]\s*(\d+)$/i);
+  const numericOnly = normalized.match(/^\d+$/) ? normalized : null;
+  const idMatch = normalized.match(/^id\s*[:=]\s*(\d+)$/i) || normalized.match(/^productid\s*[:=]\s*(\d+)$/i);
   const id = idMatch?.[1] || null;
 
-  const kodeMatch = cleaned.match(/^(?:kode|sku)\s*[:=]\s*([^|]+)$/i);
+  const kodeMatch = normalized.match(/^(?:kode|sku)\s*[:=]\s*([^|]+)$/i);
   const kode = kodeMatch?.[1] ? String(kodeMatch[1]).trim() : null;
+
+  // generic token: last alphanumeric segment
+  const tokens = normalized.split(/[^a-zA-Z0-9]+/).filter(Boolean);
+  const lastToken = tokens.length ? tokens[tokens.length - 1] : null;
+  const tokenNumeric = lastToken && lastToken.match(/^\d+$/) ? lastToken : null;
 
   // Try to match in priority order
   let match = null;
+
 
   // 1) by numeric value => option.value
   if (!match && numericOnly) {
