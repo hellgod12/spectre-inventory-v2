@@ -2,73 +2,80 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPECTRE - Kasir POS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SPECTRE // Sales Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #0f172a; }
-        .glass { background: rgba(30, 41, 59, 0.45); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #05070f; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .cyber-panel { 
+            background: linear-gradient(135deg, rgba(13, 17, 33, 0.7) 0%, rgba(8, 10, 21, 0.9) 100%);
+            border: 1px solid rgba(56, 189, 248, 0.1);
+        }
+        .neon-glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
     </style>
 </head>
-<body class="text-slate-100 min-h-screen p-6 md:p-12">
+<body class="text-slate-200 min-h-screen p-4 md:p-10">
 
-    <div class="max-w-4xl mx-auto space-y-8">
-        <a href="index.html" class="inline-flex items-center text-sm text-slate-400 hover:text-white transition-colors">
-            ← Kembali ke Dashboard
+    <div class="max-w-4xl mx-auto space-y-4">
+        <a href="index.html" class="inline-flex items-center text-xs text-slate-500 hover:text-cyan-400 transition-colors uppercase font-bold tracking-widest mono mb-2">
+            << Dashboard
         </a>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div class="glass p-8 rounded-2xl shadow-2xl">
-                <h2 class="text-2xl font-bold mb-6">Kasir Penjualan</h2>
-                <form id="salesForm" class="space-y-5">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="cyber-panel p-6 rounded-xl shadow-2xl md:col-span-2 border-t-4 border-t-emerald-500">
+                <h2 class="text-lg font-black mb-1 uppercase tracking-wider mono text-white">🛒 TERMINAL_POS</h2>
+                <p class="text-slate-500 text-[10px] uppercase tracking-widest mono mb-6">Pencatatan Penjualan Real-time</p>
+                
+                <form id="salesForm" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Pilih Produk</label>
-                        <select id="selectProduct" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-blue-500" required>
-                            <option value="">-- Memuat Produk --</option>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mono mb-1.5">// SELECT_PRODUK</label>
+                        <select id="selectProduct" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-3 text-xs text-slate-100 font-medium focus:outline-none focus:border-cyan-500 mono" required>
+                            <option value="">-- SINKRONISASI SERVER --</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Tipe Pembeli</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 bg-slate-800/50 border border-slate-700 px-4 py-3 rounded-xl flex-1 cursor-pointer">
-                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum"> Umum
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mono mb-1.5">// KATEGORI_HARGA</label>
+                        <div class="flex gap-2">
+                            <label class="flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-3 py-3 rounded-lg flex-1 cursor-pointer text-[11px] mono text-slate-300">
+                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum" class="accent-cyan-500"> UMUM
                             </label>
-                            <label class="flex items-center gap-2 bg-slate-800/50 border border-slate-700 px-4 py-3 rounded-xl flex-1 cursor-pointer">
-                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember"> Member
+                            <label class="flex items-center gap-2 bg-slate-950/60 border border-slate-800 px-3 py-3 rounded-lg flex-1 cursor-pointer text-[11px] mono text-slate-300">
+                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember" class="accent-purple-500"> MEMBER
                             </label>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-slate-400 uppercase mb-2">Jumlah Beli</label>
-                        <input type="number" id="inputJumlah" min="1" value="1" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-blue-500" required>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mono mb-1.5">// JUMLAH_BELI</label>
+                        <input type="number" id="inputJumlah" min="1" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-3 text-xs text-slate-100 focus:outline-none focus:border-cyan-500 mono font-bold" required>
                     </div>
 
-                    <div class="bg-slate-800/40 p-4 rounded-xl border border-slate-700/50 space-y-2">
-                        <div class="flex justify-between text-sm text-slate-400">
+                    <div class="bg-slate-950 p-4 rounded-lg border border-slate-900 space-y-1.5 mono">
+                        <div class="flex justify-between text-[10px] text-slate-500 uppercase">
                             <span>Harga Satuan:</span>
-                            <span id="previewHargaSatuan">Rp 0</span>
+                            <span id="previewHargaSatuan" class="text-slate-300">Rp 0</span>
                         </div>
-                        <div class="flex justify-between text-base font-bold text-slate-200">
-                            <span>Total Bayar:</span>
-                            <span id="previewTotal" class="text-cyan-400">Rp 0</span>
+                        <div class="flex justify-between text-xs font-bold uppercase pt-1.5 border-t border-slate-900">
+                            <span class="text-slate-400">Total Tagihan:</span>
+                            <span id="previewTotal" class="text-emerald-400">Rp 0</span>
                         </div>
                     </div>
 
-                    <button type="submit" id="btnProses" class="w-full bg-emerald-600 hover:bg-emerald-500 font-bold py-4 rounded-xl shadow-lg transition-all">
-                        Proses Transaksi & Potong Stok
+                    <button type="submit" id="btnProses" class="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-widest py-3.5 rounded-lg transition-all duration-300 neon-glow-emerald">
+                        EKSEKUSI TRANSAKSI
                     </button>
                 </form>
             </div>
 
-            <div class="glass p-8 rounded-2xl shadow-2xl flex flex-col justify-between">
-                <div>
-                    <h3 class="text-lg font-semibold mb-4 text-slate-300">Live Monitor Gudang</h3>
-                    <div id="productDetail" class="space-y-3 text-sm text-slate-400">
-                        <p>Silakan pilih produk untuk memantau sisa kapasitas stok gudang.</p>
+            <div class="cyber-panel p-5 rounded-xl flex flex-col justify-between bg-slate-950/40">
+                <div class="space-y-3">
+                    <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mono">// LIVE_LOG</h3>
+                    <div id="productDetail" class="space-y-3 text-xs mono text-slate-400">
+                        <p class="text-slate-600 text-[10px] uppercase animate-pulse">>> Menunggu input data produk...</p>
                     </div>
                 </div>
             </div>
