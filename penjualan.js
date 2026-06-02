@@ -194,7 +194,7 @@ salesForm.addEventListener('submit', async (e) => {
 
     // Metode Pembayaran (Cash / Transfer / Belum Bayar)
     const metodePembayaran = document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Cash';
-    const isUnpaidMethod = metodePembayaran === 'Transfer' || metodePembayaran === 'Belum';
+    const isUnpaidMethod = metodePembayaran === 'Transfer' || metodePembayaran === 'Belum Bayar';
 
     const paymentRecord = {
         id: 'pay_' + Date.now(),
