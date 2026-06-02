@@ -72,10 +72,27 @@ productForm.addEventListener('submit', async (e) => {
             `;
         }
         await refreshStockProgress();
+
+        // Animasi candel stok: masuk (+stok)
+        try {
+            window.CandleManager?.applyStockDelta?.(stok);
+        } catch (e) {}
+
+        // Broadcast agar halaman lain juga animasi
+        try {
+            localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: stok, t: Date.now() }));
+        } catch (e) {}
+
     }
 
     btnSimpan.innerText = 'KIRIM DATA KE GUDANG';
     btnSimpan.disabled = false;
 });
 
-document.addEventListener('DOMContentLoaded', refreshStockProgress);
+document.addEventListener('DOMContentLoaded', () => {
+    refreshStockProgress();
+    try {
+        window.CandleManager?.refreshStockCandleFromProductsTotal?.();
+    } catch (e) {}
+});
+

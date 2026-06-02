@@ -247,6 +247,27 @@ salesForm.addEventListener('submit', async (e) => {
     if (historyError) {
         alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
     } else {
+        // Animasi candel stok: keluar (-jumlahJual)
+        try {
+            window.CandleManager?.applyStockDelta?.(-jumlahJual);
+        } catch (e) {}
+
+        // Broadcast agar halaman lain juga animasi
+        try {
+            localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: -jumlahJual, t: Date.now() }));
+        } catch (e) {}
+
+        // Animasi candel pembayaran (visual)
+        try {
+            window.CandleManager?.applyPaymentDelta?.();
+        } catch (e) {}
+
+        // Broadcast pembayaran juga (dashboard/HP)
+        try {
+            localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+        } catch (e) {}
+
+
         alert('🎉 EKSEKUSI BERHASIL // Transaksi terikat nomor telepon member sukses!');
         salesForm.reset();
         boxMemberSelect.classList.add('hidden');
@@ -256,5 +277,6 @@ salesForm.addEventListener('submit', async (e) => {
         showSaleSuccess('TRANSAKSI TERJUAL // Buku kas menjadi lebih hidup.');
     }
 });
+
 
 document.addEventListener('DOMContentLoaded', initTerminalData);

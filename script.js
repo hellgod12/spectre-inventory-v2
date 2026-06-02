@@ -594,11 +594,38 @@ async function deleteFromSalesHistory(id, namaBarang) {
 
 async function deleteProduct(id, namaBarang) {
     const konfirmasi = confirm(`[PERINGATAN] HAPUS PRODUK "${namaBarang.toUpperCase()}"?`);
-    if (konfirmasi) {
+    if (!konfirmasi) return;
+
+    // ambil stok agar candel bisa turun saat produk dihapus
+    let stokTerhapus = 0;
+    try {
+        const { data: product } = await supabaseClient
+            .from('products')
+            .select('stok')
+            .eq('id', id)
+            .single();
+        stokTerhapus = parseInt(product?.stok || 0, 10);
+    } catch (e) {}
+
+    try {
         await supabaseClient.from('products').delete().eq('id', id);
+
+        // efek visual candel turun (stok berkurang sebesar stokTerhapus)
+        try {
+            if (stokTerhapus > 0) {
+                window.CandleManager?.applyStockDelta?.(-stokTerhapus);
+                try {
+                    localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: -stokTerhapus, t: Date.now() }));
+                } catch (e) {}
+            }
+        } catch (e) {}
+
         await loadDashboard();
+    } catch (err) {
+        alert('❌ Gagal menghapus produk: ' + (err?.message || err));
     }
 }
+
 
 document.getElementById('refreshPaymentsBtn')?.addEventListener('click', loadPayments);
 window.confirmPayment = confirmPayment;
@@ -606,4 +633,30 @@ window.deletePayment = deletePayment;
 window.deleteFromSalesHistory = deleteFromSalesHistory;
 window.deleteExpense = deleteExpense;
 window.deleteProduct = deleteProduct;
-document.addEventListener('DOMContentLoaded', loadDashboard);
+document.addEventListener('DOMContentLoaded', () => {
+    loadDashboard();
+
+    // Sync animasi candel dari halaman lain (barang/penjualan)
+    window.addEventListener('storage', (e) => {
+        if (!e || !e.key) return;
+
+        if (e.key === 'candle_stock_delta') {
+            try {
+                const payload = JSON.parse(e.newValue || '{}');
+                window.CandleManager?.applyStockDelta?.(payload.delta);
+            } catch (err) {}
+        }
+
+        if (e.key === 'candle_payment_delta') {
+            try {
+                window.CandleManager?.applyPaymentDelta?.();
+            } catch (err) {}
+        }
+    });
+
+    // initial refresh jika container ada
+    try {
+        window.CandleManager?.refreshStockCandleFromProductsTotal?.();
+    } catch (e) {}
+});
+
