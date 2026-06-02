@@ -6,6 +6,11 @@ function formatCurrency(value) {
     return 'Rp ' + Number(value).toLocaleString('id-ID');
 }
 
+function isMobile() {
+    return window.innerWidth < 640; // cocok untuk iPhone/Android (Tailwind sm)
+}
+
+
 function loadLocalPayments() {
     try {
         return JSON.parse(localStorage.getItem('payments') || '[]');
@@ -43,6 +48,8 @@ async function loadPayments() {
     const paymentsContainer = document.getElementById('paymentsContainer');
     if (!paymentsContainer) return;
 
+    const mobile = isMobile();
+
     let payments = [];
     let supabaseError = null;
 
@@ -79,7 +86,41 @@ async function loadPayments() {
         return;
     }
 
-    let html = `
+    let html = ``;
+
+    if (mobile) {
+        html += `
+            <div class="space-y-2">
+        `;
+        payments.forEach(payment => {
+            const statusClass = payment.status === 'Belum Bayar' ? 'status-belumbayar' : 'status-sudahbayar';
+            html += `
+                <div class="p-3 border border-red-950/40 bg-black/40">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-[10px] text-red-500 font-bold uppercase">${payment.buyer}</div>
+                            <div class="mt-1 text-[12px] font-bold text-white uppercase">${payment.product}</div>
+                            <div class="mt-1 text-[11px] text-slate-400">Ukuran: ${payment.ukuran || '—'}</div>
+                            <div class="mt-1 text-[11px] text-rose-400 font-bold">Jumlah: ${payment.jumlah}</div>
+                            <div class="mt-1 text-[12px] text-emerald-400 font-bold">${formatCurrency(payment.total_harga)}</div>
+                            <div class="mt-1 text-[11px] text-slate-400">${payment.method}</div>
+                            <div class="mt-2"><span class="badge ${statusClass}">${payment.status}</span></div>
+                        </div>
+                        <div class="text-right">
+                            ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold uppercase mb-2">Konfirmasi</button>` : ``}
+                            <button onclick="deletePayment('${payment.id}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+        paymentsContainer.innerHTML = html;
+        updateDashboardProgress(payments);
+        return;
+    }
+
+    html += `
         <table class="w-full text-left border-collapse text-xs">
             <thead>
                 <tr class="bg-stone-950 text-red-500/70 uppercase text-[10px]">
@@ -238,6 +279,49 @@ async function loadDashboard() {
     // --- RENDERING TABEL 1: STOK GUDANG ---
     if (!products || products.length === 0) {
         container.innerHTML = `<div class="p-8 text-center text-red-900/60 text-xs uppercase">>> GUDANG_KOSONG</div>`;
+    } else if (isMobile()) {
+        let cards = `
+            <div class="space-y-2">
+        `;
+        products.forEach(item => {
+            let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 font-bold text-[9px] uppercase">${item.kategori || 'Apparel'}</span>`;
+            if (item.kategori === 'Skateboard') katBadge = `<span class="bg-red-950/60 text-red-500 px-2 py-0.5 border border-red-800/50 font-bold text-[9px] uppercase">🛹 PAPAN_SKATE</span>`;
+            if (item.kategori === 'Perlengkapan') katBadge = `<span class="bg-zinc-900 text-zinc-400 px-2 py-0.5 border border-zinc-700 font-bold text-[9px] uppercase">🛠️ HARDWARE</span>`;
+
+            const ukuranBadge = item.ukuran
+                ? `<span class="bg-stone-900 text-yellow-500 border border-yellow-900/50 px-2 py-0.5 font-bold text-[10px] uppercase">${item.ukuran}</span>`
+                : `<span class="text-slate-700 text-[9px]">—</span>`;
+
+            const currentStock = parseInt(item.stok || 0);
+            const stokBadge = currentStock <= 5
+                ? `<span class="bg-red-950 text-red-500 border border-red-600 px-2 py-0.5 font-bold text-[10px] animate-pulse">☠️ KRITIS_${currentStock}</span>`
+                : `<span class="bg-stone-900 text-slate-300 border border-stone-800 px-2 py-0.5 font-bold text-[10px]">${currentStock} UNIT</span>`;
+
+            cards += `
+                <div class="p-3 border border-red-950/40 bg-black/40">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-[11px] text-white font-bold uppercase leading-4">${item.nama_barang}</div>
+                            <div class="mt-2">${katBadge}</div>
+                            <div class="mt-2">${ukuranBadge}</div>
+                            <div class="mt-2">${stokBadge}</div>
+                            <div class="mt-2 text-[11px] text-slate-500">
+                                Modal: Rp ${Number(item.harga_modal).toLocaleString('id-ID')}<br/>
+                                Umum: Rp ${Number(item.harga_jual).toLocaleString('id-ID')}<br/>
+                                Member: Rp ${Number(item.harga_member).toLocaleString('id-ID')}
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <button onclick="deleteProduct(${item.id}, '${item.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        cards += `
+            </div>
+        `;
+        container.innerHTML = cards;
     } else {
         let tableHtml = `
             <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
@@ -292,6 +376,41 @@ async function loadDashboard() {
     // --- RENDERING TABEL 2: RIWAYAT PENJUALAN NYATA + TANGGAL & DATA ORANG ---
     if (!salesHistory || salesHistory.length === 0) {
         soldContainer.innerHTML = `<div class="p-8 text-center text-stone-700 text-xs uppercase">>> BELUM ADA TRANSAKSI MASUK KASIR</div>`;
+    } else if (isMobile()) {
+        let cards = `
+            <div class="space-y-2">`;
+
+        salesHistory.forEach(sale => {
+            const dateObj = new Date(sale.created_at);
+            const opsiFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+            const tanggalLokalan = dateObj.toLocaleDateString('id-ID', opsiFormat).replace(',', ' //');
+
+            const isMember = (sale.tipe_pembeli || '').toLowerCase().startsWith('member');
+            const orangBadge = isMember
+                ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 MEMBER</span>`
+                : `<span class="bg-zinc-900 text-zinc-400 border border-zinc-700 text-[10px] px-2 py-0.5 font-bold">👤 NON-MEMBER</span>`;
+
+            cards += `
+                <div class="p-3 border border-red-950/20 bg-black/50">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <div class="text-[10px] text-red-500 font-bold">${tanggalLokalan} WIB</div>
+                            <div class="mt-1 text-[12px] font-bold text-white uppercase">${sale.nama_barang}</div>
+                            <div class="mt-1">${orangBadge}</div>
+                            <div class="mt-1 text-slate-400 text-[11px]">Ukuran: ${sale.ukuran || '—'}</div>
+                            <div class="mt-1 text-rose-400 font-bold text-[11px]">${sale.jumlah} PCS</div>
+                            <div class="mt-1 text-emerald-400 font-bold text-[12px]">Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</div>
+                        </div>
+                        <div class="text-right">
+                            <button onclick="deleteFromSalesHistory(${sale.id}, '${sale.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        cards += `</div>`;
+        soldContainer.innerHTML = cards;
     } else {
         let soldHtml = `
             <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
