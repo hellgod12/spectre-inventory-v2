@@ -1,6 +1,5 @@
 const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
-
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const selectProduct = document.getElementById('selectProduct');
@@ -18,9 +17,9 @@ async function fetchProductsForSales() {
     if (error) return console.error(error);
     
     allProducts = data;
-    selectProduct.innerHTML = '<option value="">-- PILIH PRODUK --</option>';
+    selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
     data.forEach(p => {
-        selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()} (STOK: ${p.stok})</option>`;
+        selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()} [SISA_STOK: ${p.stok}]</option>`;
     });
 }
 
@@ -31,7 +30,7 @@ function updatePricePreview() {
     if (!selectedProduct) {
         previewHargaSatuan.innerText = 'Rp 0';
         previewTotal.innerText = 'Rp 0';
-        productDetail.innerHTML = '<p class="text-slate-600 text-[10px] uppercase">>> Menunggu pilihan...</p>';
+        productDetail.innerHTML = '<p class="text-red-900/60 text-[10px] uppercase">>> MENUNGGU PILIHAN PRODUK...</p>';
         return;
     }
 
@@ -43,11 +42,30 @@ function updatePricePreview() {
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
 
+    // Mengganti Label Sektor Kategori ke Bahasa Indonesia
+    let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
+    if (selectedProduct.kategori === 'Skateboard') {
+        sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
+    } else if (selectedProduct.kategori === 'Perlengkapan') {
+        sectorLabel = `<span class="text-orange-400 font-bold">[SPAREPART_GEAR] 🛠️</span>`;
+    } else if (selectedProduct.kategori === 'Apparel') {
+        sectorLabel = `<span class="text-zinc-400 font-bold">[APPAREL_BAJU] 👕</span>`;
+    }
+
     productDetail.innerHTML = `
-        <div class="space-y-2 border border-slate-800 p-3 rounded bg-slate-950/80 text-[11px]">
-            <div><span class="text-slate-600 block text-[9px]">// ITEM</span> <b class="text-white">${selectedProduct.nama_barang.toUpperCase()}</b></div>
-            <div><span class="text-slate-600 block text-[9px]">// GUDANG</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-400 animate-pulse' : 'text-emerald-400'}">${selectedProduct.stok} UNIT</b></div>
-            <div><span class="text-slate-600 block text-[9px]">// MODAL</span> <span class="text-slate-300">Rp ${Number(selectedProduct.harga_modal).toLocaleString('id-ID')}</span></div>
+        <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
+            <div>
+                <span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> 
+                <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b>
+            </div>
+            <div>
+                <span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> 
+                ${sectorLabel}
+            </div>
+            <div>
+                <span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> 
+                <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b>
+            </div>
         </div>
     `;
 }
@@ -59,12 +77,11 @@ document.getElementById('typeMember').addEventListener('change', updatePricePrev
 
 salesForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-
-    if (!selectedProduct) return alert('Pilih produk terlebih dahulu!');
+    if (!selectedProduct) return alert('[ALARM_SISTEM] GAGAL PROSES: PRODUK BELUM DIKUNCI.');
     const jumlahJual = parseInt(inputJumlah.value);
 
     if (selectedProduct.stok < jumlahJual) {
-        alert(`❌ TRANSAKSI DITOLAK: Stok kurang! Sisa stok: ${selectedProduct.stok}`);
+        alert(`[GAGAL_KRITIS] STOK GUDANG KURANG! Sisa stok hanya: ${selectedProduct.stok}`);
         return;
     }
 
@@ -76,9 +93,9 @@ salesForm.addEventListener('submit', async (e) => {
         .eq('id', selectedProduct.id);
 
     if (updateError) {
-        alert('CRITICAL ERROR // Gagal memotong stok: ' + updateError.message);
+        alert('[ERROR_SERVER] Pemotongan stok dibatalkan: ' + updateError.message);
     } else {
-        alert('🎉 BERHASIL // Transaksi disetujui, stok terpotong otomatis.');
+        alert('🎉 EKSEKUSI BERHASIL // Transaksi sukses dicatat, stok database otomatis terpotong!');
         salesForm.reset();
         fetchProductsForSales();
         updatePricePreview();
