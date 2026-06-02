@@ -13,19 +13,21 @@ productForm.addEventListener('submit', async (e) => {
     btnSimpan.disabled = true;
 
     const nama_barang = document.getElementById('nama_barang').value;
+    const kategori = document.getElementById('kategori').value; // Mengambil pilihan kategori dari dropdown
     const stok = parseInt(document.getElementById('stok').value);
     const harga_modal = parseFloat(document.getElementById('harga_modal').value);
     const harga_jual = parseFloat(document.getElementById('harga_jual').value);
     const harga_member = parseFloat(document.getElementById('harga_member').value);
 
+    // Mengirimkan semua data termasuk variabel 'kategori' ke tabel Supabase
     const { data, error } = await supabaseClient
         .from('products')
-        .insert([{ nama_barang, stok, harga_modal, harga_jual, harga_member }]);
+        .insert([{ nama_barang, kategori, stok, harga_modal, harga_jual, harga_member }]);
 
     if (error) {
-        alert('❌ ERROR: ' + error.message);
+        alert('❌ ERROR GAGAL: ' + error.message);
     } else {
-        alert(`🎉 SERVER_RESPONSE: "${nama_barang.toUpperCase()}" BERHASIL TERSIMPAN.`);
+        alert(`🎉 BERHASIL: [${kategori}] "${nama_barang.toUpperCase()}" Masuk Server.`);
         productForm.reset();
     }
 
