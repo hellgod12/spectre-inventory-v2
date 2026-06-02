@@ -359,6 +359,7 @@ async function loadExpenses() {
                     <th class="p-4 font-bold">KETERANGAN</th>
                     <th class="p-4 font-bold">KATEGORI</th>
                     <th class="p-4 font-bold text-right">NOMINAL</th>
+                    <th class="p-4 font-bold text-center">AKSI</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-red-950/20 bg-black/40">
@@ -380,6 +381,9 @@ async function loadExpenses() {
                 <td class="p-4 font-bold text-white uppercase">${expense.keterangan}</td>
                 <td class="p-4">${katBadge}</td>
                 <td class="p-4 text-right text-red-400 font-bold">Rp ${Number(expense.nominal).toLocaleString('id-ID')}</td>
+                <td class="p-4 text-center">
+                    <button onclick="deleteExpense(${expense.id}, '${expense.keterangan}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                </td>
             </tr>
         `;
     });
@@ -387,22 +391,75 @@ async function loadExpenses() {
     html += `</tbody></table>`;
     expenseContainer.innerHTML = html;
 }
-
-async function deleteFromSalesHistory(id, namaBarang) {
-    const konfirmasi = confirm(`[PERINGATAN] HAPUS RECORD PENJUALAN "${namaBarang.toUpperCase()}"? Tidak bisa dikembalikan.`);
+async function deleteExpense(id, keterangan) {
+    const konfirmasi = confirm(`[PERINGATAN] HAPUS PENGELUARAN "${keterangan.toUpperCase()}"? Tidak bisa dikembalikan.`);
     if (!konfirmasi) return;
 
     try {
         const { error } = await supabaseClient
-            .from('sales_history')
+            .from('expenses')
             .delete()
             .eq('id', id);
 
         if (error) {
-            console.error('Gagal hapus sales_history:', error);
             alert('❌ Gagal menghapus: ' + error.message);
         } else {
-            alert('✅ RECORD PENJUALAN BERHASIL DIHAPUS');
+            alert('✅ PENGELUARAN BERHASIL DIHAPUS');
+            await loadDashboard();
+        }
+    } catch (err) {
+        console.error('Error deleting expense:', err);
+        alert('❌ Error: ' + err.message);
+    }
+}
+async function deleteFromSalesHistory(id, namaBarang) {
+    const konfirmasi = confirm(`[PERINGATAN] HAPUS RECORD PENJUALAN "${namaBarang.toUpperCase()}"? STOCK AKAN DIKEMBALIKAN. Tidak bisa dikembalikan.`);
+    if (!konfirmasi) return;
+
+    try {
+        // 1. Ambil data sales_history untuk tahu jumlah & nama barang
+        const { data: saleRecord, error: fetchErr } = await supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchErr || !saleRecord) {
+            alert('❌ Gagal ambil data penjualan: ' + (fetchErr?.message || 'Tidak ditemukan'));
+            return;
+        }
+
+        // 2. Cari produk dan restore stock
+        const { data: product, error: prodErr } = await supabaseClient
+            .from('products')
+            .select('*')
+            .eq('nama_barang', saleRecord.nama_barang)
+            .single();
+
+        if (prodErr || !product) {
+            console.warn('Produk tidak ditemukan, tetap hapus sales record');
+        } else {
+            const stokBaru = parseInt(product.stok || 0) + parseInt(saleRecord.jumlah || 0);
+            const { error: updateErr } = await supabaseClient
+                .from('products')
+                .update({ stok: stokBaru })
+                .eq('id', product.id);
+
+            if (updateErr) {
+                alert('⚠️ Stock tidak terupdate: ' + updateErr.message);
+            }
+        }
+
+        // 3. Hapus sales_history
+        const { error: delErr } = await supabaseClient
+            .from('sales_history')
+            .delete()
+            .eq('id', id);
+
+        if (delErr) {
+            alert('❌ Gagal menghapus record: ' + delErr.message);
+        } else {
+            alert('✅ RECORD PENJUALAN DIHAPUS + STOCK DIKEMBALIKAN');
             await loadDashboard();
         }
     } catch (err) {
@@ -423,4 +480,5 @@ document.getElementById('refreshPaymentsBtn')?.addEventListener('click', loadPay
 window.confirmPayment = confirmPayment;
 window.deletePayment = deletePayment;
 window.deleteFromSalesHistory = deleteFromSalesHistory;
+window.deleteExpense = deleteExpense;
 document.addEventListener('DOMContentLoaded', loadDashboard);
