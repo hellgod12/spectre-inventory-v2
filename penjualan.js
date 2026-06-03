@@ -18,7 +18,9 @@ const selectUkuran = document.getElementById('selectUkuran');
 const boxMemberSelect = document.getElementById('boxMemberSelect');
 const boxUkuranSelect = document.getElementById('boxUkuranSelect');
 const inputJumlah = document.getElementById('inputJumlah');
+const hargaOverrideEl = document.getElementById('harga_override');
 const previewHargaSatuan = document.getElementById('previewHargaSatuan');
+
 const previewTotal = document.getElementById('previewTotal');
 const productDetail = document.getElementById('productDetail');
 const salesForm = document.getElementById('salesForm');
@@ -198,9 +200,19 @@ function updatePricePreview() {
     }
 
     const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
-    const hargaSatuan = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+    const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+
+    let hargaOverride = null;
+    if (hargaOverrideEl) {
+        const raw = String(hargaOverrideEl.value || '').trim();
+        const n = raw === '' ? null : Number(raw);
+        if (Number.isFinite(n) && n >= 0) hargaOverride = n;
+    }
+
+    const hargaSatuan = (hargaOverride != null ? hargaOverride : hargaDefault);
     const jumlah = parseInt(inputJumlah.value) || 0;
     const total = hargaSatuan * jumlah;
+
 
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
@@ -241,8 +253,18 @@ salesForm.addEventListener('submit', async (e) => {
     // Format struktur orang untuk disimpan ke sales_history (misal: "Member (08123456)")
     const identitasPembeli = tipePembeli === 'Member' ? `Member (${nomorTelpInfo})` : 'Umum';
 
-    const hargaSatuan = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+    const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+
+    let hargaOverride = null;
+    if (hargaOverrideEl) {
+        const raw = String(hargaOverrideEl.value || '').trim();
+        const n = raw === '' ? null : Number(raw);
+        if (Number.isFinite(n) && n >= 0) hargaOverride = n;
+    }
+
+    const hargaSatuan = (hargaOverride != null ? hargaOverride : hargaDefault);
     const totalHarga = hargaSatuan * jumlahJual;
+
 
     // Metode Pembayaran (Cash / Transfer = Sudah Bayar) | (Belum Bayar = Unpaid)
     const metodePembayaran = document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Cash';
