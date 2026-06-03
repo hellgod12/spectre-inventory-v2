@@ -246,6 +246,183 @@ async function confirmPayment(id) {
 }
 
 
+function renderCandlestickChartFromSalesHistory(salesHistory = []) {
+    const canvas = document.getElementById('candlestickChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = canvas.clientWidth || 320;
+    const cssH = 220;
+    canvas.width = Math.floor(cssW * dpr);
+    canvas.height = Math.floor(cssH * dpr);
+    canvas.style.height = cssH + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const width = cssW;
+    const height = cssH;
+    ctx.clearRect(0, 0, width, height);
+
+    // Prepare daily buckets: OHLC simulated from sales_history
+    // OHLC definition:
+    // open  = first transaction total_harga in day bucket
+    // high  = max transaction total_harga in day bucket
+    // low   = min transaction total_harga in day bucket
+    // close = last transaction total_harga in day bucket
+
+    const parseDate = (v) => {
+        try {
+            const d = new Date(v);
+            if (!isNaN(d.getTime())) return d;
+        } catch (e) {}
+        return null;
+    };
+
+    const items = (salesHistory || [])
+        .map(s => ({
+            t: parseDate(s.created_at),
+            v: Number(s.total_harga || 0)
+        }))
+        .filter(x => x.t && Number.isFinite(x.v));
+
+    if (items.length < 2) {
+        // empty chart
+        ctx.fillStyle = 'rgba(148,163,184,0.35)';
+        ctx.font = '12px Share Tech Mono, monospace';
+        ctx.fillText('NO_SALES_DATA', 12, 28);
+        return;
+    }
+
+    // sort by time
+    items.sort((a, b) => a.t - b.t);
+
+    // bucket by YYYY-MM-DD
+    const fmtDay = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    const bucketsMap = new Map();
+    for (const it of items) {
+        const key = fmtDay(it.t);
+        if (!bucketsMap.has(key)) bucketsMap.set(key, []);
+        bucketsMap.get(key).push(it);
+    }
+
+    const buckets = Array.from(bucketsMap.entries())
+        .map(([key, arr]) => {
+            const sorted = arr.slice().sort((a, b) => a.t - b.t);
+            const open = sorted[0].v;
+            const close = sorted[sorted.length - 1].v;
+            const high = sorted.reduce((m, x) => Math.max(m, x.v), -Infinity);
+            const low = sorted.reduce((m, x) => Math.min(m, x.v), Infinity);
+            return { key, open, high, low, close, count: sorted.length };
+        })
+        .sort((a, b) => a.key.localeCompare(b.key));
+
+    const maxCandles = 24; // keep chart light
+    const sliced = buckets.slice(Math.max(0, buckets.length - maxCandles));
+
+    const padL = 10;
+    const padR = 10;
+    const padT = 14;
+    const padB = 24;
+
+    const plotW = width - padL - padR;
+    const plotH = height - padT - padB;
+
+    const highs = sliced.map(c => c.high);
+    const lows = sliced.map(c => c.low);
+    const maxY = Math.max(...highs);
+    const minY = Math.min(...lows);
+    const span = (maxY - minY) || 1;
+
+    const yToPx = (y) => {
+        const norm = (y - minY) / span;
+        return padT + (1 - norm) * plotH;
+    };
+
+    // background grid
+    ctx.strokeStyle = 'rgba(248,113,113,0.12)';
+    ctx.lineWidth = 1;
+    const gridY = 4;
+    for (let i = 0; i <= gridY; i++) {
+        const yy = padT + (plotH / gridY) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, yy);
+        ctx.lineTo(padL + plotW, yy);
+        ctx.stroke();
+    }
+
+    // candle width
+    const count = sliced.length;
+    const slot = plotW / Math.max(1, count);
+    const candleW = Math.max(4, slot * 0.55);
+
+    // draw candles
+    for (let i = 0; i < count; i++) {
+        const c = sliced[i];
+        const xCenter = padL + slot * i + slot / 2;
+
+        const yOpen = yToPx(c.open);
+        const yClose = yToPx(c.close);
+        const yHigh = yToPx(c.high);
+        const yLow = yToPx(c.low);
+
+        const isUp = c.close >= c.open;
+        const color = isUp ? 'rgba(16,185,129,0.95)' : 'rgba(239,68,68,0.95)';
+        const glow = isUp ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
+
+        // wick
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(xCenter, yHigh);
+        ctx.lineTo(xCenter, yLow);
+        ctx.stroke();
+
+        // body
+        const bodyTop = Math.min(yOpen, yClose);
+        const bodyBot = Math.max(yOpen, yClose);
+        const bodyH = Math.max(2, bodyBot - bodyTop);
+
+        // glow behind
+        ctx.fillStyle = glow;
+        ctx.fillRect(xCenter - candleW / 2, bodyTop, candleW, bodyH);
+
+        ctx.fillStyle = color;
+        ctx.fillRect(xCenter - candleW / 2, bodyTop, candleW, bodyH);
+    }
+
+    // x axis labels (minimal)
+    ctx.fillStyle = 'rgba(148,163,184,0.55)';
+    ctx.font = '10px Share Tech Mono, monospace';
+    const labelEvery = Math.max(1, Math.floor(count / 6));
+    for (let i = 0; i < count; i += labelEvery) {
+        const c = sliced[i];
+        const label = c.key.slice(5); // MM-DD
+        const xCenter = padL + slot * i + slot / 2;
+        ctx.fillText(label, xCenter - 14, height - 8);
+    }
+}
+
+function updateAnalyticsKPIs({ revenue = 0, orders = 0, productsSold = 0, pendingPayment = 0, stockMovement = 0 } = {}) {
+    const elRevenue = document.getElementById('kpiRevenue');
+    const elOrders = document.getElementById('kpiOrders');
+    const elProductsSold = document.getElementById('kpiProductsSold');
+    const elPending = document.getElementById('kpiPendingPayment');
+    const elStockMove = document.getElementById('kpiStockMovement');
+
+    if (elRevenue) elRevenue.textContent = 'Rp ' + Number(revenue).toLocaleString('id-ID');
+    if (elOrders) elOrders.textContent = String(orders);
+    if (elProductsSold) elProductsSold.textContent = String(productsSold);
+    if (elPending) elPending.textContent = String(pendingPayment);
+    if (elStockMove) elStockMove.textContent = String(stockMovement);
+}
+
 async function loadDashboard() {
     const container = document.getElementById('productContainer');
     const soldContainer = document.getElementById('soldContainer');

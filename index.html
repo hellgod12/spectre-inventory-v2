@@ -264,6 +264,66 @@
             </div>
         </div>
 
+        <!-- ANALYTICS: Candlestick + KPI (UI only, no logic/perhitungan berubah) -->
+        <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl">
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 border-b border-red-950 pb-3">
+                <div>
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// ANALYTICS: CANDEL_TRADER</h2>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Candlestick berbasis sales_history (fallback agregasi harian jika kurang).</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center gap-2 text-[10px] text-red-300 uppercase tracking-[.2em]">
+                        <span class="w-2 h-2 rounded-full" style="background:#ef4444; box-shadow:0 0 18px rgba(239,68,68,.5)"></span>
+                        REALTIME_FEED
+                    </span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- KPI CARDS -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: REVENUE</p>
+                        <p id="kpiRevenue" class="text-2xl font-black text-red-300 mt-2">Rp 0</p>
+                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Total dana masuk</span>
+                    </div>
+                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: ORDERS</p>
+                        <p id="kpiOrders" class="text-2xl font-black text-rose-300 mt-2">0</p>
+                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Jumlah transaksi</span>
+                    </div>
+                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: PRODUCTS SOLD</p>
+                        <p id="kpiProductsSold" class="text-2xl font-black text-orange-300 mt-2">0</p>
+                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">PCS total</span>
+                    </div>
+                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: STOCK MOVEMENT</p>
+                        <p id="kpiStockMovement" class="text-2xl font-black text-lime-300 mt-2">0</p>
+                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Delta stok (estimasi visual)</span>
+                    </div>
+                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all sm:col-span-2">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: PENDING PAYMENT</p>
+                        <p id="kpiPendingPayment" class="text-2xl font-black text-emerald-300 mt-2">0</p>
+                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Status belum bayar</span>
+                    </div>
+                </div>
+
+                <!-- Candlestick Chart -->
+                <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40">
+                    <div class="flex items-center justify-between mb-2">
+                        <p class="text-[10px] font-bold uppercase tracking-widest text-rose-400">CANDEL_CHART</p>
+                        <div class="text-[10px] text-slate-500 uppercase tracking-widest">(hover desktop • scroll mobile)</div>
+                    </div>
+                    <div class="relative overflow-x-auto" style="max-width:100%">
+                        <canvas id="candlestickChart" class="w-full" style="min-width:320px; height:220px;"></canvas>
+                    </div>
+                    <div class="text-[9px] text-slate-500 uppercase tracking-widest mt-2">OHLC: open/high/low/close disimulasikan dari sales_history.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Existing: DATABASE_STOK_BARANG (tetap ada, hanya posisi digeser setelah analytics) -->
         <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
                 <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// DATABASE_STOK_BARANG</h2>
