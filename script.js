@@ -462,8 +462,9 @@ async function loadDashboard() {
                             <div class="mt-1">${orangBadge}</div>
                             <div class="mt-1 text-slate-400 text-[11px]">Ukuran: ${sale.ukuran || '—'}</div>
                             <div class="mt-1 text-rose-400 font-bold text-[11px]">${sale.jumlah} PCS</div>
-                            <div class="mt-1 text-yellow-400 font-bold text-[11px]">Harga pakai: Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
-                            <div class="mt-1 text-emerald-400 font-bold text-[12px]">Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</div>
+                            <div class="mt-1 text-yellow-400 font-bold text-[11px]">Harga pakai (per PCS): Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
+                            <div class="mt-1 text-emerald-400 font-bold text-[12px]">Total: Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</div>
+
                         </div>
                         <div class="text-right">
                             <button onclick="deleteFromSalesHistory(${sale.id}, '${sale.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
@@ -510,7 +511,8 @@ async function loadDashboard() {
                     <td class="p-4 text-red-500 font-bold tracking-tight">${tanggalLokalan} WIB</td>
                     <td class="p-4 font-bold text-white uppercase">
                         ${sale.nama_barang}
-                        <div class="text-[10px] text-yellow-400 font-bold">Harga pakai: Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
+                        <div class="text-[10px] text-yellow-400 font-bold">Harga pakai (per PCS): Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
+
                     </td>
                     <td class="p-4">${orangBadge}</td>
                     <td class="p-4">${sale.ukuran || '—'}</td>
@@ -555,8 +557,9 @@ async function loadDashboard() {
             topText.innerText = `${percent}% profit terpantau — candel memanas`;
             topSub.innerText = `Produk fokus: ${(best.nama_barang || '').toString().toUpperCase()} • Modal Rp ${(best.modalTotal || 0).toLocaleString('id-ID')}`;
 
-            // partikel kecil arah profit
+            // partikel kecil arah profit (tanpa teks tambahan)
             try { window.CandleManager?.applyPaymentDelta?.(); } catch (e) {}
+
         }
     } catch (e) {}
 
