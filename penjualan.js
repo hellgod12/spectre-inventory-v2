@@ -88,21 +88,23 @@ async function initTerminalData() {
     try {
         const { data: prods, error: prodErr } = await supabaseClient
             .from('products')
-            .select('*')
+            .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
             .order('nama_barang');
 
         if (prodErr) {
             console.error('Gagal memuat products:', prodErr);
-            selectProduct.innerHTML = '<option value="">>> GAGAL MEMUAT PRODUK (SERVER)</option>';
+            selectProduct.innerHTML = '<option value="">>> GAGAL MEMUAT PRODUK</option>';
             allProducts = [];
         } else if (prods) {
+            // penting: pakai dataset ini untuk dropdown
             allProducts = prods;
             selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
             prods.forEach(p => {
                 const sizeInfo = p.ukuran ? ` [${p.ukuran}]` : '';
-                selectProduct.innerHTML += `<option value="${p.id}">${p.nama_barang.toUpperCase()}${sizeInfo} [STOK: ${p.stok}]</option>`;
+                selectProduct.innerHTML += `<option value="${p.id}">${(p.nama_barang || '').toUpperCase()}${sizeInfo} [STOK: ${p.stok}]</option>`;
             });
         }
+
     } catch (e) {
         console.error('Exception saat memuat products:', e);
         selectProduct.innerHTML = '<option value="">>> GAGAL MEMUAT PRODUK (NETWORK)</option>';
