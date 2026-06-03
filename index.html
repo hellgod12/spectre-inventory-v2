@@ -162,195 +162,65 @@
     </style>
 
 </head>
-<body class="text-rose-100 min-h-screen selection:bg-red-600 selection:text-white">
+<body class="text-rose-100 min-h-screen p-4 md:p-8 selection:bg-red-600 selection:text-white">
 
-    <!-- Mobile-first app shell -->
-    <div class="min-h-screen relative overflow-hidden">
-        <!-- Cyber grid background (visual only) -->
-        <div aria-hidden="true" class="pointer-events-none absolute inset-0 opacity-70" style="background-image:linear-gradient(rgba(239,68,68,.18) 1px, transparent 1px),linear-gradient(90deg, rgba(239,68,68,.12) 1px, transparent 1px);background-size: 40px 40px;mask-image:radial-gradient(closest-side at 50% 20%, rgba(0,0,0,1), rgba(0,0,0,0));"></div>
-
-        <!-- Topbar (hamburger for HP) -->
-        <header class="sticky top-0 z-40 backdrop-blur bg-black/55 border-b border-red-950/30">
-            <div class="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
-                <button id="sidebarToggle" aria-label="Open menu" class="h-11 w-11 inline-flex items-center justify-center rounded-none border border-red-950/40 bg-black/40 hover:bg-black/60 transition" type="button">
-                    <span class="block w-5">≡</span>
-                </button>
-
-                <div class="flex items-center gap-3 min-w-0">
-                    <div class="text-red-500 scary-logo glitch-text text-2xl leading-none whitespace-nowrap">SPECTRE</div>
-                    <div class="hidden sm:block text-red-600 text-[11px] uppercase tracking-[.22em] whitespace-nowrap">// SISTEM_OVERLOAD</div>
+    <div class="max-w-7xl mx-auto space-y-6">
+        
+        <div class="ghost-panel panel-glow p-6 rounded-none flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-l-4 border-l-red-600 dashboard-header">
+            <div>
+                <div class="flex items-baseline gap-3">
+                    <h1 class="text-4xl md:text-5xl text-red-500 scary-logo glitch-text">SPECTRE</h1>
+                    <span class="text-xs font-bold tracking-widest text-red-600 animate-pulse">// SISTEM_OVERLOAD</span>
+                    <div class="text-red-400 text-[11px] uppercase tracking-[.22em] mt-2">// YANG MEMANDANG • SISTEM HIDUP</div>
                 </div>
-
-                <div class="ml-auto flex items-center gap-2">
-                    <a href="member.html" class="hidden sm:inline-flex h-11 items-center px-3 rounded-none border border-purple-500/30 bg-purple-950/40 hover:bg-purple-900/50 text-purple-300 text-[11px] uppercase tracking-widest font-bold">👤 Member</a>
+<p class="text-slate-400 text-[9px] uppercase tracking-widest mt-1">PERINGATAN: AKSES TANPA IZIN KE TERMINAL INI AKAN DIKUNCI DAN DIHANCURKAN.</p>
+                <div class="dashboard-quote mt-4">
+                    “Jika takut, ingat: hantu nggak bisa masuk jaringanmu — yang paling menyeramkan adalah sunyi yang memaksa kamu tetap bekerja.”
+                </div>
+                <div class="candle-progress">
+                    <div class="candle-flame"></div>
+                    <div class="progress-track"><div id="dashboardProgressFill" class="progress-fill"></div></div>
+                    <div class="progress-meta">
+                        <span>PROGRESS CANDEL</span>
+                        <strong id="dashboardProgressText">0% dikonfirmasi — neraka rekening semakin mendekat</strong>
+                        <span id="dashboardProgressSub" class="text-[10px] text-slate-400 uppercase tracking-wider">Belum ada data pembayaran</span>
+                    </div>
                 </div>
             </div>
-        </header>
-
-        <!-- Sidebar overlay + drawer -->
-        <div id="sidebarOverlay" class="fixed inset-0 z-50 bg-black/60 opacity-0 pointer-events-none transition" aria-hidden="true" style="pointer-events:none; opacity:0;"></div>
-        <aside id="sidebar" class="fixed left-0 top-0 z-60 h-full w-72 max-w-[82vw] transform -translate-x-full transition bg-black/75 backdrop-blur border-r border-red-950/30" aria-label="Sidebar">
-            <div class="p-4 border-b border-red-950/30">
-                <div class="scary-logo text-red-500 text-3xl glitch-text">SPECTRE</div>
-                <div class="text-red-600 text-[11px] uppercase tracking-[.22em] mt-1">Digital Marketing Console</div>
+            
+            <div class="flex flex-wrap gap-2 w-full md:w-auto cta-group">
+                <a href="member.html" class="flex-1 md:flex-none text-center bg-purple-950/50 hover:bg-purple-900/50 text-purple-300 border border-purple-500/30 font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all">
+                    👤 + DAFTAR MEMBER
+                </a>
+                <a href="penjualan.html" class="flex-1 md:flex-none text-center bg-transparent hover:bg-red-500/10 text-red-300 border border-red-500/40 font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all duration-300">
+                    ☠️ TERMINAL KASIR
+                </a>
+                <a href="barang.html" class="flex-1 md:flex-none text-center bg-red-700 hover:bg-red-600 text-white font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all duration-300 neon-glow-red">
+                    + SUNTIK BARANG
+                </a>
+                <a href="pengeluaran.html" class="flex-1 md:flex-none text-center bg-stone-900 hover:bg-stone-800 text-orange-400 border border-orange-600/40 font-bold text-[11px] uppercase tracking-widest px-4 py-3 rounded-none transition-all duration-300">
+                    💸 CATAT PENGELUARAN
+                </a>
             </div>
-            <nav class="p-4">
-                <a href="index.html" class="sidebar-link flex items-center gap-3 px-3 py-3 mb-2 border border-red-950/30 bg-black/40 hover:bg-black/60 transition text-red-200 font-bold uppercase tracking-widest text-[11px]" data-active="true">
-                    <span class="w-8 h-8 inline-flex items-center justify-center rounded-none border border-red-950/30">⌁</span>
-                    Dashboard
-                </a>
-                <a href="penjualan.html" class="sidebar-link flex items-center gap-3 px-3 py-3 mb-2 border border-red-950/30 bg-black/40 hover:bg-black/60 transition text-rose-200 font-bold uppercase tracking-widest text-[11px]">
-                    <span class="w-8 h-8 inline-flex items-center justify-center rounded-none border border-red-950/30">☠</span>
-                    Terminal Kasir
-                </a>
-                <a href="barang.html" class="sidebar-link flex items-center gap-3 px-3 py-3 mb-2 border border-red-950/30 bg-black/40 hover:bg-black/60 transition text-white font-bold uppercase tracking-widest text-[11px]">
-                    <span class="w-8 h-8 inline-flex items-center justify-center rounded-none border border-red-950/30">+⟡</span>
-                    Suntik Barang
-                </a>
-                <a href="pengeluaran.html" class="sidebar-link flex items-center gap-3 px-3 py-3 border border-red-950/30 bg-black/40 hover:bg-black/60 transition text-orange-200 font-bold uppercase tracking-widest text-[11px]">
-                    <span class="w-8 h-8 inline-flex items-center justify-center rounded-none border border-red-950/30">⌁$</span>
-                    Catat Pengeluaran
-                </a>
-
-                <div class="mt-6 text-[10px] text-slate-400 uppercase tracking-widest border-t border-red-950/20 pt-4">
-                    Non stop. Smooth. Dark premium.
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main content -->
-        <main class="mx-auto max-w-7xl px-4 py-4 sm:py-6">
-            <!-- KPI cards (modern, mobile-first) -->
-            <section class="space-y-4">
-                <div class="flex items-start justify-between gap-3">
-                    <div class="min-w-0">
-                        <div class="text-red-400 text-[10px] uppercase tracking-widest">Horror Cyberpunk Marketing Analytics</div>
-                        <p class="mt-1 text-[10px] text-slate-500 uppercase tracking-widest">PERINGATAN: AKSES TANPA IZIN KE TERMINAL INI AKAN DIKUNCI DAN DIHANCURKAN.</p>
-                    </div>
-                    <div class="hidden md:flex items-center gap-3">
-                        <div class="candle-progress" style="margin-top:0">
-                            <div class="candle-flame"></div>
-                            <div class="progress-track"><div id="dashboardProgressFill" class="progress-fill"></div></div>
-                            <div class="progress-meta">
-                                <span>PROGRESS CANDEL</span>
-                                <strong id="dashboardProgressText">0% dikonfirmasi — neraka rekening semakin mendekat</strong>
-                                <span id="dashboardProgressSub" class="text-[10px] text-slate-400 uppercase tracking-wider">Belum ada data pembayaran</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-                    <div class="ghost-panel p-4 border border-red-950/20 bg-red-950/10 hover:bg-red-950/15 transition-all">
-                        <p class="text-red-400 text-[10px] font-bold uppercase tracking-widest">Total Revenue</p>
-                        <p id="totalOmset" class="text-2xl font-black text-red-300 mt-2">Rp 0</p>
-                        <span class="text-[9px] text-slate-600 block mt-1">OMSET_KOTOR</span>
-                    </div>
-                    <div class="ghost-panel p-4 border border-red-950/20 bg-black/30 hover:bg-black/50 transition-all">
-                        <p class="text-rose-300 text-[10px] font-bold uppercase tracking-widest">Total Orders</p>
-                        <p id="totalSalesCount" class="text-2xl font-black text-white mt-2">0</p>
-                        <span class="text-[9px] text-slate-600 block mt-1">TOTAL_DIKASIRKAN</span>
-                    </div>
-                    <div class="ghost-panel p-4 border border-red-950/20 bg-black/30 hover:bg-black/50 transition-all">
-                        <p class="text-orange-300 text-[10px] font-bold uppercase tracking-widest">Product Sold</p>
-                        <p id="totalItems" class="text-2xl font-black text-orange-300 mt-2">0</p>
-                        <span class="text-[9px] text-slate-600 block mt-1">SKU_TERDAFTAR</span>
-                    </div>
-                    <div class="ghost-panel p-4 border border-red-950/20 bg-black/30 hover:bg-black/50 transition-all">
-                        <p class="text-lime-300 text-[10px] font-bold uppercase tracking-widest">Stock Movement</p>
-                        <p id="totalStock" class="text-2xl font-black text-orange-400 mt-2">0</p>
-                        <span class="text-[9px] text-slate-600 block mt-1">STOK_FISIK_GUDANG</span>
-                    </div>
-                    <div class="ghost-panel p-4 border border-red-950/20 bg-black/30 hover:bg-black/50 transition-all">
-                        <p class="text-emerald-300 text-[10px] font-bold uppercase tracking-widest">Pending Payment</p>
-                        <p id="kpiPendingPayment" class="text-2xl font-black text-emerald-300 mt-2">0</p>
-                        <span class="text-[9px] text-slate-600 block mt-1">STATUS_BELUM_BAYAR</span>
-                    </div>
-                    <div class="ghost-panel p-4 border border-red-950/20 bg-black/30 hover:bg-black/50 transition-all lg:col-span-1">
-                        <p class="text-purple-300 text-[10px] font-bold uppercase tracking-widest">Monthly Growth</p>
-                        <p id="totalMembers" class="text-2xl font-black text-purple-500 mt-2">0 Jiwa</p>
-                        <span class="text-[9px] text-slate-600 block mt-1">JUMLAH_MEMBER</span>
-                    </div>
-                </div>
-
-                <!-- Mobile progress candle (ke bawah KPI supaya tidak kepanjangan atas) -->
-                <div class="md:hidden ghost-panel panel-glow p-4 border-l-4 border-l-red-600">
-                    <div class="candle-progress" style="margin-top:0">
+        </div>
+        <div class="ghost-panel panel-glow p-5 rounded-none border border-red-950/20">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div>
                         <div class="candle-flame"></div>
-                        <div class="progress-track"><div id="dashboardProgressFill" class="progress-fill"></div></div>
-                        <div class="progress-meta">
-                            <span>PROGRESS CANDEL</span>
-                            <strong id="dashboardProgressText">0% dikonfirmasi — neraka rekening semakin mendekat</strong>
-                            <span id="dashboardProgressSub" class="text-[10px] text-slate-400 uppercase tracking-wider">Belum ada data pembayaran</span>
-                        </div>
+                        <div class="candle-base"></div>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-widest text-red-400">SPECTRE HAUNT THE STREET</p>
+                        <p class="text-sm md:text-base text-slate-200 font-bold">Dashboard Candel Aktif — Jangan lupa, yang paling cepat padam itu harapan.</p>
+
                     </div>
                 </div>
-            </section>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Motivasi: kerja cepat, jangan biarkan waktu memakanmu.</p>
+            </div>
+        </div>
 
-            <!-- Analytics: KPI + Candlestick Chart -->
-            <section class="mt-4">
-                <div class="ghost-panel panel-glow p-4 border border-red-950/20">
-                    <div class="flex items-start justify-between gap-3 mb-3 border-b border-red-950/20 pb-3">
-                        <div>
-                            <div class="text-[10px] font-bold uppercase tracking-widest text-red-500">Digital Marketing Analytics</div>
-                            <div class="text-[10px] text-slate-500 uppercase tracking-widest mt-1">Candlestick chart berbasis sales_history</div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center gap-2 text-[10px] text-red-300 uppercase tracking-[.2em]">
-                                <span class="w-2 h-2 rounded-full" style="background:#ef4444; box-shadow:0 0 18px rgba(239,68,68,.5)"></span>
-                                REALTIME_FEED
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="ghost-panel p-4 border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: REVENUE</p>
-                                <p id="kpiRevenue" class="text-2xl font-black text-red-300 mt-2">Rp 0</p>
-                                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Total dana masuk</span>
-                            </div>
-                            <div class="ghost-panel p-4 border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: ORDERS</p>
-                                <p id="kpiOrders" class="text-2xl font-black text-rose-300 mt-2">0</p>
-                                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Jumlah transaksi</span>
-                            </div>
-                            <div class="ghost-panel p-4 border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: PRODUCTS SOLD</p>
-                                <p id="kpiProductsSold" class="text-2xl font-black text-orange-300 mt-2">0</p>
-                                <span class="text-[9px] text-slate-500 uppercase tracking-widest">PCS total</span>
-                            </div>
-                            <div class="ghost-panel p-4 border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: STOCK MOVEMENT</p>
-                                <p id="kpiStockMovement" class="text-2xl font-black text-lime-300 mt-2">0</p>
-                                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Delta stok (estimasi visual)</span>
-                            </div>
-                            <div class="ghost-panel p-4 border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all sm:col-span-2">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: PENDING PAYMENT</p>
-                                <p id="kpiPendingPayment" class="text-2xl font-black text-emerald-300 mt-2">0</p>
-                                <span class="text-[9px] text-slate-500 uppercase tracking-widest">Status belum bayar</span>
-                            </div>
-                        </div>
-
-                        <div class="ghost-panel p-4 border border-red-950/20 bg-black/40">
-                            <div class="flex items-center justify-between mb-2">
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-rose-400">CANDEL_CHART</p>
-                                <div class="text-[10px] text-slate-500 uppercase tracking-widest">responsive</div>
-                            </div>
-                            <div class="w-full">
-                                <div class="relative" style="width:100%; max-width:100%;">
-                                    <canvas id="candlestickChart" class="w-full" style="height:240px; display:block;"></canvas>
-                                </div>
-                            </div>
-                            <div class="text-[9px] text-slate-500 uppercase tracking-widest mt-2">OHLC simulated from sales_history</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Reordered sections (logic hook preserved) -->
-            <section class="mt-4 space-y-4">
-
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 grid-cards">
 
             <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-600 bg-red-950/10">
                 <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// OMSET_KOTOR]</p>
@@ -394,66 +264,6 @@
             </div>
         </div>
 
-        <!-- ANALYTICS: Candlestick + KPI (UI only, no logic/perhitungan berubah) -->
-        <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl">
-            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4 border-b border-red-950 pb-3">
-                <div>
-                    <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// ANALYTICS: CANDEL_TRADER</h2>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Candlestick berbasis sales_history (fallback agregasi harian jika kurang).</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <span class="inline-flex items-center gap-2 text-[10px] text-red-300 uppercase tracking-[.2em]">
-                        <span class="w-2 h-2 rounded-full" style="background:#ef4444; box-shadow:0 0 18px rgba(239,68,68,.5)"></span>
-                        REALTIME_FEED
-                    </span>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <!-- KPI CARDS -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: REVENUE</p>
-                        <p id="kpiRevenue" class="text-2xl font-black text-red-300 mt-2">Rp 0</p>
-                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Total dana masuk</span>
-                    </div>
-                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: ORDERS</p>
-                        <p id="kpiOrders" class="text-2xl font-black text-rose-300 mt-2">0</p>
-                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Jumlah transaksi</span>
-                    </div>
-                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: PRODUCTS SOLD</p>
-                        <p id="kpiProductsSold" class="text-2xl font-black text-orange-300 mt-2">0</p>
-                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">PCS total</span>
-                    </div>
-                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: STOCK MOVEMENT</p>
-                        <p id="kpiStockMovement" class="text-2xl font-black text-lime-300 mt-2">0</p>
-                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Delta stok (estimasi visual)</span>
-                    </div>
-                    <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40 hover:bg-black/60 transition-all sm:col-span-2">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-red-400">KPI: PENDING PAYMENT</p>
-                        <p id="kpiPendingPayment" class="text-2xl font-black text-emerald-300 mt-2">0</p>
-                        <span class="text-[9px] text-slate-500 uppercase tracking-widest">Status belum bayar</span>
-                    </div>
-                </div>
-
-                <!-- Candlestick Chart -->
-                <div class="ghost-panel p-4 rounded-none border border-red-950/20 bg-black/40">
-                    <div class="flex items-center justify-between mb-2">
-                        <p class="text-[10px] font-bold uppercase tracking-widest text-rose-400">CANDEL_CHART</p>
-                        <div class="text-[10px] text-slate-500 uppercase tracking-widest">(hover desktop • scroll mobile)</div>
-                    </div>
-                    <div class="relative overflow-x-auto" style="max-width:100%">
-                        <canvas id="candlestickChart" class="w-full" style="min-width:320px; height:220px;"></canvas>
-                    </div>
-                    <div class="text-[9px] text-slate-500 uppercase tracking-widest mt-2">OHLC: open/high/low/close disimulasikan dari sales_history.</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Existing: DATABASE_STOK_BARANG (tetap ada, hanya posisi digeser setelah analytics) -->
         <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
                 <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// DATABASE_STOK_BARANG</h2>
@@ -510,76 +320,7 @@
 
     </div>
 
-    <script>
-        // Sidebar hamburger: visual-only interactions (DOM hooks maintained)
-        (function () {
-            const btn = document.getElementById('sidebarToggle');
-            const overlay = document.getElementById('sidebarOverlay');
-            const sidebar = document.getElementById('sidebar');
-            if (!btn || !overlay || !sidebar) return;
-
-            function open() {
-                overlay.style.opacity = '1';
-                overlay.style.pointerEvents = 'auto';
-                sidebar.style.transform = 'translateX(0)';
-            }
-
-            function forceCloseIfStuck() {
-                // Jika overlay terjebak pointer-events:auto (bug klik), reset ke closed.
-                if (overlay && overlay.style.pointerEvents === 'auto' && sidebar && sidebar.style.transform !== 'translateX(0)' && getComputedStyle(overlay).opacity !== '1') {
-                    close();
-                }
-            }
-            function close() {
-                overlay.style.opacity = '0';
-                overlay.style.pointerEvents = 'none';
-                sidebar.style.transform = 'translateX(-100%)';
-            }
-
-            btn.addEventListener('click', () => {
-                const isOpen = overlay.style.pointerEvents === 'auto';
-                if (isOpen) close(); else open();
-            });
-
-            overlay.addEventListener('click', close);
-
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') close();
-            });
-
-            // Close on navigation
-            sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
-
-            // Hard reset state on load to avoid stuck overlay blocking clicks.
-            try { close(); } catch (e) {}
-
-            // If user clicks anywhere (desktop/mobile) and menu is closed, ensure overlay doesn't block.
-            window.addEventListener('click', () => { try { forceCloseIfStuck(); } catch (e) {} });
-        })();
-    </script>
     <script src="candle-manager.js"></script>
     <script src="script.js"></script>
-
-    <script>
-        // Stop rendering ">>" log-like placeholders that can confuse terminal prompt UX.
-        (function () {
-            try {
-                document.querySelectorAll('div:empty').forEach(el => el.remove());
-
-                // Replace any explicit " >> " placeholders with neutral text.
-                const placeholders = document.querySelectorAll('div,span,p');
-                placeholders.forEach(el => {
-                    if (!el || !el.childNodes) return;
-                    const text = (el.textContent || '').trim();
-                    if (text === '>> MENGEKSTRAKSI ENKRIPSI DATA SERVER UTAMA...' || text === '>> Tidak ada aktivitas keluar kasir baru-baru ini.' || text === '>> Tidak ada pengeluaran tercatat baru-baru ini.' || text === '>> Memuat data pembayaran...' || text === '>> Tidak ada aktivitas keluar kasir baru-baru ini.' ) {
-                        el.textContent = text.replace('>>', '');
-                    }
-                });
-            } catch (e) {}
-        })();
-    </script>
 </body>
 </html>
-
-
-
