@@ -645,29 +645,40 @@ async function deleteFromSalesHistory(id, namaBarang) {
         const ukuranSale = saleRecord.ukuran ? String(saleRecord.ukuran).trim() : null;
 
 
-        // 2a) Coba match exact nama_barang
+        // 2a) Coba match exact nama_barang + ukuran (kalau tersedia)
         let product = null;
         try {
-            const { data, error } = await supabaseClient
+            let q = supabaseClient
                 .from('products')
                 .select('*')
-                .eq('nama_barang', namaBarangSale)
-                .maybeSingle();
+                .eq('nama_barang', namaBarangSale);
+
+            if (ukuranSale !== null) {
+                q = q.eq('ukuran', ukuranSale);
+            }
+
+            const { data, error } = await q.maybeSingle();
             if (!error && data) product = data;
         } catch (e) {}
 
-        // 2b) Fallback: match case-insensitive/substring (kalau kolom mendukung ilike)
+        // 2b) Fallback: match ilike nama_barang + ukuran
         if (!product && namaBarangSale) {
             try {
-                const { data, error } = await supabaseClient
+                let q = supabaseClient
                     .from('products')
                     .select('*')
                     .ilike('nama_barang', `%${namaBarangSale}%`)
-                    .limit(1)
-                    .maybeSingle();
-                if (!error && data) product = data;
+                    .limit(5);
+
+                if (ukuranSale !== null) {
+                    q = q.eq('ukuran', ukuranSale);
+                }
+
+                const { data, error } = await q;
+                if (!error && Array.isArray(data) && data.length > 0) product = data[0];
             } catch (e) {}
         }
+
 
         if (!product) {
             // Jangan silent: ini yang membuat stok "tetap kritis" walau riwayat dihapus
