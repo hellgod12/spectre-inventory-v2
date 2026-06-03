@@ -188,7 +188,7 @@
         </header>
 
         <!-- Sidebar overlay + drawer -->
-        <div id="sidebarOverlay" class="fixed inset-0 z-50 bg-black/60 opacity-0 pointer-events-none transition" aria-hidden="true"></div>
+        <div id="sidebarOverlay" class="fixed inset-0 z-50 bg-black/60 opacity-0 pointer-events-none transition" aria-hidden="true" style="pointer-events:none; opacity:0;"></div>
         <aside id="sidebar" class="fixed left-0 top-0 z-60 h-full w-72 max-w-[82vw] transform -translate-x-full transition bg-black/75 backdrop-blur border-r border-red-950/30" aria-label="Sidebar">
             <div class="p-4 border-b border-red-950/30">
                 <div class="scary-logo text-red-500 text-3xl glitch-text">SPECTRE</div>
@@ -523,6 +523,13 @@
                 overlay.style.pointerEvents = 'auto';
                 sidebar.style.transform = 'translateX(0)';
             }
+
+            function forceCloseIfStuck() {
+                // Jika overlay terjebak pointer-events:auto (bug klik), reset ke closed.
+                if (overlay && overlay.style.pointerEvents === 'auto' && sidebar && sidebar.style.transform !== 'translateX(0)' && getComputedStyle(overlay).opacity !== '1') {
+                    close();
+                }
+            }
             function close() {
                 overlay.style.opacity = '0';
                 overlay.style.pointerEvents = 'none';
@@ -542,10 +549,37 @@
 
             // Close on navigation
             sidebar.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+
+            // Hard reset state on load to avoid stuck overlay blocking clicks.
+            try { close(); } catch (e) {}
+
+            // If user clicks anywhere (desktop/mobile) and menu is closed, ensure overlay doesn't block.
+            window.addEventListener('click', () => { try { forceCloseIfStuck(); } catch (e) {} });
         })();
     </script>
     <script src="candle-manager.js"></script>
     <script src="script.js"></script>
+
+    <script>
+        // Stop rendering ">>" log-like placeholders that can confuse terminal prompt UX.
+        (function () {
+            try {
+                document.querySelectorAll('div:empty').forEach(el => el.remove());
+
+                // Replace any explicit " >> " placeholders with neutral text.
+                const placeholders = document.querySelectorAll('div,span,p');
+                placeholders.forEach(el => {
+                    if (!el || !el.childNodes) return;
+                    const text = (el.textContent || '').trim();
+                    if (text === '>> MENGEKSTRAKSI ENKRIPSI DATA SERVER UTAMA...' || text === '>> Tidak ada aktivitas keluar kasir baru-baru ini.' || text === '>> Tidak ada pengeluaran tercatat baru-baru ini.' || text === '>> Memuat data pembayaran...' || text === '>> Tidak ada aktivitas keluar kasir baru-baru ini.' ) {
+                        el.textContent = text.replace('>>', '');
+                    }
+                });
+            } catch (e) {}
+        })();
+    </script>
 </body>
 </html>
+
+
 
