@@ -8,30 +8,42 @@
     <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            font-family: 'Share Tech Mono', monospace; 
+        /* ===== Digital Marketing Neo-Neon Crypto Theme (Tampilan only) ===== */
+        body {
+            font-family: 'Share Tech Mono', monospace;
             background-color: #020205;
-            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%;
+            background-image:
+              radial-gradient(600px 180px at 50% -20%, rgba(220,38,38,0.10), transparent 60%),
+              radial-gradient(520px 160px at 10% 10%, rgba(236,72,153,0.08), transparent 60%),
+              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%, auto, auto;
+            background-repeat: repeat, repeat, no-repeat, no-repeat;
         }
-        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 12px #ef4444, 0 0 24px #7f1d1d; letter-spacing: 0.16em; }
-        .ghost-panel { background: rgba(6, 6, 10, 0.94); border: 1px solid rgba(239, 68, 68, 0.2); box-shadow: 0 0 28px rgba(255, 0, 0, 0.08); backdrop-filter: blur(6px); }
+        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 12px rgba(239,68,68,0.65), 0 0 24px rgba(127,29,29,0.65); letter-spacing: 0.16em; }
+        .ghost-panel { background: rgba(6, 6, 10, 0.94); border: 1px solid rgba(239, 68, 68, 0.18); box-shadow: 0 0 28px rgba(255, 0, 0, 0.08); backdrop-filter: blur(6px); }
         .panel-glow { box-shadow: 0 0 30px rgba(248, 113, 113, 0.22), inset 0 0 24px rgba(255, 255, 255, 0.02); }
         .input-field { width: 100%; background: #09090f; border: 1px solid rgba(248, 113, 113, 0.16); color: #f8fafc; border-radius: 0; padding: 0.9rem 1rem; transition: border-color .2s ease, box-shadow .2s ease; }
         .input-field:focus { outline: none; border-color: #fb7185; box-shadow: 0 0 18px rgba(251, 113, 133, 0.22); }
         .form-label { display: block; color: #f8fafc; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; margin-bottom: 0.5rem; }
         .action-btn { transition: all .25s ease; }
         .action-btn:hover { transform: translateY(-1px); }
-        .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.22); background: rgba(17, 24, 39, 0.8); }
+        .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.25); background: rgba(17, 24, 39, 0.8); }
         .progress-track { flex: 1; height: 10px; border-radius: 999px; background: rgba(248, 113, 113, 0.14); overflow: hidden; }
-        .progress-fill { width: 0%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #dc2626, #7f1d1d); box-shadow: 0 0 18px rgba(220, 38, 38, 0.35); position: relative; transition: width .9s ease; }
-        .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fca5a5; box-shadow: 0 0 18px rgba(252, 165, 165, 0.4); }
-        .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fca5a5 0%, #dc2626 35%, transparent 70%); animation: flicker-red 1.6s infinite ease-in-out; box-shadow: 0 0 20px rgba(220, 38, 38, 0.42); }
+        .progress-fill { width: 0%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #dc2626, #7f1d1d); box-shadow: 0 0 18px rgba(220, 38, 38, 0.38); position: relative; transition: width .9s ease; }
+        .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fca5a5; box-shadow: 0 0 22px rgba(252, 165, 165, 0.45); }
+        .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fca5a5 0%, #dc2626 35%, transparent 70%); animation: flicker-red 1.4s infinite ease-in-out, drift 3.2s infinite ease-in-out; box-shadow: 0 0 20px rgba(220, 38, 38, 0.45); }
         .candle-base { width: 10px; height: 34px; background: linear-gradient(180deg, #7f1d1d, #5a1a1a); border-radius: 5px; margin: 0 auto; }
         @keyframes flicker-red { 0%, 100% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; } }
+        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1px); } }
         .toast-notice { position: fixed; top: 1rem; right: 1rem; z-index: 50; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(248, 113, 113, 0.35); color: #f8fafc; padding: 0.95rem 1.1rem; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); }
-        .neon-glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+        .neon-glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
+        @media (max-width: 640px) {
+            .ghost-panel { border-radius: 0; }
+            .overflow-x-auto { overflow-x: visible !important; }
+        }
     </style>
+
 </head>
 <body class="text-rose-100 min-h-screen p-4 md:p-8">
 

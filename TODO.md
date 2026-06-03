@@ -1,5 +1,9 @@
-- [ ] 1) Tambahkan utilitas pembuat SKU dari nama barang (UPPERCASE + minus).
-- [ ] 2) Update barang-scan-ui.js agar sku dari scan ikut masuk bila ada, tapi jika kosong/non-valid gunakan SKU dari nama_barang.
-- [ ] 3) Update script.js agar SKU otomatis dari nama barang mengikuti format baru.
-- [ ] 4) Jalankan quick sanity check (buka halaman barang.html, test scan/manual input, pastikan SKU terisi dan tidak pecah).
+# TODO - Digital Marketing Theme
+
+- [x] 1) Unify theme (neo neon crypto/trading) di: `index.html`, `barang.html`, `penjualan.html`, `pengeluaran.html` (styling only, rumus/logic tidak diubah)
+- [x] 2) Tambah micro-UI: neon glow, grid background, glitch kecil (ringan), ticker/progress float (tampilan only)
+- [x] 3) Pastikan tampilan HP: overflow/table list tidak terpotong (min-width/overflow-x)
+- [x] 4) Verifikasi candle sync di semua halaman: stock & payment animasi tetap jalan setelah pindah halaman
+- [ ] 5) Smoke test: buka tiap halaman di HP-size, lakukan 1 transaksi masuk & 1 keluar, cek candle tetap sinkron
+
 

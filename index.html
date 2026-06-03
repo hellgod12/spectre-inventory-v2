@@ -9,24 +9,38 @@
     <link rel="stylesheet" href="status.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { 
-            font-family: 'Share Tech Mono', monospace; 
+        /* ===== Digital Marketing Neo-Neon Crypto Theme (Tampilan only) ===== */
+        body {
+            font-family: 'Share Tech Mono', monospace;
             background-color: #020205;
-            background-image: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%;
+            background-image:
+              radial-gradient(600px 180px at 50% -20%, rgba(249,115,22,0.10), transparent 60%),
+              radial-gradient(520px 160px at 10% 10%, rgba(236,72,153,0.08), transparent 60%),
+              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%, auto, auto;
+            background-repeat: repeat, repeat, no-repeat, no-repeat;
         }
+
         .scary-logo {
             font-family: 'Creepster', cursive;
-            text-shadow: 0 0 10px #ef4444, 0 0 20px #7f1d1d;
+            text-shadow: 0 0 10px rgba(239,68,68,0.55), 0 0 22px rgba(127,29,29,0.55);
             letter-spacing: 0.15em;
         }
-        .ghost-panel { 
+
+        .ghost-panel {
             background: rgba(6, 6, 10, 0.92);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.18);
             box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.08);
             backdrop-filter: blur(6px);
         }
-        .neon-glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); }
+
+        .panel-glow {
+            box-shadow: 0 0 30px rgba(248, 113, 113, 0.20), inset 0 0 25px rgba(255, 255, 255, 0.02);
+        }
+
+        .neon-glow-red { box-shadow: 0 0 24px rgba(239, 68, 68, 0.35); }
+
         .dashboard-quote {
             color: #f8fafc;
             font-size: 0.72rem;
@@ -34,19 +48,22 @@
             letter-spacing:0.14em;
             text-transform: uppercase;
             opacity: 0.95;
-            border-left: 2px solid rgba(248, 113, 113, 0.7);
+            border-left: 2px solid rgba(248, 113, 113, 0.75);
             padding-left: 1rem;
             margin-top: 1rem;
         }
+
+        /* Candle */
         .candle-flame {
             width: 14px;
             height: 24px;
             border-radius: 50% 50% 45% 45%;
             background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%);
             position: relative;
-            animation: flicker 1.4s infinite ease-in-out;
-            box-shadow: 0 0 22px rgba(253, 224, 71, 0.45);
+            animation: flicker 1.2s infinite ease-in-out, drift 3.2s infinite ease-in-out;
+            box-shadow: 0 0 24px rgba(253, 224, 71, 0.48);
         }
+
         .candle-base {
             width: 10px;
             height: 34px;
@@ -55,15 +72,17 @@
             margin: 0 auto;
             position: relative;
         }
+
         .candle-progress {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             margin-top: 1.5rem;
             padding: 1rem;
-            border: 1px solid rgba(248, 113, 113, 0.25);
+            border: 1px solid rgba(248, 113, 113, 0.28);
             background: rgba(17, 23, 38, 0.78);
         }
+
         .progress-track {
             flex: 1;
             height: 10px;
@@ -71,15 +90,17 @@
             background: rgba(248, 113, 113, 0.14);
             overflow: hidden;
         }
+
         .progress-fill {
             width: 0%;
             height: 100%;
             border-radius: 999px;
             background: linear-gradient(90deg, #f97316, #facc15);
-            box-shadow: 0 0 16px rgba(249, 115, 22, 0.35);
+            box-shadow: 0 0 18px rgba(249, 115, 22, 0.38);
             position: relative;
             transition: width 1.4s ease;
         }
+
         .progress-fill::after {
             content: '';
             position: absolute;
@@ -89,24 +110,38 @@
             height: 14px;
             border-radius: 50%;
             background: #fde68a;
-            box-shadow: 0 0 18px rgba(251, 191, 36, 0.4);
+            box-shadow: 0 0 22px rgba(251, 191, 36, 0.45);
         }
+
         .progress-meta {
             display: flex;
             flex-direction: column;
             gap: 0.15rem;
             min-width: 120px;
         }
+
         .progress-meta span {
             font-size: 0.72rem;
             text-transform: uppercase;
             letter-spacing: 0.18em;
             color: #e5e7eb;
         }
+
         .progress-meta strong {
             font-size: 0.95rem;
             color: #f8fafc;
         }
+
+        /* Subtle glitch + ticker */
+        .glitch-text {
+            position: relative;
+            animation: glitch-1 2.4s infinite linear;
+        }
+        @keyframes glitch-1 {
+            0%, 90%, 100% { text-shadow: 0 0 10px rgba(239,68,68,0.45); }
+            91% { text-shadow: 2px 0 rgba(34,197,94,0.35), -2px 0 rgba(239,68,68,0.45); }
+        }
+
         @keyframes flicker {
             0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
             50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
@@ -115,20 +150,8 @@
             0%, 100% { transform: translateX(0); }
             50% { transform: translateX(1px); }
         }
-        .candle-flame {
-            animation: flicker 1.4s infinite ease-in-out, drift 3.2s infinite ease-in-out;
-        }
-        .panel-glow {
-            box-shadow: 0 0 30px rgba(248, 113, 113, 0.18), inset 0 0 25px rgba(255, 255, 255, 0.02);
-        }
-        .ghost-panel strong { color: #f4f4f5; }
-        .dashboard-header { gap: 1rem; }
-        .dashboard-header .cta-group a { min-width: 140px; }
-        @media (max-width: 900px) {
-            .dashboard-header { flex-direction: column; align-items: stretch; }
-            .dashboard-header .cta-group { width: 100%; }
-            .dashboard-quote { font-size: 0.72rem; }
-        }
+
+        /* Mobile: prevent truncation/overlap */
         @media (max-width: 640px) {
             .dashboard-quote { font-size: 0.65rem; line-height:1.4; }
             .grid-cards { grid-template-columns: repeat(1, minmax(0, 1fr)); }
@@ -137,6 +160,7 @@
             .ghost-panel .overflow-x-auto { overflow-x: visible; }
         }
     </style>
+
 </head>
 <body class="text-rose-100 min-h-screen p-4 md:p-8 selection:bg-red-600 selection:text-white">
 
