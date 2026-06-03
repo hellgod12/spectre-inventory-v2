@@ -135,19 +135,20 @@ async function loadPayments() {
     html += `
         <table class="w-full text-left border-collapse text-xs">
             <thead>
-                <tr class="bg-stone-950 text-red-500/70 uppercase text-[10px]">
-                    <th class="p-3 font-bold">PEMBELI</th>
-                    <th class="p-3 font-bold">PRODUK</th>
-                    <th class="p-3 font-bold">UKURAN</th>
-                    <th class="p-3 font-bold text-center">JUMLAH</th>
-                    <th class="p-3 font-bold">TOTAL</th>
+                <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase text-[10px]">
+                    <th class="p-3 font-bold tracking-wider">PEMBELI</th>
+                    <th class="p-3 font-bold tracking-wider">PRODUK</th>
+                    <th class="p-3 font-bold tracking-wider">UKURAN</th>
+                    <th class="p-3 font-bold text-center tracking-wider">JUMLAH</th>
+                    <th class="p-3 font-bold tracking-wider">TOTAL</th>
 
-                    <th class="p-3 font-bold">METODE</th>
-                    <th class="p-3 font-bold">STATUS</th>
-                    <th class="p-3 font-bold">AKSI</th>
+                    <th class="p-3 font-bold tracking-wider">METODE</th>
+                    <th class="p-3 font-bold tracking-wider">STATUS</th>
+                    <th class="p-3 font-bold tracking-wider">AKSI</th>
                 </tr>
             </thead>
-            <tbody class="bg-black/60 divide-y divide-red-950/20">
+            <tbody class="bg-black/45 divide-y divide-red-950/25">
+
     `;
 
     payments.forEach(payment => {
@@ -389,19 +390,20 @@ async function loadDashboard() {
         let tableHtml = `
             <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
                 <thead>
-                    <tr class="bg-stone-950 text-red-500/70 border-b border-red-950 uppercase tracking-wider text-[10px]">
-                        <th class="p-4 font-bold">NAMA_BARANG</th>
-                        <th class="p-4 font-bold">SEKTOR_KATEGORI</th>
-                        <th class="p-4 font-bold">UKURAN</th>
-                        <th class="p-4 font-bold text-center">TINGKAT_STOK</th>
-                        <th class="p-4 font-bold">HARGA_MODAL</th>
-                        <th class="p-4 font-bold">HARGA_UMUM</th>
-                        <th class="p-4 font-bold">HARGA_MEMBER</th>
-                        <th class="p-4 font-bold text-center">HANCURKAN</th>
+                    <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase tracking-wider text-[10px]">
+                        <th class="p-4 font-bold tracking-wider">NAMA_BARANG</th>
+                        <th class="p-4 font-bold tracking-wider">SEKTOR_KATEGORI</th>
+                        <th class="p-4 font-bold tracking-wider">UKURAN</th>
+                        <th class="p-4 font-bold text-center tracking-wider">TINGKAT_STOK</th>
+                        <th class="p-4 font-bold tracking-wider">HARGA_MODAL</th>
+                        <th class="p-4 font-bold tracking-wider">HARGA_UMUM</th>
+                        <th class="p-4 font-bold tracking-wider">HARGA_MEMBER</th>
+                        <th class="p-4 font-bold text-center tracking-wider">HANCURKAN</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-red-950/30 bg-black/40">
-        `;
+                <tbody class="divide-y divide-red-950/25 bg-black/45">
+`;
+
 
         products.forEach(item => {
             let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 font-bold text-[9px] uppercase">${item.kategori || 'Apparel'}</span>`;
@@ -481,7 +483,7 @@ async function loadDashboard() {
         let soldHtml = `
             <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
                 <thead>
-                    <tr class="bg-stone-950 text-rose-500/70 border-b border-red-950 uppercase tracking-wider text-[10px]">
+            <tr class="bg-black/60 border-b border-red-950 uppercase tracking-wider text-[10px]">
                         <th class="p-4 font-bold">WAKTU_MUTASI (TANGGAL/JAM)</th>
                         <th class="p-4 font-bold">ITEM_TERJUAL</th>
                         <th class="p-4 font-bold">STRUKTUR_ORANG</th>

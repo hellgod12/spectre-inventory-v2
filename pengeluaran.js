@@ -39,15 +39,16 @@ async function loadExpenses() {
     let html = `
         <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
             <thead>
-                <tr class="bg-stone-950 text-red-500/70 uppercase text-[10px]">
-                    <th class="p-3 font-bold">TANGGAL</th>
-                    <th class="p-3 font-bold">KETERANGAN</th>
-                    <th class="p-3 font-bold">KATEGORI</th>
-                    <th class="p-3 font-bold text-right">NOMINAL</th>
-                    <th class="p-3 font-bold">CATATAN</th>
+                <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase text-[10px]">
+                    <th class="p-3 font-bold tracking-wider">TANGGAL</th>
+                    <th class="p-3 font-bold tracking-wider">KETERANGAN</th>
+                    <th class="p-3 font-bold tracking-wider">KATEGORI</th>
+                    <th class="p-3 font-bold text-right tracking-wider">NOMINAL</th>
+                    <th class="p-3 font-bold tracking-wider">CATATAN</th>
                 </tr>
             </thead>
-            <tbody class="bg-black/60 divide-y divide-red-950/20">
+            <tbody class="bg-black/45 divide-y divide-red-950/25">
+
     `;
 
     let totalExpense = 0;
@@ -64,13 +65,14 @@ async function loadExpenses() {
         if (expense.kategori === 'Gaji') katBadge = `<span class="bg-green-950/60 text-green-400 px-2 py-0.5 border border-green-800/50 text-[9px] uppercase">👥 GAJI</span>`;
 
         html += `
-            <tr class="hover:bg-red-950/10 transition-colors">
+            <tr class="hover:bg-red-950/15 transition-colors">
                 <td class="p-3 text-red-500 font-bold">${tanggalFormat}</td>
                 <td class="p-3 font-bold text-white uppercase">${expense.keterangan}</td>
                 <td class="p-3">${katBadge}</td>
                 <td class="p-3 text-right text-red-400 font-bold">Rp ${Number(expense.nominal).toLocaleString('id-ID')}</td>
                 <td class="p-3 text-slate-400 text-[10px]">${expense.catatan || '-'}</td>
             </tr>
+
         `;
     });
 
@@ -83,6 +85,7 @@ function updateExpenseProgress(expenses = []) {
     const totalExpense = expenses.reduce((sum, e) => sum + (parseFloat(e.nominal) || 0), 0);
     const targetBudget = 2000000; // Target budget default 2M
     const percent = totalExpense ? Math.min(100, Math.round((totalExpense / targetBudget) * 100)) : 0;
+
 
     if (expenseProgressFill) expenseProgressFill.style.width = `${percent}%`;
     if (expenseProgressText) expenseProgressText.innerText = `${percent}% terserap`;
