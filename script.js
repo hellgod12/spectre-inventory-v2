@@ -685,9 +685,26 @@ async function deleteFromSalesHistory(id, namaBarang) {
             alert('⚠️ Produk tidak ditemukan untuk restore stok: ' + namaBarangSale);
         } else {
             // Prefer restore by product_id (lebih akurat daripada nama_barang + ukuran)
+            // Pastikan currentStok diambil dari target yang benar (restoreTargetId),
+            // bukan dari hasil match nama_barang+ukuran yang mungkin tidak sama.
             const restoreTargetId = saleRecord.product_id || product.id;
-            const currentStok = parseInt(product.stok || 0, 10);
-            const stokBaru = currentStok + parseInt(saleRecord.jumlah || 0, 10);
+            const deltaQty = parseInt(saleRecord.jumlah || 0, 10);
+
+            let currentStok = 0;
+            try {
+                const { data: targetProduct } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', restoreTargetId)
+                    .single();
+
+                currentStok = parseInt(targetProduct?.stok || 0, 10);
+            } catch (e) {
+                // fallback pakai stok dari hasil match awal
+                currentStok = parseInt(product.stok || 0, 10);
+            }
+
+            const stokBaru = currentStok + deltaQty;
             const { error: updateErr } = await supabaseClient
                 .from('products')
                 .update({ stok: stokBaru })
@@ -697,6 +714,7 @@ async function deleteFromSalesHistory(id, namaBarang) {
                 alert('⚠️ Stock tidak terupdate: ' + updateErr.message);
             }
         }
+
 
 
         // 3) Hapus record payments terkait (kalau payment_id ada)
