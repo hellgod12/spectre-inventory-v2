@@ -4,20 +4,53 @@ const stokEl = document.getElementById('stok');
 const hargaModalEl = document.getElementById('harga_modal');
 const hargaJualEl = document.getElementById('harga_jual');
 const hargaMemberEl = document.getElementById('harga_member');
+const skuInput = document.getElementById('sku');
 const stockEntryStatus = document.getElementById('stockEntryStatus');
+
 
 function setInputsFromBarcode(raw) {
   const cleaned = String(raw || '').trim();
   if (!cleaned) return false;
 
-  // Supported raw formats:
-  // - nama_barang text
-  // - "id:123" (will set nama_barang only if exact match exists in local dropdown; we don't have it)
-  // For masuk page, we only can reliably set nama_barang from QR/barcode.
+  // Target: kalau yang discan adalah ITEM_IDENTIFIER saja,
+  // SKU tetap ditampilkan otomatis dengan pola turunan.
+  // Pola: ambil huruf/angka dari item_identifier, lalu format jadi:
+  //   SKU-<2 huruf pertama dari kata pertama><2 huruf pertama kata terakhir><angka hash 3 digit>
+  // Contoh: "SPECTRE SLICK DECK" => SKU-SPDE-123
 
-  if (productInput) productInput.value = cleaned.toUpperCase();
+  let itemIdentifier = cleaned;
+
+  // Jika raw kebetulan formatnya ada delimiter, ambil bagian pertama sebagai item identifier
+  // (contoh: "ITEM_IDENTIFIER|sku" atau "ITEM_IDENTIFIER|qty|...")
+  itemIdentifier = itemIdentifier.split('|')[0].trim();
+
+  if (productInput) productInput.value = itemIdentifier.toUpperCase();
+
+  if (skuInput) {
+    const words = String(itemIdentifier)
+      .toUpperCase()
+      .replace(/[^A-Z0-9\s]/g, ' ')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    const first = words[0] || '';
+    const last = words[words.length - 1] || first;
+
+    const a = (first.match(/[A-Z0-9]/g) || []).slice(0, 2).join('');
+    const b = (last.match(/[A-Z0-9]/g) || []).slice(0, 2).join('');
+
+    // hash sederhana agar tetap stabil untuk itemIdentifier
+    let hash = 0;
+    const str = String(itemIdentifier).toUpperCase();
+    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) % 1000;
+
+    const sku = `SKU-${a}${b}-${String(hash).padStart(3, '0')}`;
+    skuInput.value = sku;
+  }
+
   return true;
 }
+
 
 function attachScanUIHandlers() {
   const btnScan = document.getElementById('btnScanMasuk');
