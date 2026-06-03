@@ -639,17 +639,38 @@ async function deleteFromSalesHistory(id, namaBarang) {
             return;
         }
 
-        // 2) Restore stock (berdasarkan nama_barang)
-        const { data: product, error: prodErr } = await supabaseClient
-            .from('products')
-            .select('*')
-            .eq('nama_barang', saleRecord.nama_barang)
-            .single();
+        // 2) Restore stock (lebih robust: nama_barang + fallback trim/lower)
+        const namaBarangSale = String(saleRecord.nama_barang || '').trim();
 
-        if (prodErr || !product) {
-            console.warn('Produk tidak ditemukan, tetap hapus sales record');
+        // 2a) Coba match exact nama_barang
+        let product = null;
+        try {
+            const { data, error } = await supabaseClient
+                .from('products')
+                .select('*')
+                .eq('nama_barang', namaBarangSale)
+                .maybeSingle();
+            if (!error && data) product = data;
+        } catch (e) {}
+
+        // 2b) Fallback: match case-insensitive/substring (kalau kolom mendukung ilike)
+        if (!product && namaBarangSale) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('products')
+                    .select('*')
+                    .ilike('nama_barang', `%${namaBarangSale}%`)
+                    .limit(1)
+                    .maybeSingle();
+                if (!error && data) product = data;
+            } catch (e) {}
+        }
+
+        if (!product) {
+            // Jangan silent: ini yang membuat stok "tetap kritis" walau riwayat dihapus
+            alert('⚠️ Produk tidak ditemukan untuk restore stok: ' + namaBarangSale);
         } else {
-            const stokBaru = parseInt(product.stok || 0) + parseInt(saleRecord.jumlah || 0);
+            const stokBaru = parseInt(product.stok || 0, 10) + parseInt(saleRecord.jumlah || 0, 10);
             const { error: updateErr } = await supabaseClient
                 .from('products')
                 .update({ stok: stokBaru })
@@ -659,6 +680,7 @@ async function deleteFromSalesHistory(id, namaBarang) {
                 alert('⚠️ Stock tidak terupdate: ' + updateErr.message);
             }
         }
+
 
         // 3) Hapus record payments terkait (kalau payment_id ada)
         // Tujuan: kalau user hapus 1 transaksi dari dashboard, tidak perlu hapus 1-1 lagi.
