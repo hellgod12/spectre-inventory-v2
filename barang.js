@@ -39,6 +39,7 @@ productForm.addEventListener('submit', async (e) => {
     btnSimpan.disabled = true;
 
     const nama_barang = document.getElementById('nama_barang').value;
+    const sku = document.getElementById('sku').value;
     const kategori = document.getElementById('kategori').value;
     const ukuran = document.getElementById('ukuran').value || null;
     const stok = parseInt(document.getElementById('stok').value);
@@ -49,7 +50,8 @@ productForm.addEventListener('submit', async (e) => {
     // Mengirimkan semua data termasuk variabel 'kategori' ke tabel Supabase
     const { data, error } = await supabaseClient
         .from('products')
-        .insert([{ nama_barang, kategori, ukuran, stok, harga_modal, harga_jual, harga_member }]);
+        .insert([{ nama_barang, sku, kategori, ukuran, stok, harga_modal, harga_jual, harga_member }]);
+
 
     const statusPanel = document.getElementById('stockEntryStatus');
     const progressFill = document.getElementById('stockProgressFill');

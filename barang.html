@@ -78,9 +78,16 @@
                     <input type="text" id="nama_barang" class="input-field uppercase" placeholder="E.G. SPECTRE SLICK DECK" required>
                 </div>
 
+                <!-- SKU diperlukan supaya scan masuk bisa matching tepat (SKU|qty|... ) -->
+                <div>
+                    <label class="form-label">// ITEM_SKU</label>
+                    <input type="text" id="sku" class="input-field uppercase" placeholder="E.G. ABC123" required>
+                </div>
+
                 <div>
                     <label class="form-label">// SECTOR_CATEGORY</label>
                     <select id="kategori" class="input-field" required>
+
                         <option value="Apparel">👕 APPAREL (CLOTHING, HOODIES)</option>
                         <option value="Skateboard">🛹 SKATEBOARD (DECKS, TRUCKS, FULLSET)</option>
                         <option value="Perlengkapan">🛠️ HARDWARE (BEARINGS, GRIPTAPES)</option>

@@ -50,8 +50,16 @@ function setSelectedProductByBarcode(raw) {
   const idMatch = normalized.match(/^id\s*[:=]\s*(\d+)$/i) || normalized.match(/^productid\s*[:=]\s*(\d+)$/i);
   const id = idMatch?.[1] || null;
 
+  // SKU as field pertama sebelum '|': SKU|qty|...
+  const skuFirstField = text.includes('|') ? String(text.split('|')[0] || '').trim() : null;
+
+  // SKU/code formats like: sku:ABC123 / kode:XYZ
   const kodeMatch = normalized.match(/^(?:kode|sku)\s*[:=]\s*([^|]+)$/i);
   const kode = kodeMatch?.[1] ? String(kodeMatch[1]).trim() : null;
+
+  // unified sku candidate
+  const skuCandidate = (kode || skuFirstField) ? String(kode || skuFirstField).trim() : null;
+
 
   // Extract potential last alphanumeric segment (NOT used as matching id to avoid ngaco)
   // (We only match by id/productid/kode/sku or by name substring.)

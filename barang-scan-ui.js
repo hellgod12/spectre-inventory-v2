@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const hargaJualInput = document.getElementById('harga_jual');
   const hargaMemberInput = document.getElementById('harga_member');
   const kategoriSelect = document.getElementById('kategori');
+  const skuInput = document.getElementById('sku');
 
-  if (!btnScan || !videoEl || !canvasEl || !namaBarangInput) return;
+  if (!btnScan || !videoEl || !canvasEl || !namaBarangInput || !skuInput) return;
+
 
   let scanner = null;
 
@@ -35,8 +37,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const parts = text.split('|').map(s => String(s).trim()).filter(Boolean);
     if (parts.length === 0) return null;
 
+    // Format target SKU|qty|harga_modal|harga_jual|harga_member|kategori
+    // Jadi parts[0] = SKU, parts[1] = qty
+    const sku = parts[0];
     const nama = parts[0];
     const qty = parts[1] != null ? Number(parts[1]) : null;
+
     const hargaModal = parts[2] != null ? Number(parts[2]) : null;
     const hargaJual = parts[3] != null ? Number(parts[3]) : null;
     const hargaMember = parts[4] != null ? Number(parts[4]) : null;
@@ -56,7 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = parseScanPayload(raw);
     if (!payload) return false;
 
+    // payload untuk scan masuk format: SKU|qty|harga_modal|harga_jual|harga_member|kategori
+    // Jadi: parts[0]=SKU, parts[1]=qty, ...
     namaBarangInput.value = String(payload.nama || '').toUpperCase();
+    if (skuInput) skuInput.value = String(payload.sku || payload.nama || '').trim().toUpperCase();
+
 
     if (payload.qty != null && stokInput) stokInput.value = payload.qty;
     if (payload.hargaModal != null && hargaModalInput) hargaModalInput.value = payload.hargaModal;
@@ -91,8 +101,8 @@ document.addEventListener('DOMContentLoaded', () => {
         videoEl,
         canvasEl,
         onDecoded: (raw) => {
-          const ok = applyRawToNama(raw);
-          if (statusEl) statusEl.innerText = ok ? 'TERISI // NAMA BARANG' : 'TIDAK COCOK';
+          const ok = applyRawToForm(raw);
+          if (statusEl) statusEl.innerText = ok ? 'TERISI // SKU & DATA BARANG' : 'TIDAK COCOK';
         },
         onError: (msg) => {
           if (statusEl) statusEl.innerText = 'ERROR: ' + msg;
