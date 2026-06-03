@@ -639,8 +639,11 @@ async function deleteFromSalesHistory(id, namaBarang) {
             return;
         }
 
-        // 2) Restore stock (lebih robust: nama_barang + fallback trim/lower)
+        // 2) Restore stock
+        // Catatan: sistem stok/varian bergantung pada (nama_barang + ukuran). Agar akurat, kita juga cocokkan ukuran saat restore.
         const namaBarangSale = String(saleRecord.nama_barang || '').trim();
+        const ukuranSale = saleRecord.ukuran ? String(saleRecord.ukuran).trim() : null;
+
 
         // 2a) Coba match exact nama_barang
         let product = null;
