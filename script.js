@@ -427,11 +427,18 @@ async function loadDashboard() {
     const container = document.getElementById('productContainer');
     const soldContainer = document.getElementById('soldContainer');
     
+    // Debug: pastikan elemen yang dipakai ada
+    if (!container) {
+        console.error('loadDashboard(): element #productContainer is null');
+        return;
+    }
+
     // Tarik data produk aktif
     const { data: products, error: prodError } = await supabaseClient
         .from('products')
         .select('*')
         .order('created_at', { ascending: false });
+
 
     // Tarik data member
     const { data: members } = await supabaseClient.from('members').select('id');
