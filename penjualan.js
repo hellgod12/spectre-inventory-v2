@@ -1,6 +1,9 @@
+console.log('penjualan.js loaded');
+
 const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 const selectProduct = document.getElementById('selectProduct');
 const selectMember = document.getElementById('selectMember');
@@ -84,9 +87,9 @@ function showSaleSuccess(message) {
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
 async function initTerminalData() {
-    // Paksa placeholder menjadi state loading (biar terlihat selalu)
+    // Marker untuk memastikan penjualan.js dieksekusi (debug UI)
     if (selectProduct) {
-        selectProduct.innerHTML = '<option value="">>> MEMUAT PRODUK...</option>';
+        selectProduct.innerHTML = '<option value="">>> PENJUALAN.JS LOAD OK</option>';
     }
 
     // Ambil Produk
