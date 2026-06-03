@@ -222,11 +222,16 @@ function updatePricePreview() {
     else if (selectedProduct.kategori === 'Perlengkapan') sectorLabel = `<span class="text-orange-400 font-bold">[SPAREPART_GEAR] 🛠️</span>`;
     else if (selectedProduct.kategori === 'Apparel') sectorLabel = `<span class="text-zinc-400 font-bold">[APPAREL_BAJU] 👕</span>`;
 
+    const hargaOverrideBadge = (hargaOverride != null)
+        ? `<div><span class="text-red-700 block text-[9px] uppercase">// HARGA_OVERRIDE</span> <b class="text-yellow-400">Rp ${Number(hargaSatuan).toLocaleString('id-ID')}</b></div>`
+        : '';
+
     productDetail.innerHTML = `
         <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
             <div><span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b></div>
             <div><span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> ${sectorLabel}</div>
             ${selectedProduct.ukuran ? `<div><span class="text-red-700 block text-[9px] uppercase">// UKURAN</span> <b class="text-yellow-400">${selectedProduct.ukuran}</b></div>` : ''}
+            ${hargaOverrideBadge}
             <div><span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b></div>
         </div>
     `;
@@ -348,8 +353,9 @@ salesForm.addEventListener('submit', async (e) => {
         } catch (e) {}
 
 
-        alert('🎉 EKSEKUSI BERHASIL // Transaksi terikat nomor telepon member sukses!');
+        alert('🎉 EKSEKUSI BERHASIL // Transaksi tersimpan.');
         salesForm.reset();
+
         boxMemberSelect.classList.add('hidden');
         await initTerminalData();
         updatePricePreview();

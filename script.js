@@ -462,6 +462,7 @@ async function loadDashboard() {
                             <div class="mt-1">${orangBadge}</div>
                             <div class="mt-1 text-slate-400 text-[11px]">Ukuran: ${sale.ukuran || '—'}</div>
                             <div class="mt-1 text-rose-400 font-bold text-[11px]">${sale.jumlah} PCS</div>
+                            <div class="mt-1 text-yellow-400 font-bold text-[11px]">Harga pakai: Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
                             <div class="mt-1 text-emerald-400 font-bold text-[12px]">Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</div>
                         </div>
                         <div class="text-right">
@@ -471,6 +472,7 @@ async function loadDashboard() {
                 </div>
             `;
         });
+
 
         cards += `</div>`;
         soldContainer.innerHTML = cards;
@@ -506,7 +508,10 @@ async function loadDashboard() {
             soldHtml += `
                 <tr class="hover:bg-rose-950/10 transition-colors">
                     <td class="p-4 text-red-500 font-bold tracking-tight">${tanggalLokalan} WIB</td>
-                    <td class="p-4 font-bold text-white uppercase">${sale.nama_barang}</td>
+                    <td class="p-4 font-bold text-white uppercase">
+                        ${sale.nama_barang}
+                        <div class="text-[10px] text-yellow-400 font-bold">Harga pakai: Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
+                    </td>
                     <td class="p-4">${orangBadge}</td>
                     <td class="p-4">${sale.ukuran || '—'}</td>
                     <td class="p-4 text-center text-rose-400 font-bold">${sale.jumlah} PCS</td>
@@ -517,6 +522,7 @@ async function loadDashboard() {
                 </tr>
             `;
         });
+
         soldHtml += `</tbody></table>`;
         soldContainer.innerHTML = soldHtml;
     }
