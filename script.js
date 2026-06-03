@@ -11,7 +11,19 @@ function isMobile() {
 }
 
 
+function makeSkuFromNamaBarang(nama) {
+    const txt = String(nama || '').trim().toUpperCase();
+    if (!txt) return '';
+    return txt
+        .replace(/[^A-Z0-9]+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
+
+
 function loadLocalPayments() {
+
     try {
         return JSON.parse(localStorage.getItem('payments') || '[]');
     } catch (error) {

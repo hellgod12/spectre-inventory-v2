@@ -58,20 +58,40 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  function makeSkuFromNamaBarang(nama) {
+    const txt = String(nama || '').trim().toUpperCase();
+    if (!txt) return '';
+    // Replace any non-alphanumeric with '-'
+    const normalized = txt
+      .replace(/[^A-Z0-9]+/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
+    return normalized;
+  }
+
   const applyRawToForm = (raw) => {
     const payload = parseScanPayload(raw);
     if (!payload) return false;
 
     // payload untuk scan masuk format: SKU|qty|harga_modal|harga_jual|harga_member|kategori
     // Jadi: parts[0]=SKU, parts[1]=qty, ...
-    namaBarangInput.value = String(payload.nama || '').toUpperCase();
-    if (skuInput) skuInput.value = String(payload.sku || payload.nama || '').trim().toUpperCase();
+    const namaUpper = String(payload.nama || '').toUpperCase();
+    namaBarangInput.value = namaUpper;
 
+    // Prioritas: SKU dari scan ikut masuk kalau ada.
+    // Kalau kosong/undefined, generate dari nama_barang (format UPPERCASE + minus).
+    const rawSku = String(payload.sku ?? '').trim();
+    const skuFinal = rawSku
+      ? rawSku.toUpperCase()
+      : makeSkuFromNamaBarang(namaUpper);
+
+    if (skuInput) skuInput.value = skuFinal;
 
     if (payload.qty != null && stokInput) stokInput.value = payload.qty;
     if (payload.hargaModal != null && hargaModalInput) hargaModalInput.value = payload.hargaModal;
     if (payload.hargaJual != null && hargaJualInput) hargaJualInput.value = payload.hargaJual;
     if (payload.hargaMember != null && hargaMemberInput) hargaMemberInput.value = payload.hargaMember;
+
 
     // kategori bisa kita set dari payload kalau ada
     // kategori di Supabase/form wajib salah satu: Apparel | Skateboard | Perlengkapan
