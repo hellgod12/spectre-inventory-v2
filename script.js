@@ -623,11 +623,11 @@ async function deleteExpense(id) {
     }
 }
 async function deleteFromSalesHistory(id, namaBarang) {
-    const konfirmasi = confirm(`[PERINGATAN] HAPUS RECORD PENJUALAN "${namaBarang.toUpperCase()}"? STOCK AKAN DIKEMBALIKAN. Tidak bisa dikembalikan.`);
+    const konfirmasi = confirm(`[PERINGATAN] HAPUS RECORD PENJUALAN "${namaBarang.toUpperCase()}"? STOCK AKAN DIKEMBALIKAN DAN RECORD TERKAIT DIHAPUS SEKALIGUS. Tidak bisa dikembalikan.`);
     if (!konfirmasi) return;
 
     try {
-        // 1. Ambil data sales_history untuk tahu jumlah & nama barang
+        // 1) Ambil data sales_history (jadi source of truth)
         const { data: saleRecord, error: fetchErr } = await supabaseClient
             .from('sales_history')
             .select('*')
@@ -639,7 +639,7 @@ async function deleteFromSalesHistory(id, namaBarang) {
             return;
         }
 
-        // 2. Cari produk dan restore stock
+        // 2) Restore stock (berdasarkan nama_barang)
         const { data: product, error: prodErr } = await supabaseClient
             .from('products')
             .select('*')
@@ -660,7 +660,16 @@ async function deleteFromSalesHistory(id, namaBarang) {
             }
         }
 
-        // 3. Hapus sales_history
+        // 3) Hapus record payments terkait (kalau payment_id ada)
+        // Tujuan: kalau user hapus 1 transaksi dari dashboard, tidak perlu hapus 1-1 lagi.
+        if (saleRecord.payment_id) {
+            await supabaseClient
+                .from('payments')
+                .delete()
+                .eq('id', saleRecord.payment_id);
+        }
+
+        // 4) Hapus sales_history
         const { error: delErr } = await supabaseClient
             .from('sales_history')
             .delete()
@@ -669,7 +678,7 @@ async function deleteFromSalesHistory(id, namaBarang) {
         if (delErr) {
             alert('❌ Gagal menghapus record: ' + delErr.message);
         } else {
-            alert('✅ RECORD PENJUALAN DIHAPUS + STOCK DIKEMBALIKAN');
+            alert('✅ RECORD PENJUALAN DIHAPUS SEKALIGUS + STOCK DIKEMBALIKAN');
             await loadDashboard();
         }
     } catch (err) {
@@ -677,6 +686,7 @@ async function deleteFromSalesHistory(id, namaBarang) {
         alert('❌ Error: ' + err.message);
     }
 }
+
 
 async function deleteProduct(id, namaBarang) {
     const konfirmasi = confirm(`[PERINGATAN] HAPUS PRODUK "${namaBarang.toUpperCase()}"?`);

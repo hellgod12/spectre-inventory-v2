@@ -1,8 +1,15 @@
 console.log('penjualan.js loaded');
 
-const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Guard agar script tidak di-load dua kali (hindari redeclaration)
+if (window.__PENJUALAN_INIT__) {
+    console.warn('penjualan.js sudah pernah di-load, skip init');
+} else {
+    window.__PENJUALAN_INIT__ = true;
+
+    const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 
 const selectProduct = document.getElementById('selectProduct');
@@ -330,3 +337,5 @@ salesForm.addEventListener('submit', async (e) => {
 
 
 document.addEventListener('DOMContentLoaded', initTerminalData);
+}
+
