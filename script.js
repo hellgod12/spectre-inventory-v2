@@ -634,8 +634,14 @@ async function deleteExpense(id) {
 
         if (error) {
             alert('❌ Gagal menghapus: ' + error.message);
+            return;
+        }
+
+        alert('✅ PENGELUARAN BERHASIL DIHAPUS');
+        // Untuk halaman pengeluaran, refresh riwayat pengeluaran yang benar.
+        if (typeof loadExpenses === 'function') {
+            await loadExpenses();
         } else {
-            alert('✅ PENGELUARAN BERHASIL DIHAPUS');
             await loadDashboard();
         }
     } catch (err) {
@@ -643,6 +649,7 @@ async function deleteExpense(id) {
         alert('❌ Error: ' + err.message);
     }
 }
+
 async function deleteFromSalesHistory(id, namaBarang) {
     const konfirmasi = confirm(`[PERINGATAN] HAPUS RECORD PENJUALAN "${namaBarang.toUpperCase()}"? STOCK AKAN DIKEMBALIKAN DAN RECORD TERKAIT DIHAPUS SEKALIGUS. Tidak bisa dikembalikan.`);
     if (!konfirmasi) return;
