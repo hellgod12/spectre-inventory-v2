@@ -286,8 +286,9 @@ salesForm.addEventListener('submit', async (e) => {
     if (updateError) return alert('Gagal potong stok: ' + updateError.message);
 
     // 2. Simpan Riwayat
-    const { error: historyError } = await supabaseClient.from('sales_history').insert([{ 
+        const { error: historyError } = await supabaseClient.from('sales_history').insert([{ 
         payment_id: paymentRecord.id,
+        product_id: selectedProduct.id,
         nama_barang: selectedProduct.nama_barang, 
         kategori: selectedProduct.kategori,
         ukuran: selectedProduct.ukuran || null,

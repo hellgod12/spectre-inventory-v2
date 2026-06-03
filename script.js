@@ -684,11 +684,14 @@ async function deleteFromSalesHistory(id, namaBarang) {
             // Jangan silent: ini yang membuat stok "tetap kritis" walau riwayat dihapus
             alert('⚠️ Produk tidak ditemukan untuk restore stok: ' + namaBarangSale);
         } else {
-            const stokBaru = parseInt(product.stok || 0, 10) + parseInt(saleRecord.jumlah || 0, 10);
+            // Prefer restore by product_id (lebih akurat daripada nama_barang + ukuran)
+            const restoreTargetId = saleRecord.product_id || product.id;
+            const currentStok = parseInt(product.stok || 0, 10);
+            const stokBaru = currentStok + parseInt(saleRecord.jumlah || 0, 10);
             const { error: updateErr } = await supabaseClient
                 .from('products')
                 .update({ stok: stokBaru })
-                .eq('id', product.id);
+                .eq('id', restoreTargetId);
 
             if (updateErr) {
                 alert('⚠️ Stock tidak terupdate: ' + updateErr.message);
