@@ -5,6 +5,22 @@ box-sizing:border-box;
 font-family:'Poppins',sans-serif;
 }
 
+/* ===== Glassmorphism + Mobile-first touch polish (SPECTRE dashboard) ===== */
+html{scroll-behavior:smooth;}
+body{touch-action:manipulation;}
+
+/* Ensure Tailwind overflow helpers don’t break layout */
+.overflow-x-auto{max-width:100%;}
+
+/* Premium glass buttons that won’t shift on tap */
+a,button{ -webkit-tap-highlight-color:transparent; }
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+}
+
+
 :root{
 --bg0:#070a14;
 --bg1:#0b1020;
