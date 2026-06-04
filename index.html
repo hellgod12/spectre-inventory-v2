@@ -166,7 +166,7 @@
 
             <div class="spectre-shell">
 
-        <!-- Sidebar Navigation (permanent desktop) -->
+        <!-- Sidebar Navigation (permanent) -->
         <aside class="spectre-sidebar" aria-label="Primary">
             <div class="spectre-sidebar__brand">
                 <div class="flex items-center gap-3">
@@ -204,9 +204,22 @@
 
         <!-- Main content -->
         <main class="spectre-content" role="main">
-            <!-- HERO ANALYTICS -->
-<section class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-red-600 dashboard-header spectre-hero spectre-hero--premium">
-<div class="spectre-hero__top spectre-hero__top--premium">
+            <!-- Top header + HERO (reduced height by ~60%) -->
+<section class="spectre-hero spectre-hero--premium" data-layout="stripe-linear-vercel-notion">
+                    <header class="spectre-header" role="banner">
+                        <button class="spectre-btn spectre-btn--danger" type="button" id="spectreTopRefreshPayments" style="display:none;">Refresh</button>
+                        <div class="spectre-header__left">
+                            <div class="scary-logo glitch-text text-3xl md:text-4xl text-red-500">SPECTRE</div>
+                            <span class="spectre-header__tag">// SISTEM_OVERLOAD</span>
+                        </div>
+                        <div class="spectre-header__right">
+                            <button class="spectre-btn spectre-btn--ghost" type="button">Export Data</button>
+
+
+                        </div>
+                    </header>
+
+                    <div class="spectre-hero__top spectre-hero__top--premium">
                     <div class="min-w-0">
                         <div class="flex items-baseline gap-3 flex-wrap">
                             <div class="scary-logo glitch-text text-4xl md:text-5xl text-red-500">SPECTRE</div>
@@ -230,6 +243,9 @@
                 <!-- HERO stock progress (required by candle-manager.js) -->
                 <div class="spectre-hero__bottom">
                     <div class="ghost-panel spectre-mini" style="padding:16px; border-radius:0; background:rgba(17,23,38,0.72); border:1px solid rgba(248,113,113,0.22);">
+                        <div style="display:none;" aria-hidden="true">
+                            <div id="spectreTopRefreshPaymentsSlot">.</div>
+                        </div>
                         <div class="flex items-center justify-between gap-3">
                             <div>
                                 <div class="text-xs uppercase tracking-widest text-red-400 font-bold">STOCK CANDEL SEAL</div>
@@ -265,10 +281,9 @@
                         <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-3">Motivasi: kerja cepat, jangan biarkan waktu memakanmu.</p>
                     </div>
                 </div>
-            </section>
 
-            <!-- Row 2: KPI widgets migrated to hero (keep KPI containers elsewhere as per IDs) -->
-<section class="spectre-grid spectre-kpi-grid-4 spectre-kpi-grid" aria-label="KPIs">
+                <!-- KPI (immediately above fold) -->
+<section class="spectre-grid spectre-kpi-grid-4 spectre-kpi-grid spectre-kpi-grid--top" aria-label="KPIs">
                 <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-600 bg-red-950/10"> 
                     <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// OMSET_KOTOR]</p>
                     <p id="totalOmset" class="text-lg md:text-xl font-black text-red-400 mt-2">Rp 0</p>
@@ -314,7 +329,7 @@
                 </div>
             </section>
 
-            <!-- Row 3: Product / Payment / Expense separated widgets -->
+            <!-- Compact Cards (no stacked waste) -->
             <section class="spectre-widgets" aria-label="Dashboard Widgets">
                 <div class="ghost-panel rounded-none p-4 md:p-6 spectre-widget">
                     <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
@@ -359,6 +374,7 @@
                     <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
                         <h2 class="text-xs font-bold uppercase tracking-widest text-rose-500">// PEMBAYARAN</h2>
 <button id="refreshPaymentsBtn" class="spectre-btn spectre-btn--emerald px-4 py-3 rounded-xl text-xs font-bold uppercase">Refresh Pembayaran</button>
+
                     </div>
                     <div class="overflow-x-auto border border-red-950 bg-black/90">
                         <div id="paymentsContainer" class="p-4 text-xs text-slate-300">
@@ -368,7 +384,7 @@
                 </div>
             </section>
 
-            <!-- Mobile Bottom Navigation -->
+            <!-- Mobile Bottom Navigation (keep) -->
             <nav class="spectre-bottomnav" aria-label="Mobile navigation">
                 <a href="index.html" class="spectre-bottomnav__item is-active">Dashboard</a>
                 <a href="penjualan.html" class="spectre-bottomnav__item">Kasir</a>

@@ -178,13 +178,52 @@ body{touch-action:manipulation;}
 /* Main content */
 .spectre-content{
   flex:1;
-  padding:28px;
+  padding:20px;
   min-width:0;
   padding-bottom:90px;
+  display:flex;
+  justify-content:center;
+}
+
+/* Max content width 1400px */
+.spectre-content > *{
+  width:100%;
+  max-width:1400px;
 }
 
 /* Premium hero spacing */
-.spectre-hero{margin-bottom:18px;}
+.spectre-hero{margin-bottom:14px;}
+
+/* Top header glass */
+.spectre-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:14px 16px;
+  margin-bottom:14px;
+  background: rgba(19,23,34,.55);
+  border: 1px solid rgba(255,59,59,.18);
+  border-radius: 16px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.spectre-header__left{display:flex;align-items:center;gap:12px;min-width:0;}
+.spectre-header__tag{
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color: rgba(255,107,53,.95);
+}
+.spectre-header__right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;}
+
+/* Reduce hero height by ~60% */
+.spectre-hero--premium{padding:0;}
+.spectre-hero__cta{margin-top:10px;}
+.spectre-hero__bottom{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;}
+.spectre-hero__bottom > .ghost-panel{flex:1 1 280px;min-width:260px;}
 
 /* KPI grids responsive requirements */
 /* Mobile first: default to 2 columns */
@@ -202,6 +241,9 @@ body{touch-action:manipulation;}
   gap:16px;
   margin-top:16px;
 }
+
+/* Premium lift: KPI right after header */
+.spectre-kpi-grid--top{margin-top:0;}
 
 /* Tablet: KPI cards become 3 columns */
 @media (min-width: 640px){
