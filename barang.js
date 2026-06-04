@@ -201,13 +201,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Add event listener to category select for auto SKU generation
     const kategoriSelect = document.getElementById('kategori');
-    if (kategoriSelect) {
-        kategoriSelect.addEventListener('change', autoGenerateSku);
+    const sizeContainer = document.getElementById('sizeContainer');
+    const ukuranEl = document.getElementById('ukuran');
+
+    // Define size options based on category
+    const sizeOptions = {
+        'Clothing': ['S', 'M', 'L', 'XL', 'XXL'],
+        'Skateboard': ['8.0', '8.125', '8.25', '8.5'],
+        'Perlengkapan': ['NO SIZE']
+    };
+
+    function updateSizeOptions() {
+        const category = kategoriSelect.value;
+
+        if (!category) {
+            sizeContainer.classList.add('hidden');
+            return;
+        }
+
+        // Clear existing options
+        ukuranEl.innerHTML = '<option value="">-- Select Size --</option>';
+
+        if (category === 'Perlengkapan') {
+            // Auto-fill NO SIZE and disable size input
+            ukuranEl.value = 'NO SIZE';
+            ukuranEl.disabled = true;
+            sizeContainer.classList.remove('hidden');
+        } else if (sizeOptions[category]) {
+            // Populate size options
+            sizeOptions[category].forEach(size => {
+                const option = document.createElement('option');
+                option.value = size;
+                option.textContent = size;
+                ukuranEl.appendChild(option);
+            });
+            ukuranEl.disabled = false;
+            sizeContainer.classList.remove('hidden');
+        } else {
+            sizeContainer.classList.add('hidden');
+        }
     }
 
-    // Also trigger SKU generation on page load if category is already selected
+    if (kategoriSelect) {
+        kategoriSelect.addEventListener('change', () => {
+            autoGenerateSku();
+            updateSizeOptions();
+        });
+    }
+
+    // Also trigger SKU generation and size options on page load if category is already selected
     if (kategoriSelect && kategoriSelect.value) {
         autoGenerateSku();
+        updateSizeOptions();
     }
 });
 
