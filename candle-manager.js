@@ -29,12 +29,12 @@
     const percent = t ? Math.min(100, Math.round((Math.min(t, STOCK_TARGET) / STOCK_TARGET) * 100)) : 0;
 
     if (fill) fill.style.width = percent + '%';
-    if (capacityText) capacityText.textContent = `${percent}% terserap oleh candel`;
-    if (capacityLabel) capacityLabel.textContent = 'STOK_GELAP';
+    if (capacityText) capacityText.textContent = `${percent}% Warehouse Utilization`;
+    if (capacityLabel) capacityLabel.textContent = 'INVENTORY_STATUS';
     if (statusNote) {
       statusNote.textContent = t
-        ? `Total stok: ${t} unit. Gudang berjalan makin pekat.`
-        : 'Gudang masih kosong, candel tidur.';
+        ? `Total stock: ${t} units. Warehouse capacity increasing.`
+        : 'Warehouse empty. No inventory activity.';
     }
   }
 
@@ -61,12 +61,12 @@
     }, duration);
   }
 
-  function flashCandle(delta, { scope = 'stock' } = {}) {
+  function flashInventory(delta, { scope = 'stock' } = {}) {
     const direction = delta >= 0 ? 'in' : 'out';
 
     if (scope === 'stock') {
-      const candle = document.querySelector('.ghost-panel .candle-flame') || document.querySelector('.candle-flame');
-      pulseElement(candle, { times: 2, duration: 160 });
+      const indicator = document.querySelector('.ghost-panel .inventory-indicator') || document.querySelector('.inventory-indicator');
+      pulseElement(indicator, { times: 2, duration: 160 });
 
       // Animasi halus di progress fill (jangan ubah layout)
       const fill = document.getElementById('stockProgressFill');
@@ -88,7 +88,7 @@
       }
 
       // Partikel super ringan (tidak mengubah layout)
-      if (candle) {
+      if (indicator) {
         const r = document.createElement('span');
         r.textContent = direction === 'in' ? '➕' : '➖';
         r.style.position = 'absolute';
@@ -101,8 +101,8 @@
         r.style.opacity = '0.95';
         r.style.pointerEvents = 'none';
         r.style.zIndex = '5';
-        candle.style.position = 'relative';
-        candle.appendChild(r);
+        indicator.style.position = 'relative';
+        indicator.appendChild(r);
 
         const drift = direction === 'in' ? -14 : -10;
         r.animate(
@@ -126,8 +126,8 @@
         document.getElementById('ledgerProgressFill')
       ].filter(Boolean);
 
-      const candle = document.querySelector('.candle-progress .candle-flame') || document.querySelector('.candle-flame');
-      pulseElement(candle, { times: 1, duration: 220 });
+      const indicator = document.querySelector('.inventory-progress .inventory-indicator') || document.querySelector('.inventory-indicator');
+      pulseElement(indicator, { times: 1, duration: 220 });
 
       fillCandidates.forEach(fill => {
         fill.style.boxShadow = '0 0 26px rgba(16, 185, 129, 0.25)';
@@ -146,22 +146,22 @@
     }
   }
 
-  function animateProductCandlesImpact({ delta, namaProduk }) {
-    // saat ini dashboard belum punya UI candle per-produk, jadi kita tampilkan efek overlay partikel.
-    // nanti kalau kamu mau benar-benar candle per produk, kita akan tambah markup di dashboard.
+  function animateProductInventoryImpact({ delta, namaProduk }) {
+    // saat ini dashboard belum punya UI inventory per-produk, jadi kita tampilkan efek overlay partikel.
+    // nanti kalau kamu mau benar-benar inventory per produk, kita akan tambah markup di dashboard.
 
-    // Dashboard ingin candle per-produk: buat minimal "bars" di #soldContainer atau #productContainer kalau ada.
-    // Namun dataset yang ada di dashboard belum punya UI candle per produk, jadi kita siapkan placeholder:
+    // Dashboard ingin inventory per-produk: buat minimal "bars" di #soldContainer atau #productContainer kalau ada.
+    // Namun dataset yang ada di dashboard belum punya UI inventory per produk, jadi kita siapkan placeholder:
     // - tidak akan error jika elemen tidak ada
 
     const productContainer = document.getElementById('productContainer');
     if (!productContainer) return;
 
-    // cari container candle-area yang mungkin ada
-    let layer = productContainer.querySelector('[data-candle-layer="products"]');
+    // cari container inventory-area yang mungkin ada
+    let layer = productContainer.querySelector('[data-inventory-layer="products"]');
     if (!layer) {
       layer = document.createElement('div');
-      layer.setAttribute('data-candle-layer', 'products');
+      layer.setAttribute('data-inventory-layer', 'products');
       // overlay ringan, tidak mengubah layout
       layer.style.position = 'absolute';
       layer.style.inset = '0';
@@ -208,8 +208,8 @@
       const delta = safeNumber(deltaStok, 0);
       if (!delta) return;
 
-      // Visual trading-like: shake + glide + candle pulse
-      flashCandle(delta, { scope: 'stock' });
+      // Visual trading-like: shake + glide + inventory pulse
+      flashInventory(delta, { scope: 'stock' });
       try {
         // trigger a light "trade" sweep without layout shift
         const track = document.getElementById('stockProgressFill');
@@ -229,26 +229,26 @@
       // Update progress berdasarkan estimasi total dari DOM
       const currentTotal = getStockTotalFromDOMFallback();
       const nextTotal = Math.max(0, currentTotal + delta);
-      updateStockCandleByTotal(nextTotal);
+      updateStockProgressByTotal(nextTotal);
 
       // Broadcast ke tab lain agar ikut animasi
       try {
-        localStorage.setItem('candle_stock_delta', JSON.stringify({ delta, t: Date.now() }));
+        localStorage.setItem('inventory_stock_delta', JSON.stringify({ delta, t: Date.now() }));
       } catch (e) {}
     },
 
 
     // deltaPayment hanya efek visual
     applyPaymentDelta: function () {
-      flashCandle(1, { scope: 'payment' });
+      flashInventory(1, { scope: 'payment' });
       try {
-        localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+        localStorage.setItem('inventory_payment_delta', JSON.stringify({ t: Date.now() }));
       } catch (e) {}
     },
 
     // saat halaman baru dibuka
-    refreshStockCandleFromProductsTotal: function () {
-      updateStockCandleByTotal(getStockTotalFromDOMFallback());
+    refreshStockProgressFromProductsTotal: function () {
+      updateStockProgressByTotal(getStockTotalFromDOMFallback());
     }
   };
 })();

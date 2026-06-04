@@ -90,6 +90,33 @@ function updateExpenseProgress(expenses = []) {
     if (expenseProgressFill) expenseProgressFill.style.width = `${percent}%`;
     if (expenseProgressText) expenseProgressText.innerText = `${percent}% terserap`;
     if (expenseProgressLabel) expenseProgressLabel.innerText = totalExpense ? 'DISIKAT KELUAR' : 'MENUNGGU';
+
+    // Update KPI cards
+    const expenseTotalEl = document.getElementById('expenseTotal');
+    const expenseMonthlyEl = document.getElementById('expenseMonthly');
+    const expenseAverageEl = document.getElementById('expenseAverage');
+    const expenseLargestEl = document.getElementById('expenseLargest');
+
+    if (expenseTotalEl) expenseTotalEl.innerText = 'Rp ' + totalExpense.toLocaleString('id-ID');
+
+    // Calculate monthly expenses (current month)
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const monthlyExpenses = expenses.filter(e => {
+        const expenseDate = new Date(e.tanggal);
+        return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+    });
+    const monthlyTotal = monthlyExpenses.reduce((sum, e) => sum + (parseFloat(e.nominal) || 0), 0);
+    if (expenseMonthlyEl) expenseMonthlyEl.innerText = 'Rp ' + monthlyTotal.toLocaleString('id-ID');
+
+    // Calculate average expense
+    const averageExpense = expenses.length > 0 ? totalExpense / expenses.length : 0;
+    if (expenseAverageEl) expenseAverageEl.innerText = 'Rp ' + averageExpense.toLocaleString('id-ID');
+
+    // Calculate largest expense
+    const largestExpense = expenses.length > 0 ? Math.max(...expenses.map(e => parseFloat(e.nominal) || 0)) : 0;
+    if (expenseLargestEl) expenseLargestEl.innerText = 'Rp ' + largestExpense.toLocaleString('id-ID');
 }
 
 expenseForm.addEventListener('submit', async (e) => {

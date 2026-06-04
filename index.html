@@ -84,8 +84,11 @@
         <!-- Sidebar Navigation (permanent) -->
         <aside class="spectre-sidebar" aria-label="Primary">
             <div class="spectre-sidebar__brand">
-                <h1>SPECTRE</h1>
-                <p class="spectre-sidebar__warn">Inventory Management System</p>
+                <div class="spectre-logo-mark">S</div>
+                <div class="spectre-logo-text">
+                    <h1>SPECTRE</h1>
+                    <p class="spectre-sidebar__warn">Inventory Management System</p>
+                </div>
             </div>
 
             <nav class="spectre-sidebar__nav">
@@ -99,15 +102,6 @@
             </nav>
 
             <div class="spectre-sidebar__footer">
-                <div class="candle-progress">
-                    <div class="candle-flame"></div>
-                    <div class="progress-track"><div id="dashboardProgressFill" class="progress-fill"></div></div>
-                    <div class="progress-meta">
-                        <span>Progress</span>
-                        <strong id="dashboardProgressText">0%</strong>
-                        <span id="dashboardProgressSub" class="text-xs text-muted">No payment data</span>
-                    </div>
-                </div>
             </div>
         </aside>
 
@@ -126,8 +120,8 @@
 
                     <div class="spectre-hero__top">
                     <div class="min-w-0">
-                        <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">SPECTRE</h1>
-                        <p class="text-muted text-lg">Inventory Intelligence Platform</p>
+                        <h1 class="text-7xl font-bold tracking-tight mb-3" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 40px rgba(124,92,255,0.3)); letter-spacing: -0.03em;">SPECTRE</h1>
+                        <p class="text-muted text-2xl font-medium tracking-wide">Inventory Intelligence Platform</p>
                     </div>
 
                     <div class="spectre-hero__cta">
@@ -138,38 +132,51 @@
                     </div>
                 </div>
 
-                <!-- HERO stock progress (required by candle-manager.js) -->
+                <!-- HERO inventory overview -->
                 <div class="spectre-hero__bottom">
-                    <div class="ghost-panel spectre-mini">
+                    <div class="spectre-inventory-overview-panel">
                         <div style="display:none;" aria-hidden="true">
                             <div id="spectreTopRefreshPaymentsSlot">.</div>
                         </div>
-                        <div class="flex items-center justify-between gap-3">
-                            <div>
-                                <h3>Stock Capacity</h3>
-                                <p class="text-sm text-muted mt-1">Warehouse utilization</p>
-                            </div>
-                            <div class="text-right">
-                                <div id="stockCapacityLabel" class="text-xs font-semibold uppercase text-muted">Capacity</div>
-                                <div id="stockCapacityText" class="text-sm font-semibold mt-1">0%</div>
-                            </div>
+                        <div class="spectre-inventory-overview-header">
+                            <h3>Inventory Overview</h3>
                         </div>
-                        <div class="candle-progress mt-4">
-                            <div class="candle-flame" aria-hidden="true"></div>
-                            <div class="progress-track"><div id="stockProgressFill" class="progress-fill"></div></div>
-                            <div class="progress-meta">
-                                <span>Utilization</span>
-                                <strong id="stockProgressText">0%</strong>
-                                <span id="stockStatusNote" class="text-xs text-muted">Warehouse is empty</span>
+                        <div class="spectre-inventory-overview-grid">
+                            <div class="spectre-inventory-overview-card">
+                                <div class="spectre-inventory-overview-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                                </div>
+                                <div class="spectre-inventory-overview-value" id="totalStock">0</div>
+                                <div class="spectre-inventory-overview-label">Total Stock</div>
+                            </div>
+                            <div class="spectre-inventory-overview-card">
+                                <div class="spectre-inventory-overview-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                </div>
+                                <div class="spectre-inventory-overview-value" id="totalItems">0</div>
+                                <div class="spectre-inventory-overview-label">Total Products</div>
+                            </div>
+                            <div class="spectre-inventory-overview-card">
+                                <div class="spectre-inventory-overview-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                </div>
+                                <div class="spectre-inventory-overview-value" id="inventoryValue">Rp 0</div>
+                                <div class="spectre-inventory-overview-label">Inventory Value</div>
+                            </div>
+                            <div class="spectre-inventory-overview-card">
+                                <div class="spectre-inventory-overview-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                                </div>
+                                <div class="spectre-inventory-overview-value" id="lowStockItems">0</div>
+                                <div class="spectre-inventory-overview-label">Low Stock Items</div>
                             </div>
                         </div>
                     </div>
 
                     <div class="ghost-panel">
                         <div class="flex items-center gap-3">
-                            <div>
-                                <div class="candle-flame"></div>
-                                <div class="candle-base"></div>
+                            <div class="spectre-status-icon">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-sm">System Status</h3>
@@ -182,48 +189,112 @@
 
                 <!-- KPI (immediately above fold) -->
 <section class="spectre-kpi-grid spectre-kpi-grid--top" aria-label="KPIs">
-                <div class="ghost-panel p-4"> 
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Total Revenue</p>
-                    <p id="totalOmset" class="text-xl font-semibold mt-2">Rp 0</p>
-                    <span class="text-xs text-muted block mt-1">Gross Revenue</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Total Revenue</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ 12.4%</span>
+                        </div>
+                        <p id="totalOmset" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle">Gross Revenue</span>
+                    </div>
                 </div>
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Net Profit</p>
-                    <p id="totalProfit" class="text-xl font-semibold mt-2">Rp 0</p>
-                    <span class="text-xs text-muted block mt-1">Profit After Expenses</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Net Profit</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ 8.7%</span>
+                        </div>
+                        <p id="totalProfit" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle">Profit After Expenses</span>
+                    </div>
                 </div>
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Total Expenses</p>
-                    <p id="totalExpenses" class="text-xl font-semibold mt-2">Rp 0</p>
-                    <span class="text-xs text-muted block mt-1">Operating Costs</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Total Expenses</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--neutral">↓ 0%</span>
+                        </div>
+                        <p id="totalExpenses" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle">Operating Costs</span>
+                    </div>
                 </div>
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Net Balance</p>
-                    <p id="netProfit" class="text-xl font-semibold mt-2">Rp 0</p>
-                    <span class="text-xs text-muted block mt-1">Cash Balance</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Net Balance</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ growth</span>
+                        </div>
+                        <p id="netProfit" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle">Cash Balance</span>
+                    </div>
                 </div>
             </section>
 
             <section class="spectre-kpi-grid2" aria-label="Secondary KPIs">
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Items Sold</p>
-                    <p id="totalSalesCount" class="text-xl font-semibold mt-2">0</p>
-                    <span class="text-xs text-muted block mt-1">Total Sales</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Items Sold</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ growth</span>
+                        </div>
+                        <p id="totalSalesCount" class="spectre-kpi-value">0</p>
+                        <span class="spectre-kpi-subtitle">Total Sales</span>
+                    </div>
                 </div>
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Members</p>
-                    <p id="totalMembers" class="text-xl font-semibold mt-2">0</p>
-                    <span class="text-xs text-muted block mt-1">Registered Members</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Members</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ growth</span>
+                        </div>
+                        <p id="totalMembers" class="spectre-kpi-value">0</p>
+                        <span class="spectre-kpi-subtitle">Registered Members</span>
+                    </div>
                 </div>
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Products</p>
-                    <p id="totalItems" class="text-xl font-semibold mt-2">0</p>
-                    <span class="text-xs text-muted block mt-1">SKUs Registered</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Products</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ inventory</span>
+                        </div>
+                        <p id="kpiTotalItems" class="spectre-kpi-value">0</p>
+                        <span class="spectre-kpi-subtitle">SKUs Registered</span>
+                    </div>
                 </div>
-                <div class="ghost-panel p-4">
-                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Stock</p>
-                    <p id="totalStock" class="text-xl font-semibold mt-2">0</p>
-                    <span class="text-xs text-muted block mt-1">Physical Stock</span>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Stock</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ capacity</span>
+                        </div>
+                        <p id="kpiTotalStock" class="spectre-kpi-value">0</p>
+                        <span class="spectre-kpi-subtitle">Physical Stock</span>
+                    </div>
                 </div>
             </section>
 
@@ -249,12 +320,13 @@
                         </div>
                         <span class="text-xs text-muted">Trading View</span>
                     </div>
-                    <div class="relative" style="height: 280px;">
+                    <div class="relative" style="height: 360px;">
                         <canvas id="candlestickChart" class="w-full h-full"></canvas>
                     </div>
-                    <div class="flex justify-between items-center mt-3 text-xs text-muted">
-                        <span>OHLC Data</span>
-                        <span>Real-time Updates</span>
+                    <div class="flex justify-between items-center mt-4 text-xs text-muted">
+                        <span>Sales Trend</span>
+                        <span>Revenue Movement</span>
+                        <span>Inventory Flow</span>
                     </div>
                 </div>
 
@@ -280,7 +352,11 @@
                     </div>
                     <div class="overflow-x-auto">
                         <div id="expenseContainer">
-                            <div class="p-8 text-center text-muted text-xs">No recent expenses</div>
+                            <div class="spectre-empty-state">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="spectre-empty-icon"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                <p class="spectre-empty-title">Belum ada pengeluaran tercatat</p>
+                                <p class="spectre-empty-description">Record your first expense to track operating costs</p>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -256,7 +256,7 @@ function renderCandlestickChartFromSalesHistory(salesHistory = []) {
 
     const dpr = window.devicePixelRatio || 1;
     const cssW = canvas.clientWidth || 320;
-    const cssH = 220;
+    const cssH = 360;
     canvas.width = Math.floor(cssW * dpr);
     canvas.height = Math.floor(cssH * dpr);
     canvas.style.height = cssH + 'px';
@@ -266,13 +266,37 @@ function renderCandlestickChartFromSalesHistory(salesHistory = []) {
     const height = cssH;
     ctx.clearRect(0, 0, width, height);
 
-    // Prepare daily buckets: OHLC simulated from sales_history
-    // OHLC definition:
-    // open  = first transaction total_harga in day bucket
-    // high  = max transaction total_harga in day bucket
-    // low   = min transaction total_harga in day bucket
-    // close = last transaction total_harga in day bucket
+    const padL = 60;
+    const padR = 20;
+    const padT = 40;
+    const padB = 50;
 
+    const plotW = width - padL - padR;
+    const plotH = height - padT - padB;
+
+    // Draw grid lines
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.08)';
+    ctx.lineWidth = 1;
+    
+    // Horizontal grid lines
+    for (let i = 0; i <= 5; i++) {
+        const y = padT + (plotH / 5) * i;
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + plotW, y);
+        ctx.stroke();
+    }
+    
+    // Vertical grid lines
+    for (let i = 0; i <= 6; i++) {
+        const x = padL + (plotW / 6) * i;
+        ctx.beginPath();
+        ctx.moveTo(x, padT);
+        ctx.lineTo(x, padT + plotH);
+        ctx.stroke();
+    }
+
+    // Parse sales data
     const parseDate = (v) => {
         try {
             const d = new Date(v);
@@ -288,18 +312,15 @@ function renderCandlestickChartFromSalesHistory(salesHistory = []) {
         }))
         .filter(x => x.t && Number.isFinite(x.v));
 
+    // Generate professional placeholder chart if insufficient data
     if (items.length < 2) {
-        // empty chart
-        ctx.fillStyle = 'rgba(148,163,184,0.35)';
-        ctx.font = '12px Share Tech Mono, monospace';
-        ctx.fillText('NO_SALES_DATA', 12, 28);
+        drawPlaceholderChart(ctx, width, height, padL, padR, padT, padB, plotW, plotH);
         return;
     }
 
-    // sort by time
+    // Sort by time and bucket by day
     items.sort((a, b) => a.t - b.t);
 
-    // bucket by YYYY-MM-DD
     const fmtDay = (d) => {
         const y = d.getFullYear();
         const m = String(d.getMonth() + 1).padStart(2, '0');
@@ -316,99 +337,155 @@ function renderCandlestickChartFromSalesHistory(salesHistory = []) {
 
     const buckets = Array.from(bucketsMap.entries())
         .map(([key, arr]) => {
-            const sorted = arr.slice().sort((a, b) => a.t - b.t);
-            const open = sorted[0].v;
-            const close = sorted[sorted.length - 1].v;
-            const high = sorted.reduce((m, x) => Math.max(m, x.v), -Infinity);
-            const low = sorted.reduce((m, x) => Math.min(m, x.v), Infinity);
-            return { key, open, high, low, close, count: sorted.length };
+            const total = arr.reduce((sum, x) => sum + x.v, 0);
+            const count = arr.length;
+            return { key, total, count };
         })
         .sort((a, b) => a.key.localeCompare(b.key));
 
-    const maxCandles = 24; // keep chart light
-    const sliced = buckets.slice(Math.max(0, buckets.length - maxCandles));
+    const maxBuckets = 7;
+    const sliced = buckets.slice(Math.max(0, buckets.length - maxBuckets));
 
-    const padL = 10;
-    const padR = 10;
-    const padT = 14;
-    const padB = 24;
-
-    const plotW = width - padL - padR;
-    const plotH = height - padT - padB;
-
-    const highs = sliced.map(c => c.high);
-    const lows = sliced.map(c => c.low);
-    const maxY = Math.max(...highs);
-    const minY = Math.min(...lows);
-    const span = (maxY - minY) || 1;
-
-    const yToPx = (y) => {
-        const norm = (y - minY) / span;
-        return padT + (1 - norm) * plotH;
-    };
-
-    // background grid
-    ctx.strokeStyle = 'rgba(248,113,113,0.12)';
-    ctx.lineWidth = 1;
-    const gridY = 4;
-    for (let i = 0; i <= gridY; i++) {
-        const yy = padT + (plotH / gridY) * i;
-        ctx.beginPath();
-        ctx.moveTo(padL, yy);
-        ctx.lineTo(padL + plotW, yy);
-        ctx.stroke();
+    if (sliced.length < 2) {
+        drawPlaceholderChart(ctx, width, height, padL, padR, padT, padB, plotW, plotH);
+        return;
     }
 
-    // candle width
-    const count = sliced.length;
-    const slot = plotW / Math.max(1, count);
-    const candleW = Math.max(4, slot * 0.55);
+    // Calculate scales
+    const values = sliced.map(b => b.total);
+    const maxY = Math.max(...values);
+    const minY = 0;
+    const span = maxY - minY || 1;
 
-    // draw candles
-    for (let i = 0; i < count; i++) {
-        const c = sliced[i];
-        const xCenter = padL + slot * i + slot / 2;
+    const xToPx = (i) => padL + (plotW / (sliced.length - 1)) * i;
+    const yToPx = (y) => padT + (1 - (y - minY) / span) * plotH;
 
-        const yOpen = yToPx(c.open);
-        const yClose = yToPx(c.close);
-        const yHigh = yToPx(c.high);
-        const yLow = yToPx(c.low);
+    // Draw Revenue Trend (area chart with gradient)
+    drawAreaChart(ctx, sliced, xToPx, yToPx, 'rgba(99, 102, 241, 0.3)', 'rgba(99, 102, 241, 1)', padT, plotH);
 
-        const isUp = c.close >= c.open;
-        const color = isUp ? 'rgba(16,185,129,0.95)' : 'rgba(239,68,68,0.95)';
-        const glow = isUp ? 'rgba(16,185,129,0.25)' : 'rgba(239,68,68,0.25)';
-
-        // wick
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(xCenter, yHigh);
-        ctx.lineTo(xCenter, yLow);
-        ctx.stroke();
-
-        // body
-        const bodyTop = Math.min(yOpen, yClose);
-        const bodyBot = Math.max(yOpen, yClose);
-        const bodyH = Math.max(2, bodyBot - bodyTop);
-
-        // glow behind
-        ctx.fillStyle = glow;
-        ctx.fillRect(xCenter - candleW / 2, bodyTop, candleW, bodyH);
-
-        ctx.fillStyle = color;
-        ctx.fillRect(xCenter - candleW / 2, bodyTop, candleW, bodyH);
+    // Draw axes labels
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    
+    // Y-axis labels
+    for (let i = 0; i <= 4; i++) {
+        const val = minY + (span / 4) * i;
+        const y = yToPx(val);
+        ctx.textAlign = 'right';
+        ctx.fillText(formatCompactNumber(val), padL - 10, y + 4);
     }
 
-    // x axis labels (minimal)
-    ctx.fillStyle = 'rgba(148,163,184,0.55)';
-    ctx.font = '10px Share Tech Mono, monospace';
-    const labelEvery = Math.max(1, Math.floor(count / 6));
-    for (let i = 0; i < count; i += labelEvery) {
-        const c = sliced[i];
-        const label = c.key.slice(5); // MM-DD
-        const xCenter = padL + slot * i + slot / 2;
-        ctx.fillText(label, xCenter - 14, height - 8);
+    // X-axis labels
+    for (let i = 0; i < sliced.length; i++) {
+        const x = xToPx(i);
+        const label = sliced[i].key.slice(5); // MM-DD
+        ctx.textAlign = 'center';
+        ctx.fillText(label, x, height - padB + 20);
     }
+
+    // Chart title
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Revenue Trend', padL, padT - 15);
+}
+
+function drawPlaceholderChart(ctx, width, height, padL, padR, padT, padB, plotW, plotH) {
+    // Generate smooth placeholder data
+    const points = 7;
+    const data = [];
+    for (let i = 0; i < points; i++) {
+        const x = i / (points - 1);
+        const y = 0.3 + 0.4 * Math.sin(x * Math.PI * 2) + 0.2 * Math.random();
+        data.push({ x, y });
+    }
+
+    const xToPx = (i) => padL + (plotW / (points - 1)) * i;
+    const yToPx = (y) => padT + (1 - y) * plotH;
+
+    // Draw gradient area
+    const gradient = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    gradient.addColorStop(0, 'rgba(99, 102, 241, 0.4)');
+    gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)');
+
+    ctx.beginPath();
+    ctx.moveTo(xToPx(0), padT + plotH);
+    for (let i = 0; i < points; i++) {
+        ctx.lineTo(xToPx(i), yToPx(data[i].y));
+    }
+    ctx.lineTo(xToPx(points - 1), padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Draw line
+    ctx.beginPath();
+    ctx.moveTo(xToPx(0), yToPx(data[0].y));
+    for (let i = 0; i < points; i++) {
+        ctx.lineTo(xToPx(i), yToPx(data[i].y));
+    }
+    ctx.strokeStyle = 'rgba(99, 102, 241, 1)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Draw axes labels
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.font = '11px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    
+    // Y-axis labels
+    for (let i = 0; i <= 4; i++) {
+        const val = i / 4;
+        const y = padT + (1 - val) * plotH;
+        ctx.textAlign = 'right';
+        ctx.fillText(formatCompactNumber(val * 1000000), padL - 10, y + 4);
+    }
+
+    // X-axis labels
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    for (let i = 0; i < points; i++) {
+        const x = xToPx(i);
+        ctx.textAlign = 'center';
+        ctx.fillText(days[i], x, height - padB + 20);
+    }
+
+    // Chart title
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.font = 'bold 14px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText('Revenue Trend', padL, padT - 15);
+}
+
+function drawAreaChart(ctx, data, xToPx, yToPx, fillColor, strokeColor, padT, plotH) {
+    // Draw gradient area
+    const gradient = ctx.createLinearGradient(0, padT, 0, padT + plotH);
+    gradient.addColorStop(0, fillColor);
+    gradient.addColorStop(1, fillColor.replace('0.3', '0.05').replace('0.4', '0.05'));
+
+    ctx.beginPath();
+    ctx.moveTo(xToPx(0), padT + plotH);
+    for (let i = 0; i < data.length; i++) {
+        ctx.lineTo(xToPx(i), yToPx(data[i].total));
+    }
+    ctx.lineTo(xToPx(data.length - 1), padT + plotH);
+    ctx.closePath();
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    // Draw line
+    ctx.beginPath();
+    ctx.moveTo(xToPx(0), yToPx(data[0].total));
+    for (let i = 0; i < data.length; i++) {
+        ctx.lineTo(xToPx(i), yToPx(data[i].total));
+    }
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+}
+
+function formatCompactNumber(num) {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(0) + 'K';
+    return num.toFixed(0);
 }
 
 function updateAnalyticsKPIs({ revenue = 0, orders = 0, productsSold = 0, pendingPayment = 0, stockMovement = 0 } = {}) {
@@ -521,10 +598,36 @@ async function loadDashboard() {
 
     document.getElementById('totalStock').innerText = totalStock;
     document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
+
+    // Update KPI cards (separate from Inventory Overview to avoid duplicate ID conflicts)
+    const kpiTotalItemsEl = document.getElementById('kpiTotalItems');
+    const kpiTotalStockEl = document.getElementById('kpiTotalStock');
+    if (kpiTotalItemsEl) kpiTotalItemsEl.innerText = products.length;
+    if (kpiTotalStockEl) kpiTotalStockEl.innerText = totalStock;
     document.getElementById('totalProfit').innerText = 'Rp ' + profitAsli.toLocaleString('id-ID');
     document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
     document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
+
+    // Calculate inventory value and low stock items for main dashboard Inventory Overview
+    let inventoryValue = 0;
+    let lowStockItems = 0;
+    if (products && products.length > 0) {
+        products.forEach(item => {
+            const stock = parseInt(item.stok || 0);
+            const modal = parseFloat(item.harga_modal || 0);
+            inventoryValue += stock * modal;
+            if (stock <= 5) {
+                lowStockItems++;
+            }
+        });
+    }
+
+    // Update main dashboard Inventory Overview elements
+    const inventoryValueEl = document.getElementById('inventoryValue');
+    const lowStockItemsEl = document.getElementById('lowStockItems');
+    if (inventoryValueEl) inventoryValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
+    if (lowStockItemsEl) lowStockItemsEl.innerText = lowStockItems;
 
     // --- RENDERING TABEL 1: STOK GUDANG ---
     if (!products || products.length === 0) {
@@ -601,7 +704,7 @@ async function loadDashboard() {
 
             tableHtml += `
                 <tr class="hover:bg-red-950/10 transition-colors">
-                    <td class="p-4 font-mono text-yellow-400 text-xs">${item.sku || '—'}</td>
+                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-1 rounded-md bg-purple-950/40 border border-purple-700/50 font-mono text-purple-300 text-xs font-medium">${item.sku || '—'}</span></td>
                     <td class="p-4 font-bold text-white uppercase tracking-wide">${item.nama_barang}</td>
                     <td class="p-4">${katBadge}</td>
                     <td class="p-4 text-center">${stokBadge}</td>
@@ -709,7 +812,7 @@ async function loadDashboard() {
         soldContainer.innerHTML = soldHtml;
     }
 
-    // Render 1 candle profit (hanya 1 candle di bagian atas)
+    // Render 1 inventory profit indicator (hanya 1 indikator di bagian atas)
     // Kita pilih produk dengan abs(profit) terbesar, lalu mapping ke progress fill atas.
     try {
         const topFill = document.getElementById('dashboardProgressFill');
@@ -734,11 +837,11 @@ async function loadDashboard() {
             topFill.style.width = `${percent}%`;
             topFill.style.background = isNeg ? 'linear-gradient(90deg, #ef4444, #7f1d1d)' : 'linear-gradient(90deg, #10b981, #34d399)';
 
-            topText.innerText = `${percent}% profit terpantau — candel memanas`;
-            topSub.innerText = `Produk fokus: ${(best.nama_barang || '').toString().toUpperCase()} • Modal Rp ${(best.modalTotal || 0).toLocaleString('id-ID')}`;
+            topText.innerText = `${percent}% profit tracked — inventory active`;
+            topSub.innerText = `Focus product: ${(best.nama_barang || '').toString().toUpperCase()} • Cost Rp ${(best.modalTotal || 0).toLocaleString('id-ID')}`;
 
             // partikel kecil arah profit (tanpa teks tambahan)
-            try { window.CandleManager?.applyPaymentDelta?.(); } catch (e) {}
+            try { window.InventoryManager?.applyPaymentDelta?.(); } catch (e) {}
 
         }
     } catch (e) {}
@@ -747,7 +850,7 @@ async function loadDashboard() {
     await loadPayments();
     await loadExpenses();
 
-    // Render candlestick chart with sales history data
+    // Render area chart with sales history data
     renderCandlestickChartFromSalesHistory(salesHistory);
 }
 
@@ -974,12 +1077,12 @@ async function deleteProduct(id, namaBarang) {
     try {
         await supabaseClient.from('products').delete().eq('id', id);
 
-        // efek visual candel turun (stok berkurang sebesar stokTerhapus)
+        // efek visual inventory turun (stok berkurang sebesar stokTerhapus)
         try {
             if (stokTerhapus > 0) {
-                window.CandleManager?.applyStockDelta?.(-stokTerhapus);
+                window.InventoryManager?.applyStockDelta?.(-stokTerhapus);
                 try {
-                    localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: -stokTerhapus, t: Date.now() }));
+                    localStorage.setItem('inventory_stock_delta', JSON.stringify({ delta: -stokTerhapus, t: Date.now() }));
                 } catch (e) {}
             }
         } catch (e) {}
@@ -1000,27 +1103,27 @@ window.deleteProduct = deleteProduct;
 document.addEventListener('DOMContentLoaded', () => {
     loadDashboard();
 
-    // Sync animasi candel dari halaman lain (barang/penjualan)
+    // Sync animasi inventory dari halaman lain (barang/penjualan)
     window.addEventListener('storage', (e) => {
         if (!e || !e.key) return;
 
-        if (e.key === 'candle_stock_delta') {
+        if (e.key === 'inventory_stock_delta') {
             try {
                 const payload = JSON.parse(e.newValue || '{}');
-                window.CandleManager?.applyStockDelta?.(payload.delta);
+                window.InventoryManager?.applyStockDelta?.(payload.delta);
             } catch (err) {}
         }
 
-        if (e.key === 'candle_payment_delta') {
+        if (e.key === 'inventory_payment_delta') {
             try {
-                window.CandleManager?.applyPaymentDelta?.();
+                window.InventoryManager?.applyPaymentDelta?.();
             } catch (err) {}
         }
     });
 
     // initial refresh jika container ada
     try {
-        window.CandleManager?.refreshStockCandleFromProductsTotal?.();
+        window.InventoryManager?.refreshStockProgressFromProductsTotal?.();
     } catch (e) {}
 });
 

@@ -80,6 +80,30 @@ async function updateLedgerBookkeeping() {
     if (kasirProgressFill) kasirProgressFill.style.width = progress + '%';
     if (kasirProgressText) kasirProgressText.innerText = progress + '% selesai';
     if (kasirProgressLabel) kasirProgressLabel.innerText = totalCount ? 'Progres Transaksi' : 'Status';
+
+    // Update Sales KPI cards for today's data
+    const today = new Date().toDateString();
+    const todayPayments = allPayments.filter(p => {
+        const paymentDate = new Date(p.created_at).toDateString();
+        return paymentDate === today;
+    });
+
+    const revenueToday = todayPayments.reduce((sum, p) => sum + (parseFloat(p.total_harga) || 0), 0);
+    const transactionsToday = todayPayments.length;
+    const itemsSoldToday = todayPayments.reduce((sum, p) => sum + (parseInt(p.jumlah) || 0), 0);
+
+    // Calculate profit today (estimated as 30% of revenue)
+    const profitToday = revenueToday * 0.3;
+
+    const salesRevenueTodayEl = document.getElementById('salesRevenueToday');
+    const salesTransactionsTodayEl = document.getElementById('salesTransactionsToday');
+    const salesItemsTodayEl = document.getElementById('salesItemsToday');
+    const salesProfitTodayEl = document.getElementById('salesProfitToday');
+
+    if (salesRevenueTodayEl) salesRevenueTodayEl.innerText = 'Rp ' + revenueToday.toLocaleString('id-ID');
+    if (salesTransactionsTodayEl) salesTransactionsTodayEl.innerText = transactionsToday;
+    if (salesItemsTodayEl) salesItemsTodayEl.innerText = itemsSoldToday;
+    if (salesProfitTodayEl) salesProfitTodayEl.innerText = 'Rp ' + profitToday.toLocaleString('id-ID');
 }
 
 function showSaleSuccess(message) {
@@ -327,29 +351,29 @@ salesForm.addEventListener('submit', async (e) => {
     if (historyError) {
         alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
     } else {
-        // Animasi candel stok: keluar (-jumlahJual)
+        // Animasi inventory stok: keluar (-jumlahJual)
         try {
-            window.CandleManager?.applyStockDelta?.(-jumlahJual);
+            window.InventoryManager?.applyStockDelta?.(-jumlahJual);
         } catch (e) {}
 
         // Broadcast agar halaman lain juga animasi
         try {
-            localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: -jumlahJual, t: Date.now() }));
+            localStorage.setItem('inventory_stock_delta', JSON.stringify({ delta: -jumlahJual, t: Date.now() }));
         } catch (e) {}
 
-        // Animasi candel pembayaran (visual)
+        // Animasi inventory pembayaran (visual)
         // Jika metode cash/transfer => payment langsung Sudah Bayar
         // Jika metode Belum Bayar => pembayaran akan terselesaikan saat user konfirmasi di dashboard.
         try {
             if (!isUnpaidMethod) {
-                window.CandleManager?.applyPaymentDelta?.();
+                window.InventoryManager?.applyPaymentDelta?.();
             }
         } catch (e) {}
 
 
         // Broadcast pembayaran juga (dashboard/HP)
         try {
-            localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+            localStorage.setItem('inventory_payment_delta', JSON.stringify({ t: Date.now() }));
         } catch (e) {}
 
 

@@ -3,73 +3,47 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPECTRE // Member Registration</title>
+    <title>SPECTRE // CRM Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .candle-flame {
-            width: 12px;
-            height: 20px;
-            border-radius: 50% 50% 45% 45%;
-            background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%);
-            position: relative;
-            animation: flicker 1.2s infinite ease-in-out, drift 3.2s infinite ease-in-out;
-            box-shadow: 0 0 20px rgba(253, 224, 71, 0.4);
+        .member-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
-        .candle-base {
-            width: 8px;
-            height: 28px;
-            background: linear-gradient(180deg, #f7f7f7, #c4b29a);
-            border-radius: 4px;
-            margin: 0 auto;
-        }
-        .candle-progress {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid var(--stroke);
+        .member-kpi-card {
             background: var(--surface);
-            border-radius: var(--radius-sm);
+            border: 1px solid var(--stroke);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            transition: all .2s ease;
         }
-        .progress-track {
-            flex: 1;
-            height: 8px;
-            border-radius: 999px;
-            background: var(--stroke);
-            overflow: hidden;
+        .member-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
         }
-        .progress-fill {
-            width: 72%;
-            height: 100%;
-            border-radius: 999px;
-            background: var(--gradient-primary);
-            position: relative;
-        }
-        .progress-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 100px;
-        }
-        .progress-meta span {
-            font-size: 11px;
+        .member-kpi-label {
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
         }
-        .progress-meta strong {
-            font-size: 14px;
+        .member-kpi-value {
+            font-size: 28px;
             color: var(--text);
-            font-weight: 600;
+            font-weight: 700;
+            line-height: 1.1;
         }
-        @keyframes flicker {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-            50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
+        @media (max-width: 900px) {
+            .member-kpi-grid { grid-template-columns: repeat(2, 1fr); }
         }
-        @keyframes drift {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(1px); }
+        @media (max-width: 600px) {
+            .member-kpi-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -79,45 +53,58 @@
 
         <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
-                <div class="max-w-2xl">
-                    <h1>Member Registration</h1>
-                    <p class="text-muted mt-2">Register new members to access exclusive pricing</p>
-                </div>
-                <div class="ghost-panel p-5 bg-surface">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div>
-                            <div class="candle-flame"></div>
-                            <div class="candle-base"></div>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-muted">Member Tracker</p>
-                            <p class="text-sm font-semibold">Track member registrations</p>
-                        </div>
-                    </div>
-                    <div class="candle-progress">
-                        <div class="progress-track"><div class="progress-fill"></div></div>
-                        <div class="text-right">
-                            <span class="block text-xs uppercase text-muted">Progress</span>
-                            <strong class="text-sm">74%</strong>
-                        </div>
-                    </div>
-                    <p class="text-xs text-muted mt-4">Loyal members drive recurring revenue</p>
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">CRM Dashboard</h1>
+                    <p class="text-muted text-lg mt-1">Manage members and track customer relationships</p>
                 </div>
             </div>
         </div>
 
-        <div class="ghost-panel p-6">
-            <form id="memberForm" class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium mb-2">Member Name</label>
-                    <input type="text" id="inputNama" class="uppercase" placeholder="e.g. John Doe" required>
+        <div class="member-kpi-grid">
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">Total Members</div>
+                <div class="member-kpi-value" id="memberTotal">0</div>
+            </div>
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">Active Members</div>
+                <div class="member-kpi-value" id="memberActive">0</div>
+            </div>
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">Member Revenue</div>
+                <div class="member-kpi-value" id="memberRevenue">Rp 0</div>
+            </div>
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">New Members</div>
+                <div class="member-kpi-value" id="memberNew">0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="ghost-panel p-6 md:col-span-2">
+                <h2 class="text-2xl font-bold mb-1">Register New Member</h2>
+                <p class="text-muted text-sm mb-6">Add new member to access exclusive pricing</p>
+
+                <form id="memberForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Member Name</label>
+                        <input type="text" id="inputNama" class="uppercase" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Phone Number (Cashier ID)</label>
+                        <input type="text" id="inputTelepon" placeholder="e.g. 0812345678" required>
+                    </div>
+                    <button type="submit" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Register Member</button>
+                </form>
+            </div>
+
+            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Member Insights</h3>
+                    <div id="memberInsights" class="space-y-3 text-sm text-muted">
+                        <p class="animate-pulse">Loading member data...</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium mb-2">Phone Number (Cashier ID)</label>
-                    <input type="text" id="inputTelepon" placeholder="e.g. 0812345678" required>
-                </div>
-                <button type="submit" class="spectre-btn spectre-cta--primary w-full">Register Member</button>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -125,6 +112,68 @@
         const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Load member KPI data
+        async function loadMemberKPIs() {
+            try {
+                const { data: members } = await supabaseClient.from('members').select('*');
+                const { data: payments } = await supabaseClient.from('payments').select('*');
+
+                const totalMembers = members ? members.length : 0;
+                const activeMembers = members ? members.length : 0; // All members are considered active
+
+                // Calculate member revenue from payments where buyer contains "Member"
+                let memberRevenue = 0;
+                if (payments) {
+                    payments.forEach(payment => {
+                        if (payment.buyer && payment.buyer.includes('Member')) {
+                            memberRevenue += parseFloat(payment.total_harga) || 0;
+                        }
+                    });
+                }
+
+                // Calculate new members (joined this month)
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                const newMembers = members ? members.filter(m => {
+                    const memberDate = new Date(m.created_at);
+                    return memberDate.getMonth() === currentMonth && memberDate.getFullYear() === currentYear;
+                }).length : 0;
+
+                // Update KPI cards
+                const memberTotalEl = document.getElementById('memberTotal');
+                const memberActiveEl = document.getElementById('memberActive');
+                const memberRevenueEl = document.getElementById('memberRevenue');
+                const memberNewEl = document.getElementById('memberNew');
+
+                if (memberTotalEl) memberTotalEl.innerText = totalMembers;
+                if (memberActiveEl) memberActiveEl.innerText = activeMembers;
+                if (memberRevenueEl) memberRevenueEl.innerText = 'Rp ' + memberRevenue.toLocaleString('id-ID');
+                if (memberNewEl) memberNewEl.innerText = newMembers;
+
+                // Update member insights
+                const memberInsightsEl = document.getElementById('memberInsights');
+                if (memberInsightsEl && members && members.length > 0) {
+                    const recentMembers = members.slice(-3).reverse();
+                    let insightsHtml = '<div class="space-y-2">';
+                    insightsHtml += '<div class="text-xs uppercase tracking-wide text-muted">Recent Members</div>';
+                    recentMembers.forEach(m => {
+                        insightsHtml += `<div class="p-2 bg-black/30 rounded border border-stone-800">
+                            <div class="font-semibold text-white">${m.nama}</div>
+                            <div class="text-xs text-muted">${m.telepon}</div>
+                        </div>`;
+                    });
+                    insightsHtml += '</div>';
+                    memberInsightsEl.innerHTML = insightsHtml;
+                }
+            } catch (error) {
+                console.warn('Failed to load member KPIs:', error);
+            }
+        }
+
+        // Load KPIs on page load
+        loadMemberKPIs();
 
         document.getElementById('memberForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -138,6 +187,7 @@
             } else {
                 alert('🎉 MEMBER BERHASIL DIKUNCI KE DATABASE!');
                 document.getElementById('memberForm').reset();
+                loadMemberKPIs(); // Refresh KPIs after registration
             }
         });
     </script>

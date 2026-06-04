@@ -8,98 +8,48 @@
     <link rel="stylesheet" href="status.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        .candle-flame {
-            width: 12px;
-            height: 20px;
-            border-radius: 50% 50% 45% 45%;
-            background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%);
-            position: relative;
-            animation: flicker 1.2s infinite ease-in-out, drift 3.2s infinite ease-in-out;
-            box-shadow: 0 0 20px rgba(253, 224, 71, 0.4);
-        }
-        .candle-base {
-            width: 8px;
-            height: 28px;
-            background: linear-gradient(180deg, #f7f7f7, #c4b29a);
-            border-radius: 4px;
-            margin: 0 auto;
-        }
-        .candle-progress {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px;
-            border: 1px solid var(--stroke);
-            background: var(--surface);
-            border-radius: var(--radius-sm);
-        }
-        .progress-track {
-            flex: 1;
-            height: 8px;
-            border-radius: 999px;
-            background: var(--stroke);
-            overflow: hidden;
-        }
-        .progress-fill {
-            width: 0%;
-            height: 100%;
-            border-radius: 999px;
-            background: var(--gradient-primary);
-            position: relative;
-            transition: width 0.6s ease;
-        }
-        .progress-meta {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 100px;
-        }
-        .progress-meta span {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            color: var(--text-secondary);
-        }
-        .progress-meta strong {
-            font-size: 14px;
-            color: var(--text);
-            font-weight: 600;
-        }
-        @keyframes flicker {
-            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
-            50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
-        }
-        @keyframes drift {
-            0%, 100% { transform: translateX(0); }
-            50% { transform: translateX(1px); }
-        }
-        .bookkeeper-panel {
+        .sales-kpi-grid {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             gap: 16px;
-            margin-top: 24px;
+            margin-bottom: 24px;
         }
-        .bookkeeper-card {
+        .sales-kpi-card {
             background: var(--surface);
             border: 1px solid var(--stroke);
-            padding: 16px;
-            border-radius: var(--radius);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            transition: all .2s ease;
         }
-        .bookkeeper-card h3 {
-            font-size: 11px;
-            letter-spacing: 0.05em;
+        .sales-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+        .sales-kpi-label {
+            font-size: 12px;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
             color: var(--text-secondary);
             margin-bottom: 8px;
             font-weight: 500;
         }
-        .bookkeeper-card p {
-            font-size: 24px;
+        .sales-kpi-value {
+            font-size: 28px;
             color: var(--text);
-            font-weight: 600;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .sales-kpi-trend {
+            font-size: 12px;
+            margin-top: 4px;
+            color: var(--success);
         }
         @media (max-width: 900px) {
-            .bookkeeper-panel { grid-template-columns: 1fr; }
+            .sales-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .sales-kpi-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -111,29 +61,32 @@
         <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
                 <div>
-                    <h1>Sales Terminal</h1>
-                    <p class="text-muted mt-2">Process sales transactions and manage inventory</p>
+                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">Sales Terminal</h1>
+                    <p class="text-muted text-lg mt-1">Process sales transactions and manage inventory</p>
                 </div>
-                <div class="ghost-panel p-4 bg-surface">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div>
-                            <div class="candle-flame"></div>
-                            <div class="candle-base"></div>
-                        </div>
-                        <div>
-                            <p class="text-xs uppercase tracking-wide text-muted">Transaction Progress</p>
-                            <p class="text-sm font-semibold">Real-time sales monitoring</p>
-                        </div>
-                    </div>
-                    <div class="candle-progress">
-                        <div class="progress-track"><div id="kasirProgressFill" class="progress-fill"></div></div>
-                        <div class="text-right">
-                            <span id="kasirProgressLabel" class="block text-xs uppercase text-muted">Status</span>
-                            <strong id="kasirProgressText" class="text-sm">0%</strong>
-                        </div>
-                    </div>
-                    <p class="text-xs text-muted mt-4">Monitor your sales activity</p>
-                </div>
+            </div>
+        </div>
+
+        <div class="sales-kpi-grid">
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Revenue Today</div>
+                <div class="sales-kpi-value" id="salesRevenueToday">Rp 0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Transactions Today</div>
+                <div class="sales-kpi-value" id="salesTransactionsToday">0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Items Sold Today</div>
+                <div class="sales-kpi-value" id="salesItemsToday">0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Profit Today</div>
+                <div class="sales-kpi-value" id="salesProfitToday">Rp 0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
             </div>
         </div>
 
@@ -143,37 +96,28 @@
                     <h3 class="text-sm font-semibold uppercase tracking-wide">Sales Summary</h3>
                     <p class="text-muted text-sm mt-2">Overview of recent transactions</p>
                 </div>
-                <div class="candle-progress">
-                    <div class="candle-flame"></div>
-                    <div class="progress-track"><div id="ledgerProgressFill" class="progress-fill"></div></div>
-                    <div class="text-right">
-                        <span class="block text-xs uppercase text-muted">Ledger</span>
-                        <strong id="ledgerProgressText" class="text-sm">0%</strong>
-                    </div>
+            </div>
+            <div class="sales-kpi-grid" style="margin-top: 16px; margin-bottom: 0;">
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Confirmed Transactions</div>
+                    <div class="sales-kpi-value" id="ledgerSalesCount">0</div>
+                </div>
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Payments Received</div>
+                    <div class="sales-kpi-value" id="ledgerPaidCount">0</div>
+                </div>
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Pending Payments</div>
+                    <div class="sales-kpi-value" id="ledgerUnpaidCount">0</div>
                 </div>
             </div>
-            <div class="bookkeeper-panel">
-                <div class="bookkeeper-card">
-                    <h3>Confirmed Transactions</h3>
-                    <p id="ledgerSalesCount">0</p>
-                </div>
-                <div class="bookkeeper-card">
-                    <h3>Payments Received</h3>
-                    <p id="ledgerPaidCount">0</p>
-                </div>
-                <div class="bookkeeper-card">
-                    <h3>Pending Payments</h3>
-                    <p id="ledgerUnpaidCount">0</p>
-                </div>
-            </div>
-            <p class="text-muted text-sm mt-4">Note: All transactions are recorded as proof of sale.</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="salesPanel" class="ghost-panel p-6 md:col-span-2">
-                <h2 class="mb-1">New Sale</h2>
+                <h2 class="text-2xl font-bold mb-1">New Sale</h2>
                 <p class="text-muted text-sm mb-6">Process a new sales transaction</p>
-                
+
                 <form id="salesForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Select Product</label>
@@ -212,7 +156,7 @@
                         <label class="block text-sm font-medium mb-2">Quantity</label>
                         <input type="number" id="inputJumlah" min="1" value="1" required>
                     </div>
-                    
+
                     <div class="bg-surface p-4 border border-dashed rounded-lg space-y-2">
                         <div class="flex justify-between text-sm">
                             <span class="text-muted">Unit Price:</span>
@@ -272,13 +216,13 @@
                         <canvas id="scanTerjualCanvas" class="hidden"></canvas>
                     </div>
 
-                    <button type="submit" id="btnProses" class="spectre-btn spectre-cta--primary w-full">Process Sale</button>
+                    <button type="submit" id="btnProses" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Process Sale</button>
                 </form>
             </div>
 
             <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
                 <div class="space-y-4">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide">Product Details</h3>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Live Transaction Summary</h3>
                     <div id="productDetail" class="space-y-3 text-sm text-muted">
                         <p class="animate-pulse">Waiting for product selection...</p>
                     </div>

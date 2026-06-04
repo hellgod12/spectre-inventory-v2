@@ -96,23 +96,42 @@ async function autoGenerateSku() {
 
 async function refreshStockProgress() {
     let totalStock = 0;
+    let totalProducts = 0;
+    let inventoryValue = 0;
+    let lowStockItems = 0;
+
     try {
-        const { data: products } = await supabaseClient.from('products').select('stok');
+        const { data: products } = await supabaseClient.from('products').select('*');
         if (products) {
+            totalProducts = products.length;
             totalStock = products.reduce((sum, item) => sum + (parseInt(item.stok || 0)), 0);
+            inventoryValue = products.reduce((sum, item) => sum + (parseInt(item.stok || 0) * parseFloat(item.harga_modal || 0)), 0);
+            lowStockItems = products.filter(item => parseInt(item.stok || 0) <= 5).length;
         }
     } catch (error) {
-        console.warn('Tidak bisa memuat stok untuk progres candel:', error?.message || error);
+        console.warn('Tidak bisa memuat data inventory:', error?.message || error);
     }
 
+    // Update KPI cards
+    const inventoryTotalProductsEl = document.getElementById('inventoryTotalProducts');
+    const inventoryTotalStockEl = document.getElementById('inventoryTotalStock');
+    const inventoryTotalValueEl = document.getElementById('inventoryTotalValue');
+    const inventoryLowStockEl = document.getElementById('inventoryLowStock');
+
+    if (inventoryTotalProductsEl) inventoryTotalProductsEl.innerText = totalProducts;
+    if (inventoryTotalStockEl) inventoryTotalStockEl.innerText = totalStock;
+    if (inventoryTotalValueEl) inventoryTotalValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
+    if (inventoryLowStockEl) inventoryLowStockEl.innerText = lowStockItems;
+
+    // Legacy progress bar support (if elements still exist)
     const target = 120;
     const percent = totalStock ? Math.min(100, Math.round((Math.min(totalStock, target) / target) * 100)) : 0;
     if (stockProgressFill) stockProgressFill.style.width = percent + '%';
-    if (stockCapacityText) stockCapacityText.innerText = `${percent}% terserap oleh candel`;
-    if (stockCapacityLabel) stockCapacityLabel.innerText = 'STOK_GELAP';
+    if (stockCapacityText) stockCapacityText.innerText = `${percent}% Warehouse Utilization`;
+    if (stockCapacityLabel) stockCapacityLabel.innerText = 'CAPACITY';
     if (stockStatusNote) stockStatusNote.innerText = totalStock
-        ? `Total stok: ${totalStock} unit. Gudang berjalan makin pekat.`
-        : 'Gudang masih kosong, candel tidur.';
+        ? `Total stock: ${totalStock} units. Warehouse active.`
+        : 'Warehouse empty. No inventory activity.';
 }
 
 productForm.addEventListener('submit', async (e) => {
