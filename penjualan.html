@@ -188,6 +188,40 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium mb-2">Payment Status</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_status" value="paid_full" checked id="payFull"> Paid Full
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_status" value="partial" id="payPartial"> Partial Payment
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_status" value="pay_later" id="payLater"> Pay Later
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="partialPaymentSection" class="hidden">
+                        <label class="block text-sm font-medium mb-2">Amount Paid</label>
+                        <input type="number" id="amountPaid" min="0" step="1" placeholder="Enter payment amount">
+                        <div class="mt-2 p-3 bg-black/50 border border-stone-800 rounded text-xs space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-muted">Total:</span>
+                                <span id="partialTotal" class="font-semibold">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted">Paid:</span>
+                                <span id="partialPaid" class="font-semibold text-green-400">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted">Remaining:</span>
+                                <span id="partialRemaining" class="font-semibold text-yellow-400">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-medium mb-2">Payment Method</label>
                         <div class="flex flex-wrap gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
@@ -195,9 +229,6 @@
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer"> Transfer
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="metode_pembayaran" value="Belum Bayar" id="payBelum"> Unpaid
                             </label>
                         </div>
                     </div>

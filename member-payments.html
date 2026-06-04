@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // Member Payments</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        .member-payment-card {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            transition: all .2s ease;
+        }
+        .member-payment-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending {
+            background: rgba(234, 179, 8, 0.2);
+            color: rgb(234, 179, 8);
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+        .status-partial {
+            background: rgba(59, 130, 246, 0.2);
+            color: rgb(59, 130, 246);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        .status-paid {
+            background: rgba(34, 197, 94, 0.2);
+            color: rgb(34, 197, 94);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .status-cancelled {
+            background: rgba(239, 68, 68, 0.2);
+            color: rgb(239, 68, 68);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body class="spectre-body">
+    <div class="spectre-content">
+        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
+
+        <div class="ghost-panel p-6 mb-6">
+            <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">Member Payments</h1>
+                    <p class="text-muted text-lg mt-1">Manage member payments and outstanding balances</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="ghost-panel p-6 mb-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Outstanding Balances</h2>
+                <div id="totalOutstanding" class="text-xl font-semibold text-red-400">Rp 0</div>
+            </div>
+            <div id="memberDebtList" class="space-y-3">
+                <div class="p-8 text-center text-muted text-xs">Loading member debt...</div>
+            </div>
+        </div>
+
+        <div class="ghost-panel p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">Payment History</h2>
+                <select id="filterStatus" class="px-3 py-2 bg-black/50 border border-stone-800 rounded text-sm">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="partial">Partial</option>
+                    <option value="paid">Paid</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div id="paymentHistory" class="space-y-3">
+                <div class="p-8 text-center text-muted text-xs">Loading payment history...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Load member payments
+        async function loadMemberPayments() {
+            try {
+                const { data: payments } = await supabaseClient.from('payments').select('*').order('created_at', { ascending: false });
+
+                if (!payments || payments.length === 0) {
+                    document.getElementById('memberDebtList').innerHTML = '<div class="p-8 text-center text-muted text-xs">No member debt found</div>';
+                    document.getElementById('paymentHistory').innerHTML = '<div class="p-8 text-center text-muted text-xs">No payment history found</div>';
+                    return;
+                }
+
+                // Filter for member transactions
+                const memberPayments = payments.filter(p => p.buyer && p.buyer.includes('Member'));
+
+                // Calculate outstanding debt by member
+                const memberDebt = new Map();
+                memberPayments.forEach(payment => {
+                    if (payment.status !== 'paid' && payment.status !== 'cancelled' && (payment.remaining_amount || 0) > 0) {
+                        const memberName = payment.buyer.replace('Member (', '').replace(')', '');
+                        const currentDebt = memberDebt.get(memberName) || 0;
+                        memberDebt.set(memberName, currentDebt + (payment.remaining_amount || 0));
+                    }
+                });
+
+                const totalOutstanding = Array.from(memberDebt.values()).reduce((sum, debt) => sum + debt, 0);
+                document.getElementById('totalOutstanding').innerText = 'Rp ' + totalOutstanding.toLocaleString('id-ID');
+
+                // Render member debt list
+                const memberDebtListEl = document.getElementById('memberDebtList');
+                if (memberDebt.size === 0) {
+                    memberDebtListEl.innerHTML = '<div class="p-8 text-center text-muted text-xs">No outstanding balances</div>';
+                } else {
+                    let debtHtml = '<div class="space-y-3">';
+                    memberDebt.forEach((debt, memberName) => {
+                        debtHtml += `
+                            <div class="member-payment-card flex justify-between items-center">
+                                <div>
+                                    <div class="font-semibold text-white">${memberName}</div>
+                                    <div class="text-xs text-muted">Member</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-red-400">Rp ${debt.toLocaleString('id-ID')}</div>
+                                    <div class="text-xs text-muted">Outstanding</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    debtHtml += '</div>';
+                    memberDebtListEl.innerHTML = debtHtml;
+                }
+
+                // Render payment history
+                renderPaymentHistory(memberPayments);
+            } catch (error) {
+                console.error('Failed to load member payments:', error);
+            }
+        }
+
+        function renderPaymentHistory(payments) {
+            const filterStatus = document.getElementById('filterStatus').value;
+            const filteredPayments = filterStatus === 'all' ? payments : payments.filter(p => p.status === filterStatus);
+
+            const paymentHistoryEl = document.getElementById('paymentHistory');
+            if (filteredPayments.length === 0) {
+                paymentHistoryEl.innerHTML = '<div class="p-8 text-center text-muted text-xs">No payments found</div>';
+                return;
+            }
+
+            let historyHtml = '<div class="space-y-3">';
+            filteredPayments.forEach(payment => {
+                const statusColors = {
+                    'pending': 'status-pending',
+                    'partial': 'status-partial',
+                    'paid': 'status-paid',
+                    'cancelled': 'status-cancelled'
+                };
+                const statusClass = statusColors[payment.status] || 'status-pending';
+
+                historyHtml += `
+                    <div class="member-payment-card">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="text-xs text-muted mb-1">${payment.invoice_number || 'N/A'}</div>
+                                <div class="font-semibold text-white">${payment.product || 'Unknown'}</div>
+                                <div class="text-xs text-muted">${payment.buyer || 'Unknown'}</div>
+                            </div>
+                            <span class="status-badge ${statusClass}">${payment.status?.toUpperCase() || 'PENDING'}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+                            <div>
+                                <div class="text-muted">Total</div>
+                                <div class="font-semibold">Rp ${(payment.total_harga || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted">Paid</div>
+                                <div class="font-semibold text-green-400">Rp ${(payment.paid_amount || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted">Remaining</div>
+                                <div class="font-semibold text-yellow-400">Rp ${(payment.remaining_amount || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                        </div>
+                        ${payment.status !== 'paid' && payment.status !== 'cancelled' ? `
+                            <div class="flex gap-2">
+                                <button onclick="addPayment('${payment.id}', ${payment.remaining_amount})" class="flex-1 px-3 py-2 text-xs bg-purple-600 hover:bg-purple-500 text-white rounded transition">Add Payment</button>
+                                ${payment.status === 'partial' ? `
+                                    <button onclick="markAsPaid('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-500 text-white rounded transition">Mark Paid</button>
+                                ` : ''}
+                                <button onclick="cancelPayment('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded transition">Cancel</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
+            historyHtml += '</div>';
+            paymentHistoryEl.innerHTML = historyHtml;
+        }
+
+        // Add payment
+        async function addPayment(paymentId, remainingAmount) {
+            const amount = prompt('Enter payment amount:', remainingAmount);
+            if (amount === null) return;
+
+            const paymentAmountNum = parseFloat(amount);
+            if (isNaN(paymentAmountNum) || paymentAmountNum <= 0) {
+                alert('Invalid payment amount');
+                return;
+            }
+
+            try {
+                const { data: invoice } = await supabaseClient.from('payments').select('*').eq('id', paymentId).single();
+
+                if (!invoice) {
+                    alert('Payment not found');
+                    return;
+                }
+
+                const newPaidAmount = invoice.paid_amount + paymentAmountNum;
+                const newRemainingAmount = invoice.remaining_amount - paymentAmountNum;
+                let newStatus = invoice.status;
+
+                if (newRemainingAmount <= 0) {
+                    newStatus = 'paid';
+                } else if (newPaidAmount > 0) {
+                    newStatus = 'partial';
+                }
+
+                const { error } = await supabaseClient.from('payments').update({
+                    paid_amount: newPaidAmount,
+                    remaining_amount: Math.max(0, newRemainingAmount),
+                    status: newStatus,
+                    confirmed_at: newStatus === 'paid' ? new Date().toISOString() : null
+                }).eq('id', paymentId);
+
+                if (error) {
+                    alert('Failed to add payment: ' + error.message);
+                } else {
+                    alert('Payment added successfully');
+                    loadMemberPayments();
+                }
+            } catch (err) {
+                alert('Error adding payment: ' + err.message);
+            }
+        }
+
+        // Mark as paid
+        async function markAsPaid(paymentId) {
+            if (!confirm('Mark this payment as fully paid?')) return;
+
+            try {
+                const { data: invoice } = await supabaseClient.from('payments').select('*').eq('id', paymentId).single();
+
+                if (!invoice) {
+                    alert('Payment not found');
+                    return;
+                }
+
+                const { error } = await supabaseClient.from('payments').update({
+                    paid_amount: invoice.total_harga,
+                    remaining_amount: 0,
+                    status: 'paid',
+                    confirmed_at: new Date().toISOString()
+                }).eq('id', paymentId);
+
+                if (error) {
+                    alert('Failed to mark as paid: ' + error.message);
+                } else {
+                    alert('Payment marked as paid');
+                    loadMemberPayments();
+                }
+            } catch (err) {
+                alert('Error marking as paid: ' + err.message);
+            }
+        }
+
+        // Cancel payment
+        async function cancelPayment(paymentId) {
+            if (!confirm('Cancel this payment and restore stock?')) return;
+
+            try {
+                const { data: invoice } = await supabaseClient.from('payments').select('*').eq('id', paymentId).single();
+
+                if (!invoice) {
+                    alert('Payment not found');
+                    return;
+                }
+
+                if (invoice.status === 'cancelled') {
+                    alert('Payment already cancelled');
+                    return;
+                }
+
+                // Find related sales_history records
+                const { data: salesHistory } = await supabaseClient.from('sales_history').select('*').eq('payment_id', paymentId);
+
+                if (salesHistory && salesHistory.length > 0) {
+                    // Restore stock for each sales record
+                    for (const sale of salesHistory) {
+                        const { data: product } = await supabaseClient.from('products').select('stok').eq('id', sale.product_id).single();
+
+                        if (product) {
+                            const newStock = product.stok + sale.jumlah;
+                            await supabaseClient.from('products').update({ stok: newStock }).eq('id', sale.product_id);
+                        }
+                    }
+                }
+
+                // Update payment status to cancelled
+                const { error } = await supabaseClient.from('payments').update({ status: 'cancelled' }).eq('id', paymentId);
+
+                if (error) {
+                    alert('Failed to cancel payment: ' + error.message);
+                } else {
+                    alert('Payment cancelled and stock restored');
+                    loadMemberPayments();
+                }
+            } catch (err) {
+                alert('Error cancelling payment: ' + err.message);
+            }
+        }
+
+        // Filter change handler
+        document.getElementById('filterStatus').addEventListener('change', loadMemberPayments);
+
+        // Load on page load
+        loadMemberPayments();
+    </script>
+</body>
+</html>

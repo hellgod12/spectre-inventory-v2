@@ -56,25 +56,37 @@ function mergePayments(remotePayments = []) {
 }
 
 async function updateLedgerBookkeeping() {
-    let allPayments = loadPayments();
+    console.log('=== SALES STATISTICS CALCULATION START ===');
+    
+    // Calculate directly from Supabase (no localStorage)
+    let allPayments = [];
     try {
-        const { data: remotePayments } = await supabaseClient.from('payments').select('*');
-        if (remotePayments) {
-            allPayments = mergePayments(remotePayments);
+        const { data: remotePayments, error } = await supabaseClient.from('payments').select('*');
+        if (error) {
+            console.error('Failed to load payments from Supabase:', error);
+        } else {
+            allPayments = remotePayments || [];
+            console.log('Loaded payments from Supabase:', allPayments.length, 'records');
         }
     } catch (err) {
-        console.warn('Tidak bisa memuat data pembayaran remote untuk bookkeeping:', err.message || err);
+        console.error('Error loading payments:', err);
     }
 
-    const confirmedCount = allPayments.filter(p => p.status === 'Sudah Bayar').length;
-    const unpaidCount = allPayments.filter(p => p.status === 'Belum Bayar').length;
-    const totalAmount = allPayments.reduce((sum, p) => sum + (parseFloat(p.total_harga) || 0), 0);
-    const totalCount = confirmedCount + unpaidCount;
+    // Calculate statistics using new status values
+    const confirmedCount = allPayments.filter(p => p.status === 'paid').length;
+    const pendingCount = allPayments.filter(p => p.status === 'pending' || p.status === 'partial').length;
+    const totalCount = allPayments.length;
+    
+    console.log('Confirmed Transactions (status=paid):', confirmedCount);
+    console.log('Pending Payments (status=pending/partial):', pendingCount);
+    console.log('Total Transactions:', totalCount);
+
     const progress = totalCount ? Math.min(100, Math.round((confirmedCount / totalCount) * 100)) : 0;
+    console.log('Progress:', progress + '%');
 
     if (ledgerSalesCount) ledgerSalesCount.innerText = confirmedCount;
-    if (ledgerPaidCount) ledgerPaidCount.innerText = 'Rp ' + totalAmount.toLocaleString('id-ID');
-    if (ledgerUnpaidCount) ledgerUnpaidCount.innerText = unpaidCount;
+    if (ledgerPaidCount) ledgerPaidCount.innerText = 'Rp ' + allPayments.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0).toLocaleString('id-ID');
+    if (ledgerUnpaidCount) ledgerUnpaidCount.innerText = pendingCount;
     if (ledgerProgressFill) ledgerProgressFill.style.width = progress + '%';
     if (ledgerProgressText) ledgerProgressText.innerText = progress + '%';
     if (kasirProgressFill) kasirProgressFill.style.width = progress + '%';
@@ -88,12 +100,33 @@ async function updateLedgerBookkeeping() {
         return paymentDate === today;
     });
 
+    console.log('Today\'s payments:', todayPayments.length, 'records');
+
     const revenueToday = todayPayments.reduce((sum, p) => sum + (parseFloat(p.total_harga) || 0), 0);
     const transactionsToday = todayPayments.length;
     const itemsSoldToday = todayPayments.reduce((sum, p) => sum + (parseInt(p.jumlah) || 0), 0);
+    
+    // Payments Received = SUM(paid_amount) from today's paid transactions
+    const paymentsReceived = todayPayments
+        .filter(p => p.status === 'paid')
+        .reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
+    
+    // Confirmed Transactions Today = count of today's paid transactions
+    const confirmedToday = todayPayments.filter(p => p.status === 'paid').length;
+    
+    // Pending Payments Today = count of today's pending/partial transactions
+    const pendingToday = todayPayments.filter(p => p.status === 'pending' || p.status === 'partial').length;
+
+    console.log('Revenue Today (SUM total_harga):', revenueToday);
+    console.log('Transactions Today (count):', transactionsToday);
+    console.log('Items Sold Today (SUM jumlah):', itemsSoldToday);
+    console.log('Payments Received (SUM paid_amount from paid):', paymentsReceived);
+    console.log('Confirmed Transactions Today:', confirmedToday);
+    console.log('Pending Payments Today:', pendingToday);
 
     // Calculate profit today (estimated as 30% of revenue)
     const profitToday = revenueToday * 0.3;
+    console.log('Profit Today (estimated 30%):', profitToday);
 
     const salesRevenueTodayEl = document.getElementById('salesRevenueToday');
     const salesTransactionsTodayEl = document.getElementById('salesTransactionsToday');
@@ -104,6 +137,8 @@ async function updateLedgerBookkeeping() {
     if (salesTransactionsTodayEl) salesTransactionsTodayEl.innerText = transactionsToday;
     if (salesItemsTodayEl) salesItemsTodayEl.innerText = itemsSoldToday;
     if (salesProfitTodayEl) salesProfitTodayEl.innerText = 'Rp ' + profitToday.toLocaleString('id-ID');
+    
+    console.log('=== SALES STATISTICS CALCULATION END ===');
 }
 
 function showSaleSuccess(message) {
@@ -261,10 +296,179 @@ function updatePricePreview() {
     `;
 }
 
+// Function to generate invoice number
+async function generateInvoiceNumber() {
+    try {
+        const { data: existingPayments } = await supabaseClient
+            .from('payments')
+            .select('invoice_number')
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        let nextNum = 1;
+        if (existingPayments && existingPayments.length > 0) {
+            const lastInvoice = existingPayments[0].invoice_number;
+            const lastNum = parseInt(lastInvoice.replace('INV-', ''));
+            if (!isNaN(lastNum)) {
+                nextNum = lastNum + 1;
+            }
+        }
+        return 'INV-' + String(nextNum).padStart(4, '0');
+    } catch (err) {
+        console.warn('Failed to generate invoice number, using timestamp:', err);
+        return 'INV-' + Date.now().toString().slice(-4);
+    }
+}
+
+// Function to add partial payment to invoice
+async function addPartialPayment(invoiceId, paymentAmount) {
+    try {
+        const { data: invoice } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (!invoice) {
+            alert('Invoice not found');
+            return false;
+        }
+
+        if (invoice.status === 'cancelled') {
+            alert('Cannot add payment to cancelled invoice');
+            return false;
+        }
+
+        const newPaidAmount = invoice.paid_amount + paymentAmount;
+        const newRemainingAmount = invoice.remaining_amount - paymentAmount;
+        let newStatus = invoice.status;
+
+        if (newRemainingAmount <= 0) {
+            newStatus = 'paid';
+        } else if (newPaidAmount > 0) {
+            newStatus = 'partial';
+        }
+
+        const { error } = await supabaseClient
+            .from('payments')
+            .update({
+                paid_amount: newPaidAmount,
+                remaining_amount: Math.max(0, newRemainingAmount),
+                status: newStatus,
+                confirmed_at: newStatus === 'paid' ? new Date().toISOString() : null
+            })
+            .eq('id', invoiceId);
+
+        if (error) {
+            alert('Failed to add payment: ' + error.message);
+            return false;
+        }
+
+        alert('Payment added successfully');
+        return true;
+    } catch (err) {
+        alert('Error adding payment: ' + err.message);
+        return false;
+    }
+}
+
+// Function to cancel invoice and restore stock
+async function cancelInvoice(invoiceId) {
+    try {
+        const { data: invoice } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (!invoice) {
+            alert('Invoice not found');
+            return false;
+        }
+
+        if (invoice.status === 'cancelled') {
+            alert('Invoice already cancelled');
+            return false;
+        }
+
+        // Find related sales_history records
+        const { data: salesHistory } = await supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('payment_id', invoiceId);
+
+        if (salesHistory && salesHistory.length > 0) {
+            // Restore stock for each sales record
+            for (const sale of salesHistory) {
+                const { data: product } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', sale.product_id)
+                    .single();
+
+                if (product) {
+                    const newStock = product.stok + sale.jumlah;
+                    await supabaseClient
+                        .from('products')
+                        .update({ stok: newStock })
+                        .eq('id', sale.product_id);
+                }
+            }
+        }
+
+        // Update invoice status to cancelled
+        const { error } = await supabaseClient
+            .from('payments')
+            .update({ status: 'cancelled' })
+            .eq('id', invoiceId);
+
+        if (error) {
+            alert('Failed to cancel invoice: ' + error.message);
+            return false;
+        }
+
+        alert('Invoice cancelled and stock restored');
+        return true;
+    } catch (err) {
+        alert('Error cancelling invoice: ' + err.message);
+        return false;
+    }
+}
+
 selectProduct.addEventListener('change', updatePricePreview);
 inputJumlah.addEventListener('input', updatePricePreview);
 document.getElementById('typeUmum').addEventListener('change', handleTypeChange);
 document.getElementById('typeMember').addEventListener('change', handleTypeChange);
+
+// Handle payment status changes
+const paymentStatusRadios = document.querySelectorAll('input[name="payment_status"]');
+const partialPaymentSection = document.getElementById('partialPaymentSection');
+const amountPaidInput = document.getElementById('amountPaid');
+const partialTotalEl = document.getElementById('partialTotal');
+const partialPaidEl = document.getElementById('partialPaid');
+const partialRemainingEl = document.getElementById('partialRemaining');
+
+paymentStatusRadios.forEach(radio => {
+    radio.addEventListener('change', () => {
+        if (radio.value === 'partial') {
+            partialPaymentSection.classList.remove('hidden');
+            updatePartialPaymentCalculation();
+        } else {
+            partialPaymentSection.classList.add('hidden');
+        }
+    });
+});
+
+amountPaidInput.addEventListener('input', updatePartialPaymentCalculation);
+
+function updatePartialPaymentCalculation() {
+    const totalHarga = parseFloat(previewTotal.innerText.replace(/[^0-9]/g, '')) || 0;
+    const amountPaid = parseFloat(amountPaidInput.value) || 0;
+
+    partialTotalEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
+    partialPaidEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
+    partialRemainingEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
+}
 
 salesForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -297,39 +501,87 @@ salesForm.addEventListener('submit', async (e) => {
 
     // Metode Pembayaran (Cash / Transfer = Sudah Bayar) | (Belum Bayar = Unpaid)
     const metodePembayaran = document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Cash';
-    const isUnpaidMethod = metodePembayaran === 'Belum Bayar';
 
+    // Payment Status (Paid Full, Partial Payment, Pay Later)
+    const paymentStatus = document.querySelector('input[name="payment_status"]:checked')?.value || 'paid_full';
+
+    // Generate invoice number
+    const invoiceNumber = await generateInvoiceNumber();
+
+    // Calculate paid_amount and remaining_amount based on payment status
+    let paidAmount = 0;
+    let remainingAmount = totalHarga;
+    let invoiceStatus = 'pending';
+
+    if (paymentStatus === 'paid_full') {
+        paidAmount = totalHarga;
+        remainingAmount = 0;
+        invoiceStatus = 'paid';
+    } else if (paymentStatus === 'partial') {
+        const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        paidAmount = Math.min(amountPaid, totalHarga);
+        remainingAmount = totalHarga - paidAmount;
+        invoiceStatus = paidAmount > 0 ? 'partial' : 'pending';
+    } else if (paymentStatus === 'pay_later') {
+        paidAmount = 0;
+        remainingAmount = totalHarga;
+        invoiceStatus = 'pending';
+    }
+
+    // Create invoice record with calculated payment status
     const paymentRecord = {
         id: 'pay_' + Date.now(),
         buyer: identitasPembeli,
         product: selectedProduct.nama_barang,
         jumlah: jumlahJual,
         total_harga: totalHarga,
+        paid_amount: paidAmount,
+        remaining_amount: remainingAmount,
         method: metodePembayaran,
-        status: isUnpaidMethod ? 'Belum Bayar' : 'Sudah Bayar',
+        status: invoiceStatus,
+        invoice_number: invoiceNumber,
+        confirmed_at: invoiceStatus === 'paid' ? new Date().toISOString() : null,
         created_at: new Date().toISOString()
     };
 
     // Try to save to Supabase payments table; fallback to localStorage
+    console.log('=== PAYMENT INSERT START ===');
+    console.log('Payment record to insert:', paymentRecord);
+
     try {
-        const { error: payErr } = await supabaseClient.from('payments').insert([{
+        const { data: paymentData, error: payErr } = await supabaseClient.from('payments').insert([{
             id: paymentRecord.id,
             buyer: paymentRecord.buyer,
             product: paymentRecord.product,
             jumlah: paymentRecord.jumlah,
             total_harga: paymentRecord.total_harga,
+            paid_amount: paymentRecord.paid_amount,
+            remaining_amount: paymentRecord.remaining_amount,
             method: paymentRecord.method,
             status: paymentRecord.status,
+            invoice_number: paymentRecord.invoice_number,
+            confirmed_at: paymentRecord.confirmed_at,
             created_at: paymentRecord.created_at
-        }]);
+        }]).select();
+
+        console.log('Payment insert result:', { paymentData, error: payErr });
+
         if (payErr) {
-            console.warn('Supabase insert payments failed, saving locally:', payErr.message);
+            console.error('Supabase insert payments failed:', payErr.message);
+            console.error('Error details:', payErr);
+            console.error('Payment record:', paymentRecord);
             savePaymentRecord(paymentRecord);
+        } else {
+            console.log('Payment saved successfully to Supabase:', paymentRecord.invoice_number);
+            console.log('Payment data returned:', paymentData);
         }
     } catch (err) {
-        console.warn('Supabase unavailable, saving payment locally', err);
+        console.error('Supabase unavailable, saving payment locally:', err);
+        console.error('Payment record:', paymentRecord);
         savePaymentRecord(paymentRecord);
     }
+
+    console.log('=== PAYMENT INSERT END ===');
 
     // 1. Potong Stok
     const sisaStokBaru = selectedProduct.stok - jumlahJual;
@@ -337,7 +589,8 @@ salesForm.addEventListener('submit', async (e) => {
     if (updateError) return alert('Gagal potong stok: ' + updateError.message);
 
     // 2. Simpan Riwayat
-        const { error: historyError } = await supabaseClient.from('sales_history').insert([{ 
+    console.log('=== SALES HISTORY INSERT START ===');
+    const { error: historyError } = await supabaseClient.from('sales_history').insert([{
         payment_id: paymentRecord.id,
         product_id: selectedProduct.id,
         nama_barang: selectedProduct.nama_barang, 
@@ -348,9 +601,14 @@ salesForm.addEventListener('submit', async (e) => {
         tipe_pembeli: identitasPembeli
     }]);
 
+    console.log('Sales history insert result:', { error: historyError });
+
     if (historyError) {
+        console.error('Sales history insert failed:', historyError.message);
         alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
     } else {
+        console.log('Sales history saved successfully');
+
         // Animasi inventory stok: keluar (-jumlahJual)
         try {
             window.InventoryManager?.applyStockDelta?.(-jumlahJual);
@@ -365,17 +623,15 @@ salesForm.addEventListener('submit', async (e) => {
         // Jika metode cash/transfer => payment langsung Sudah Bayar
         // Jika metode Belum Bayar => pembayaran akan terselesaikan saat user konfirmasi di dashboard.
         try {
-            if (!isUnpaidMethod) {
+            if (invoiceStatus === 'paid') {
                 window.InventoryManager?.applyPaymentDelta?.();
             }
         } catch (e) {}
-
 
         // Broadcast pembayaran juga (dashboard/HP)
         try {
             localStorage.setItem('inventory_payment_delta', JSON.stringify({ t: Date.now() }));
         } catch (e) {}
-
 
         alert('🎉 EKSEKUSI BERHASIL // Transaksi tersimpan.');
         salesForm.reset();
@@ -386,6 +642,7 @@ salesForm.addEventListener('submit', async (e) => {
         await updateLedgerBookkeeping();
         showSaleSuccess('TRANSAKSI TERJUAL // Buku kas menjadi lebih hidup.');
     }
+    console.log('=== SALES HISTORY INSERT END ===');
 });
 
 

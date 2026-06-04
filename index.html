@@ -165,6 +165,13 @@
                             </div>
                             <div class="spectre-inventory-overview-card">
                                 <div class="spectre-inventory-overview-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-8"></path><path d="M12 12v4"></path></svg>
+                                </div>
+                                <div class="spectre-inventory-overview-value" id="totalModalBarang">Rp 0</div>
+                                <div class="spectre-inventory-overview-label">Total Modal Barang</div>
+                            </div>
+                            <div class="spectre-inventory-overview-card">
+                                <div class="spectre-inventory-overview-icon">
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                                 </div>
                                 <div class="spectre-inventory-overview-value" id="lowStockItems">0</div>
@@ -334,13 +341,31 @@
                     <div class="flex justify-between items-center mb-4 border-b pb-3">
                         <div class="flex items-center gap-2 min-w-0">
                             <span class="badge status-sudahbayar">Live</span>
-                            <h2>Recent Sales</h2>
+                            <h2>Invoice Management</h2>
                         </div>
                         <span class="text-xs text-muted">Real-time</span>
                     </div>
                     <div class="overflow-x-auto">
-                        <div id="soldContainer">
-                            <div class="p-8 text-center text-muted text-xs">No recent sales activity</div>
+                        <div id="invoiceContainer">
+                            <div class="p-8 text-center text-muted text-xs">Loading invoices...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ghost-panel p-4 md:p-6 spectre-widget spectre-widget--expense">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="badge status-belumbayar">Outstanding</span>
+                            <h2>Outstanding Payments</h2>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <a href="member-payments.html" class="text-xs text-purple-400 hover:text-purple-300 transition">View All</a>
+                            <span class="text-xs text-muted">Member Debt</span>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div id="outstandingContainer">
+                            <div class="p-8 text-center text-muted text-xs">Loading outstanding payments...</div>
                         </div>
                     </div>
                 </div>

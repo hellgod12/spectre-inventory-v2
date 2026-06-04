@@ -535,29 +535,33 @@ async function loadDashboard() {
     }
 
     // --- HITUNG MATRIKS FINANSIAL ASLI ---
+    console.log('=== DASHBOARD CALCULATION START ===');
     let totalStock = 0;
     let omsetAsli = 0;
     let profitAsli = 0;
     let totalTerjualCount = 0;
+    let pendingRevenue = 0;
 
     // Profit per produk (modal vs revenue terjual)
     // profitProduk[p.nama_barang] = { nama_barang, kategori, ukuran, profit, revenue, modalTotal, qty }
     const profitProduk = new Map();
 
-    // Hitung sisa stok di gudang saat ini
+    // Hitung sisa stok di gudang saat ini (dari tabel products)
     if (products) {
         products.forEach(item => { totalStock += parseInt(item.stok || 0); });
         document.getElementById('totalItems').innerText = products.length;
+        console.log('Total Stock calculated:', totalStock);
     }
 
-    // Hitung total penjualan dari tabel riwayat
-    if (salesHistory) {
-        // Pre-map produk modal per nama_barang
-        const modalMap = new Map();
-        (products || []).forEach(p => {
-            modalMap.set(String(p.nama_barang || '').toUpperCase(), parseFloat(p.harga_modal || 0));
-        });
+    // Pre-map produk modal per nama_barang (for profit calculation)
+    const modalMap = new Map();
+    (products || []).forEach(p => {
+        modalMap.set(String(p.nama_barang || '').toUpperCase(), parseFloat(p.harga_modal || 0));
+    });
 
+    // Hitung total penjualan dari tabel riwayat (untuk items sold count)
+    // Items Sold = SUM(jumlah) dari transaksi yang masih ada
+    if (salesHistory) {
         salesHistory.forEach(sale => {
             const nama = String(sale.nama_barang || '').toUpperCase();
             const qty = parseInt(sale.jumlah || 0);
@@ -565,9 +569,7 @@ async function loadDashboard() {
             const modalSatuan = modalMap.get(nama) || 0;
             const totalModal = modalSatuan * qty;
 
-            omsetAsli += revenue;
             totalTerjualCount += qty;
-            profitAsli += (revenue - totalModal);
 
             const prev = profitProduk.get(nama) || {
                 nama_barang: sale.nama_barang,
@@ -586,6 +588,7 @@ async function loadDashboard() {
 
             profitProduk.set(nama, prev);
         });
+        console.log('Items Sold calculated:', totalTerjualCount);
     }
 
     // Tarik data pengeluaran
@@ -594,40 +597,494 @@ async function loadDashboard() {
     if (expenses) {
         totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.nominal || 0)), 0);
     }
+
+    // Calculate revenue from payments table (only paid invoices)
+    // Revenue = SUM(paid_amount) dari transaksi PAID yang masih ada
+    const { data: payments } = await supabaseClient.from('payments').select('*');
+    omsetAsli = 0;
+    pendingRevenue = 0;
+    if (payments) {
+        payments.forEach(payment => {
+            if (payment.status === 'paid') {
+                omsetAsli += parseFloat(payment.paid_amount || 0);
+            } else if (payment.status === 'pending' || payment.status === 'partial') {
+                pendingRevenue += parseFloat(payment.remaining_amount || 0);
+            }
+        });
+        console.log('Revenue calculated (from paid payments):', omsetAsli);
+        console.log('Pending Revenue calculated:', pendingRevenue);
+    }
+
+    // Calculate profit from sales_history (for cost tracking)
+    if (salesHistory) {
+        salesHistory.forEach(sale => {
+            const nama = String(sale.nama_barang || '').toUpperCase();
+            const revenue = parseFloat(sale.total_harga || 0);
+            const modalSatuan = modalMap.get(nama) || 0;
+            const qty = parseInt(sale.jumlah || 0);
+            const totalModal = modalSatuan * qty;
+            profitAsli += (revenue - totalModal);
+        });
+        console.log('Profit calculated:', profitAsli);
+    }
+
     const profitBersih = profitAsli - totalExpenses;
 
     document.getElementById('totalStock').innerText = totalStock;
     document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
+    document.getElementById('totalProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
+    document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
+
+    console.log('=== DASHBOARD CALCULATION END ===');
 
     // Update KPI cards (separate from Inventory Overview to avoid duplicate ID conflicts)
     const kpiTotalItemsEl = document.getElementById('kpiTotalItems');
     const kpiTotalStockEl = document.getElementById('kpiTotalStock');
     if (kpiTotalItemsEl) kpiTotalItemsEl.innerText = products.length;
     if (kpiTotalStockEl) kpiTotalStockEl.innerText = totalStock;
-    document.getElementById('totalProfit').innerText = 'Rp ' + profitAsli.toLocaleString('id-ID');
     document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
     document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
-    document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
 
     // Calculate inventory value and low stock items for main dashboard Inventory Overview
+    console.log('=== INVENTORY CALCULATION START ===');
+    
+    // Total Modal Barang (fixed): SUM(initial_stock × base_cost)
+    // Initial stock = current stock + total sold from sales_history
+    let totalModalBarang = 0;
     let inventoryValue = 0;
     let lowStockItems = 0;
+    
     if (products && products.length > 0) {
         products.forEach(item => {
-            const stock = parseInt(item.stok || 0);
-            const modal = parseFloat(item.harga_modal || 0);
-            inventoryValue += stock * modal;
-            if (stock <= 5) {
+            const currentStock = parseInt(item.stok || 0);
+            const baseCost = parseFloat(item.harga_modal || 0);
+            
+            // Calculate total sold for this product from sales_history
+            const totalSold = (salesHistory || [])
+                .filter(s => s.product_id === item.id)
+                .reduce((sum, s) => sum + (parseInt(s.jumlah) || 0), 0);
+            
+            const initialStock = currentStock + totalSold;
+            
+            // Total Modal Barang = initial_stock × base_cost
+            totalModalBarang += initialStock * baseCost;
+            
+            // Inventory Value = current_stock × base_cost
+            inventoryValue += currentStock * baseCost;
+            
+            if (currentStock <= 5) {
                 lowStockItems++;
             }
+            
+            console.log(`Product: ${item.nama_barang}, Initial Stock: ${initialStock}, Current Stock: ${currentStock}, Base Cost: ${baseCost}, Total Sold: ${totalSold}`);
         });
     }
+    
+    console.log('Total Modal Barang (fixed):', totalModalBarang);
+    console.log('Inventory Value (dynamic):', inventoryValue);
+    console.log('Total Stock:', totalStock);
+    console.log('Low Stock Items:', lowStockItems);
+    console.log('=== INVENTORY CALCULATION END ===');
 
     // Update main dashboard Inventory Overview elements
     const inventoryValueEl = document.getElementById('inventoryValue');
     const lowStockItemsEl = document.getElementById('lowStockItems');
+    const totalModalBarangEl = document.getElementById('totalModalBarang');
+    
     if (inventoryValueEl) inventoryValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
     if (lowStockItemsEl) lowStockItemsEl.innerText = lowStockItems;
+    if (totalModalBarangEl) totalModalBarangEl.innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
+
+    // Render invoices in Invoice Management section
+    const invoiceContainer = document.getElementById('invoiceContainer');
+    if (invoiceContainer && payments) {
+        const sortedPayments = payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (sortedPayments.length === 0) {
+            invoiceContainer.innerHTML = '<div class="p-8 text-center text-muted text-xs">No invoices found</div>';
+        } else {
+            let invoiceHtml = '<div class="space-y-3">';
+            sortedPayments.forEach(payment => {
+                const statusColors = {
+                    'pending': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+                    'partial': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+                    'paid': 'bg-green-500/20 text-green-400 border-green-500/30',
+                    'cancelled': 'bg-red-500/20 text-red-400 border-red-500/30'
+                };
+                const statusColor = statusColors[payment.status] || statusColors['pending'];
+
+                invoiceHtml += `
+                    <div class="p-4 bg-black/50 border border-stone-800 rounded-lg">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <div class="text-xs text-muted mb-1">${payment.invoice_number || 'N/A'}</div>
+                                <div class="font-semibold text-white">${payment.product || 'Unknown'}</div>
+                                <div class="text-xs text-muted">Qty: ${payment.jumlah || 0}</div>
+                            </div>
+                            <span class="px-2 py-1 text-xs font-semibold rounded border ${statusColor}">${payment.status?.toUpperCase() || 'PENDING'}</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 text-xs mb-3">
+                            <div>
+                                <div class="text-muted">Total</div>
+                                <div class="font-semibold">Rp ${(payment.total_harga || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted">Paid</div>
+                                <div class="font-semibold text-green-400">Rp ${(payment.paid_amount || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted">Remaining</div>
+                                <div class="font-semibold text-yellow-400">Rp ${(payment.remaining_amount || 0).toLocaleString('id-ID')}</div>
+                            </div>
+                        </div>
+                        ${payment.status !== 'paid' && payment.status !== 'cancelled' ? `
+                            <div class="flex gap-2">
+                                <button onclick="window.addPartialPayment('${payment.id}', ${payment.remaining_amount})" class="flex-1 px-3 py-2 text-xs bg-purple-600 hover:bg-purple-500 text-white rounded transition">Add Payment</button>
+                                ${payment.status === 'partial' ? `
+                                    <button onclick="window.markAsPaid('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-500 text-white rounded transition">Mark Paid</button>
+                                ` : ''}
+                                <button onclick="window.cancelInvoice('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded transition">Cancel</button>
+                            </div>
+                        ` : ''}
+                        <button onclick="window.deleteTransaction('${payment.id}')" class="w-full mt-2 px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition">Delete Permanently</button>
+                    </div>
+                `;
+            });
+            invoiceHtml += '</div>';
+            invoiceContainer.innerHTML = invoiceHtml;
+        }
+    }
+
+    // Render Outstanding Payments widget (member debt)
+    const outstandingContainer = document.getElementById('outstandingContainer');
+    if (outstandingContainer && payments) {
+        // Filter for member transactions with remaining balance
+        const memberPayments = payments.filter(p => 
+            p.buyer && p.buyer.includes('Member') && 
+            p.status !== 'paid' && 
+            p.status !== 'cancelled' &&
+            (p.remaining_amount || 0) > 0
+        );
+
+        // Group by member
+        const memberDebt = new Map();
+        memberPayments.forEach(payment => {
+            const memberName = payment.buyer.replace('Member (', '').replace(')', '');
+            const currentDebt = memberDebt.get(memberName) || 0;
+            memberDebt.set(memberName, currentDebt + (payment.remaining_amount || 0));
+        });
+
+        const totalOutstanding = Array.from(memberDebt.values()).reduce((sum, debt) => sum + debt, 0);
+
+        if (memberDebt.size === 0) {
+            outstandingContainer.innerHTML = '<div class="p-8 text-center text-muted text-xs">No outstanding payments</div>';
+        } else {
+            let outstandingHtml = '<div class="space-y-3">';
+            outstandingHtml += `
+                <div class="p-3 bg-red-950/20 border border-red-900/30 rounded-lg">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-muted">Total Outstanding</span>
+                        <span class="font-semibold text-red-400">Rp ${totalOutstanding.toLocaleString('id-ID')}</span>
+                    </div>
+                </div>
+            `;
+
+            memberDebt.forEach((debt, memberName) => {
+                outstandingHtml += `
+                    <div class="p-3 bg-black/50 border border-stone-800 rounded-lg flex justify-between items-center">
+                        <div>
+                            <div class="font-semibold text-white text-sm">${memberName}</div>
+                            <div class="text-xs text-muted">Member</div>
+                        </div>
+                        <span class="font-semibold text-red-400 text-sm">Rp ${debt.toLocaleString('id-ID')}</span>
+                    </div>
+                `;
+            });
+
+            outstandingHtml += '</div>';
+            outstandingContainer.innerHTML = outstandingHtml;
+        }
+    }
+
+    // Make invoice management functions globally accessible
+    window.addPartialPayment = async function(invoiceId, paymentAmount) {
+        const amount = prompt('Enter payment amount:', paymentAmount);
+        if (amount === null) return;
+
+        const paymentAmountNum = parseFloat(amount);
+        if (isNaN(paymentAmountNum) || paymentAmountNum <= 0) {
+            alert('Invalid payment amount');
+            return;
+        }
+
+        try {
+            const { data: invoice } = await supabaseClient
+                .from('payments')
+                .select('*')
+                .eq('id', invoiceId)
+                .single();
+
+            if (!invoice) {
+                alert('Invoice not found');
+                return;
+            }
+
+            if (invoice.status === 'cancelled') {
+                alert('Cannot add payment to cancelled invoice');
+                return;
+            }
+
+            const newPaidAmount = invoice.paid_amount + paymentAmountNum;
+            const newRemainingAmount = invoice.remaining_amount - paymentAmountNum;
+            let newStatus = invoice.status;
+
+            if (newRemainingAmount <= 0) {
+                newStatus = 'paid';
+            } else if (newPaidAmount > 0) {
+                newStatus = 'partial';
+            }
+
+            const { error } = await supabaseClient
+                .from('payments')
+                .update({
+                    paid_amount: newPaidAmount,
+                    remaining_amount: Math.max(0, newRemainingAmount),
+                    status: newStatus,
+                    confirmed_at: newStatus === 'paid' ? new Date().toISOString() : null
+                })
+                .eq('id', invoiceId);
+
+            if (error) {
+                alert('Failed to add payment: ' + error.message);
+            } else {
+                alert('Payment added successfully');
+                location.reload();
+            }
+        } catch (err) {
+            alert('Error adding payment: ' + err.message);
+        }
+    };
+
+    window.markAsPaid = async function(invoiceId) {
+        if (!confirm('Mark this invoice as fully paid?')) return;
+
+        try {
+            const { data: invoice } = await supabaseClient
+                .from('payments')
+                .select('*')
+                .eq('id', invoiceId)
+                .single();
+
+            if (!invoice) {
+                alert('Invoice not found');
+                return;
+            }
+
+            const { error } = await supabaseClient
+                .from('payments')
+                .update({
+                    paid_amount: invoice.total_harga,
+                    remaining_amount: 0,
+                    status: 'paid',
+                    confirmed_at: new Date().toISOString()
+                })
+                .eq('id', invoiceId);
+
+            if (error) {
+                alert('Failed to mark as paid: ' + error.message);
+            } else {
+                alert('Invoice marked as paid');
+                location.reload();
+            }
+        } catch (err) {
+            alert('Error marking as paid: ' + err.message);
+        }
+    };
+
+    window.cancelInvoice = async function(invoiceId) {
+        if (!confirm('Cancel this invoice and restore stock?')) return;
+
+        try {
+            const { data: invoice } = await supabaseClient
+                .from('payments')
+                .select('*')
+                .eq('id', invoiceId)
+                .single();
+
+            if (!invoice) {
+                alert('Invoice not found');
+                return;
+            }
+
+            if (invoice.status === 'cancelled') {
+                alert('Invoice already cancelled');
+                return;
+            }
+
+            // Find related sales_history records
+            const { data: salesHistory } = await supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('payment_id', invoiceId);
+
+            if (salesHistory && salesHistory.length > 0) {
+                // Restore stock for each sales record
+                for (const sale of salesHistory) {
+                    const { data: product } = await supabaseClient
+                        .from('products')
+                        .select('stok')
+                        .eq('id', sale.product_id)
+                        .single();
+
+                    if (product) {
+                        const newStock = product.stok + sale.jumlah;
+                        await supabaseClient
+                            .from('products')
+                            .update({ stok: newStock })
+                            .eq('id', sale.product_id);
+                    }
+                }
+            }
+
+            // Update invoice status to cancelled
+            const { error } = await supabaseClient
+                .from('payments')
+                .update({ status: 'cancelled' })
+                .eq('id', invoiceId);
+
+            if (error) {
+                alert('Failed to cancel invoice: ' + error.message);
+            } else {
+                alert('Invoice cancelled and stock restored');
+                location.reload();
+            }
+        } catch (err) {
+            alert('Error cancelling invoice: ' + err.message);
+        }
+    };
+
+    window.deleteTransaction = async function(invoiceId) {
+        if (!confirm('Yakin ingin menghapus transaksi ini? Semua data penjualan dan pembayaran akan dihapus.')) return;
+
+        try {
+            console.log('=== DELETE TRANSACTION START ===');
+            console.log('Invoice ID:', invoiceId);
+
+            // Get invoice data
+            const { data: invoice } = await supabaseClient
+                .from('payments')
+                .select('*')
+                .eq('id', invoiceId)
+                .single();
+
+            if (!invoice) {
+                alert('Invoice not found');
+                return;
+            }
+
+            console.log('Invoice data:', invoice);
+
+            // Find related sales_history records
+            const { data: salesHistory } = await supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('payment_id', invoiceId);
+
+            console.log('Sales history records:', salesHistory);
+
+            if (salesHistory && salesHistory.length > 0) {
+                // Restore stock for each sales record
+                for (const sale of salesHistory) {
+                    console.log('Restoring stock for product:', sale.product_id, 'quantity:', sale.jumlah);
+                    
+                    const { data: product } = await supabaseClient
+                        .from('products')
+                        .select('stok')
+                        .eq('id', sale.product_id)
+                        .single();
+
+                    if (product) {
+                        const oldStock = product.stok;
+                        const newStock = product.stok + sale.jumlah;
+                        console.log(`Stock restoration: ${oldStock} + ${sale.jumlah} = ${newStock}`);
+                        
+                        await supabaseClient
+                            .from('products')
+                            .update({ stok: newStock })
+                            .eq('id', sale.product_id);
+                            
+                        console.log('Stock updated successfully');
+                    } else {
+                        console.error('Product not found:', sale.product_id);
+                    }
+                }
+
+                // Delete sales_history records
+                console.log('Deleting sales_history records...');
+                const { error: historyError } = await supabaseClient
+                    .from('sales_history')
+                    .delete()
+                    .eq('payment_id', invoiceId);
+
+                if (historyError) {
+                    console.error('Failed to delete sales history:', historyError);
+                    alert('Failed to delete sales history: ' + historyError.message);
+                    return;
+                }
+                console.log('Sales history deleted successfully');
+            }
+
+            // Delete payment record
+            console.log('Deleting payment record...');
+            const { error: paymentError } = await supabaseClient
+                .from('payments')
+                .delete()
+                .eq('id', invoiceId);
+
+            if (paymentError) {
+                console.error('Failed to delete payment:', paymentError);
+                alert('Failed to delete payment: ' + paymentError.message);
+                return;
+            }
+            console.log('Payment deleted successfully');
+
+            console.log('=== DELETE TRANSACTION END ===');
+
+            alert('Transaksi berhasil dihapus dan stok telah dikembalikan.');
+            
+            // Refresh products data (to show updated stock)
+            console.log('Refreshing products...');
+            await refreshProducts();
+            console.log('Products refreshed');
+            
+            // Refresh dashboard (recalculates all metrics from database)
+            console.log('Refreshing dashboard...');
+            await loadDashboard();
+            console.log('Dashboard refreshed');
+            
+        } catch (err) {
+            console.error('Error deleting transaction:', err);
+            alert('Error deleting transaction: ' + err.message);
+        }
+    };
+
+    // Function to refresh products data (for stock updates)
+    async function refreshProducts() {
+        console.log('=== REFRESH PRODUCTS START ===');
+        const { data: products, error } = await supabaseClient
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Failed to refresh products:', error);
+            return null;
+        }
+        
+        console.log('Products refreshed:', products.length, 'items');
+        console.log('=== REFRESH PRODUCTS END ===');
+        return products;
+    }
 
     // --- RENDERING TABEL 1: STOK GUDANG ---
     if (!products || products.length === 0) {
@@ -720,20 +1177,21 @@ async function loadDashboard() {
     }
 
     // --- RENDERING TABEL 2: RIWAYAT PENJUALAN NYATA + TANGGAL & DATA ORANG ---
-    if (!salesHistory || salesHistory.length === 0) {
-        soldContainer.innerHTML = `<div class="p-8 text-center text-stone-700 text-xs uppercase">>> BELUM ADA TRANSAKSI MASUK KASIR</div>`;
-    } else if (isMobile()) {
-        let cards = `
-            <div class="space-y-2">`;
+    if (soldContainer) {
+        if (!salesHistory || salesHistory.length === 0) {
+            soldContainer.innerHTML = `<div class="p-8 text-center text-stone-700 text-xs uppercase">>> BELUM ADA TRANSAKSI MASUK KASIR</div>`;
+        } else if (isMobile()) {
+            let cards = `
+                <div class="space-y-2">`;
 
-        salesHistory.forEach(sale => {
-            const dateObj = new Date(sale.created_at);
-            const opsiFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-            const tanggalLokalan = dateObj.toLocaleDateString('id-ID', opsiFormat).replace(',', ' //');
+            salesHistory.forEach(sale => {
+                const dateObj = new Date(sale.created_at);
+                const opsiFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+                const tanggalLokalan = dateObj.toLocaleDateString('id-ID', opsiFormat).replace(',', ' //');
 
-            const isMember = (sale.tipe_pembeli || '').toLowerCase().startsWith('member');
-            const orangBadge = isMember
-                ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 MEMBER</span>`
+                const isMember = (sale.tipe_pembeli || '').toLowerCase().startsWith('member');
+                const orangBadge = isMember
+                    ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 MEMBER</span>`
                 : `<span class="bg-zinc-900 text-zinc-400 border border-zinc-700 text-[10px] px-2 py-0.5 font-bold">👤 NON-MEMBER</span>`;
 
             cards += `
@@ -810,6 +1268,7 @@ async function loadDashboard() {
 
         soldHtml += `</tbody></table>`;
         soldContainer.innerHTML = soldHtml;
+    }
     }
 
     // Render 1 inventory profit indicator (hanya 1 indikator di bagian atas)
