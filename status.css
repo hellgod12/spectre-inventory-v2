@@ -3,6 +3,11 @@
 .status-belumbayar{background:#1f2937;color:#f97316;border:1px solid rgba(249,115,22,0.12)}
 .status-sudahbayar{background:#052e16;color:#bbf7d0;border:1px solid rgba(34,197,94,0.12)}
 
+/* required by dashboard */
+.badge.status-belumbayar{display:inline-flex; align-items:center; gap:6px;}
+.badge.status-sudahbayar{display:inline-flex; align-items:center; gap:6px;}
+
+
 /* Premium glass badge glow (doesn’t affect logic) */
 .badge{backdrop-filter:blur(10px);box-shadow:inset 0 0 0 1px rgba(255,255,255,0.02)}
 .badge.status-belumbayar{box-shadow:inset 0 0 0 1px rgba(249,115,22,0.08), 0 0 22px rgba(249,115,22,0.14)}

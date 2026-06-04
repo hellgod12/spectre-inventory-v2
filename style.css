@@ -285,31 +285,55 @@ margin-bottom:5px;
 font-size:24px;
 }
 
-/* Mobile-first: sidebar collapses by default */
+/* ===== Spectre Dashboard Layout (NEW) ===== */
+
+/* Desktop: sidebar permanent */
+.spectre-shell{display:flex; min-height:100vh; width:100%;}
+.spectre-sidebar{width:280px; padding:28px; border-right:1px solid rgba(255,255,255,.08); position:sticky; top:0; height:100vh; background:linear-gradient(180deg, rgba(17,24,39,.82), rgba(17,24,39,.55)); backdrop-filter:blur(10px); overflow:hidden;}
+.spectre-sidebar__brand{margin-bottom:28px;}
+.spectre-sidebar__warn{margin-top:10px; font-size:12px; color:rgba(248,113,113,.9); text-transform:uppercase; letter-spacing:.14em;}
+.spectre-sidebar__nav ul{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:10px;}
+.spectre-sidebar__nav li{margin:0;}
+.spectre-navlink{display:block; padding:12px 14px; border-radius:14px; border:1px solid transparent; background:rgba(17,24,39,.35); color:rgba(248,113,113,.9); font-weight:800; text-decoration:none; text-transform:uppercase; letter-spacing:.12em; font-size:11px;}
+.spectre-navlink:hover{background:rgba(31,41,55,.75); border-color:rgba(124,58,237,.22);}
+.spectre-sidebar__nav li.active .spectre-navlink{background:linear-gradient(135deg,#7c3aed,#9333ea); box-shadow:0 0 0 1px rgba(147,51,234,.35), 0 18px 40px rgba(124,58,237,.22); color:#fff;}
+.spectre-sidebar__footer{position:absolute; bottom:26px; left:28px; right:28px;}
+
+.spectre-content{flex:1; padding:28px; min-width:0; padding-bottom:90px;}
+
+/* Grid areas */
+.spectre-hero{margin-bottom:18px;}
+.spectre-kpi-grid{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px; margin-top:14px;}
+.spectre-kpi-grid2{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px; margin-top:16px;}
+.spectre-widgets{display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:16px; margin-top:18px;}
+
+/* Hide CTA group animations issues */
+.spectre-hero__cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;}
+.spectre-cta{display:inline-flex; align-items:center; justify-content:center; padding:14px 16px; border-radius:0; text-decoration:none; font-weight:900; text-transform:uppercase; letter-spacing:.12em; font-size:11px; border:1px solid rgba(255,255,255,.08); background:rgba(17,24,39,.35); color:#e5e7eb;}
+.spectre-cta--purple{border-color:rgba(124,58,237,.35);}
+.spectre-cta--red{border-color:rgba(239,68,68,.35);}
+.spectre-cta--danger{border-color:rgba(248,113,113,.35);}
+.spectre-cta--orange{border-color:rgba(249,115,22,.35);}
+
+/* Mobile bottom navigation */
+.spectre-bottomnav{display:none; position:fixed; left:0; right:0; bottom:0; height:70px; background:rgba(6,6,10,.92); border-top:1px solid rgba(255,255,255,.08); backdrop-filter:blur(10px); z-index:50;}
+.spectre-bottomnav__item{flex:1; display:flex; align-items:center; justify-content:center; text-decoration:none; color:rgba(248,113,113,.9); font-weight:900; text-transform:uppercase; letter-spacing:.12em; font-size:10px;}
+.spectre-bottomnav__item.is-active{color:#fff; background:linear-gradient(135deg, rgba(124,58,237,.95), rgba(147,51,234,.75));}
+
 @media(max-width:900px){
-
-.sidebar{
-display:none;
+  .spectre-shell{display:block;}
+  .spectre-sidebar{display:none;}
+  .spectre-content{padding:16px; padding-bottom:90px;}
+  .spectre-kpi-grid{grid-template-columns:1fr;}
+  .spectre-kpi-grid2{grid-template-columns:1fr 1fr;}
+  .spectre-widgets{grid-template-columns:1fr;}
+  .spectre-bottomnav{display:flex;}
 }
 
-.content{
-padding:16px;
+@media(max-width:420px){
+  .spectre-kpi-grid2{grid-template-columns:1fr;}
 }
 
-.grid{
-grid-template-columns:1fr;
-}
-
-.search{
-width:100%;
-}
-
-.topbar{
-flex-direction:column;
-align-items:flex-start;
-}
-
-}
 
 .toolbar{
 display:flex;
