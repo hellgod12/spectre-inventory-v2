@@ -126,8 +126,8 @@
 
                     <div class="spectre-hero__top">
                     <div class="min-w-0">
-                        <h1>Overview</h1>
-                        <p class="text-muted mt-2">Monitor your inventory, sales, and expenses in real-time.</p>
+                        <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">SPECTRE</h1>
+                        <p class="text-muted text-lg">Inventory Intelligence Platform</p>
                     </div>
 
                     <div class="spectre-hero__cta">
@@ -238,6 +238,23 @@
                         <div id="productContainer">
                             <div class="p-12 text-center text-muted text-xs uppercase">Loading inventory data...</div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="ghost-panel p-4 md:p-6 spectre-widget spectre-widget--market">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="badge status-sudahbayar">Live</span>
+                            <h2>Market Analytics</h2>
+                        </div>
+                        <span class="text-xs text-muted">Trading View</span>
+                    </div>
+                    <div class="relative" style="height: 280px;">
+                        <canvas id="candlestickChart" class="w-full h-full"></canvas>
+                    </div>
+                    <div class="flex justify-between items-center mt-3 text-xs text-muted">
+                        <span>OHLC Data</span>
+                        <span>Real-time Updates</span>
                     </div>
                 </div>
 

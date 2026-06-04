@@ -11,6 +11,89 @@ const stockCapacityLabel = document.getElementById('stockCapacityLabel');
 const stockStatusNote = document.getElementById('stockStatusNote');
 const stockEntryStatus = document.getElementById('stockEntryStatus');
 
+// Category to SKU prefix mapping
+const categorySkuPrefixes = {
+    'Apparel': 'CLT',
+    'Skateboard': 'DECK',
+    'Perlengkapan': 'ACC'
+};
+
+// Function to generate next available SKU for a category
+async function generateSkuForCategory(category) {
+    const prefix = categorySkuPrefixes[category] || 'PRD';
+    
+    try {
+        // Get all products with SKU for this category
+        const { data: products } = await supabaseClient
+            .from('products')
+            .select('sku')
+            .like('sku', `${prefix}-%`);
+        
+        if (!products || products.length === 0) {
+            return `${prefix}-001`;
+        }
+        
+        // Extract numbers from existing SKUs and find the highest
+        const numbers = products
+            .map(p => {
+                const match = p.sku?.match(new RegExp(`^${prefix}-(\\d+)$`));
+                return match ? parseInt(match[1]) : 0;
+            })
+            .filter(n => n > 0);
+        
+        const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
+        const nextNumber = maxNumber + 1;
+        
+        return `${prefix}-${String(nextNumber).padStart(3, '0')}`;
+    } catch (error) {
+        console.error('Error generating SKU:', error);
+        return `${prefix}-001`;
+    }
+}
+
+// Function to check if SKU already exists
+async function skuExists(sku) {
+    try {
+        const { data: products } = await supabaseClient
+            .from('products')
+            .select('sku')
+            .eq('sku', sku)
+            .limit(1);
+        
+        return products && products.length > 0;
+    } catch (error) {
+        console.error('Error checking SKU existence:', error);
+        return false;
+    }
+}
+
+// Function to auto-generate SKU when category changes
+async function autoGenerateSku() {
+    const category = document.getElementById('kategori').value;
+    const skuInput = document.getElementById('sku');
+    
+    if (!category || !skuInput) return;
+    
+    // Generate SKU based on category
+    let sku = await generateSkuForCategory(category);
+    
+    // Ensure SKU is unique by checking if it exists
+    while (await skuExists(sku)) {
+        // Extract prefix and increment number
+        const prefix = categorySkuPrefixes[category] || 'PRD';
+        const match = sku.match(new RegExp(`^${prefix}-(\\d+)$`));
+        if (match) {
+            const currentNum = parseInt(match[1]);
+            const nextNum = currentNum + 1;
+            sku = `${prefix}-${String(nextNum).padStart(3, '0')}`;
+        } else {
+            break;
+        }
+    }
+    
+    skuInput.value = sku;
+}
+
 async function refreshStockProgress() {
     let totalStock = 0;
     try {
@@ -96,5 +179,16 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
         window.CandleManager?.refreshStockCandleFromProductsTotal?.();
     } catch (e) {}
+
+    // Add event listener to category select for auto SKU generation
+    const kategoriSelect = document.getElementById('kategori');
+    if (kategoriSelect) {
+        kategoriSelect.addEventListener('change', autoGenerateSku);
+    }
+
+    // Also trigger SKU generation on page load if category is already selected
+    if (kategoriSelect && kategoriSelect.value) {
+        autoGenerateSku();
+    }
 });
 

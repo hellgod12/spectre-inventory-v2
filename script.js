@@ -577,13 +577,11 @@ async function loadDashboard() {
             <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
                 <thead>
                     <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase tracking-wider text-[10px]">
+                        <th class="p-4 font-bold tracking-wider">SKU</th>
                         <th class="p-4 font-bold tracking-wider">NAMA_BARANG</th>
                         <th class="p-4 font-bold tracking-wider">SEKTOR_KATEGORI</th>
-                        <th class="p-4 font-bold tracking-wider">UKURAN</th>
                         <th class="p-4 font-bold text-center tracking-wider">TINGKAT_STOK</th>
-                        <th class="p-4 font-bold tracking-wider">HARGA_MODAL</th>
                         <th class="p-4 font-bold tracking-wider">HARGA_UMUM</th>
-                        <th class="p-4 font-bold tracking-wider">HARGA_MEMBER</th>
                         <th class="p-4 font-bold text-center tracking-wider">HANCURKAN</th>
                     </tr>
                 </thead>
@@ -595,25 +593,19 @@ async function loadDashboard() {
             let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 font-bold text-[9px] uppercase">${item.kategori || 'Apparel'}</span>`;
             if (item.kategori === 'Skateboard') katBadge = `<span class="bg-red-950/60 text-red-500 px-2 py-0.5 border border-red-800/50 font-bold text-[9px] uppercase">🛹 PAPAN_SKATE</span>`;
             if (item.kategori === 'Perlengkapan') katBadge = `<span class="bg-zinc-900 text-zinc-400 px-2 py-0.5 border border-zinc-700 font-bold text-[9px] uppercase">🛠️ HARDWARE</span>`;
-            
-            const ukuranBadge = item.ukuran 
-                ? `<span class="bg-stone-900 text-yellow-500 border border-yellow-900/50 px-2 py-0.5 font-bold text-[10px] uppercase">${item.ukuran}</span>`
-                : `<span class="text-slate-700 text-[9px]">—</span>`;
 
             const currentStock = parseInt(item.stok || 0);
-            const stokBadge = currentStock <= 5 
+            const stokBadge = currentStock <= 5
                 ? `<span class="bg-red-950 text-red-500 border border-red-600 px-2 py-0.5 font-bold text-[10px] animate-pulse">☠️ KRITIS_${currentStock}</span>`
                 : `<span class="bg-stone-900 text-slate-300 border border-stone-800 px-2 py-0.5 font-bold text-[10px]">${currentStock} UNIT</span>`;
 
             tableHtml += `
                 <tr class="hover:bg-red-950/10 transition-colors">
+                    <td class="p-4 font-mono text-yellow-400 text-xs">${item.sku || '—'}</td>
                     <td class="p-4 font-bold text-white uppercase tracking-wide">${item.nama_barang}</td>
                     <td class="p-4">${katBadge}</td>
-                    <td class="p-4">${ukuranBadge}</td>
                     <td class="p-4 text-center">${stokBadge}</td>
-                    <td class="p-4 text-slate-500">Rp ${Number(item.harga_modal).toLocaleString('id-ID')}</td>
                     <td class="p-4 text-red-400 font-bold">Rp ${Number(item.harga_jual).toLocaleString('id-ID')}</td>
-                    <td class="p-4 text-rose-400 font-bold">Rp ${Number(item.harga_member).toLocaleString('id-ID')}</td>
                     <td class="p-4 text-center">
                         <button onclick="deleteProduct(${item.id}, '${item.nama_barang}')" class="bg-transparent hover:bg-red-600 hover:text-white text-red-600 border border-red-900 px-2.5 py-1 text-[9px] font-bold uppercase transition-all">HAPUS</button>
                     </td>
@@ -754,6 +746,9 @@ async function loadDashboard() {
 
     await loadPayments();
     await loadExpenses();
+
+    // Render candlestick chart with sales history data
+    renderCandlestickChartFromSalesHistory(salesHistory);
 }
 
 
