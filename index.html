@@ -162,7 +162,7 @@
     </style>
 
 </head>
-<body class="text-rose-100 min-h-screen p-4 md:p-8 selection:bg-red-600 selection:text-white">
+<body class="text-rose-100 min-h-screen p-3 sm:p-4 md:p-8 selection:bg-red-600 selection:text-white">
 
     <div class="spectre-shell">
 
@@ -205,8 +205,8 @@
         <!-- Main content -->
         <main class="spectre-content" role="main">
             <!-- HERO ANALYTICS -->
-            <section class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-red-600 dashboard-header spectre-hero">
-                <div class="spectre-hero__top">
+<section class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-red-600 dashboard-header spectre-hero spectre-hero--premium">
+<div class="spectre-hero__top spectre-hero__top--premium">
                     <div class="min-w-0">
                         <div class="flex items-baseline gap-3 flex-wrap">
                             <div class="scary-logo glitch-text text-4xl md:text-5xl text-red-500">SPECTRE</div>
@@ -268,7 +268,7 @@
             </section>
 
             <!-- Row 2: KPI widgets migrated to hero (keep KPI containers elsewhere as per IDs) -->
-            <section class="spectre-grid spectre-kpi-grid" aria-label="KPIs">
+<section class="spectre-grid spectre-kpi-grid spectre-kpi-grid--premium" aria-label="KPIs">
                 <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-600 bg-red-950/10"> 
                     <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// OMSET_KOTOR]</p>
                     <p id="totalOmset" class="text-lg md:text-xl font-black text-red-400 mt-2">Rp 0</p>
@@ -358,7 +358,7 @@
                 <div class="ghost-panel rounded-none p-4 md:p-6 spectre-widget spectre-widget--payments">
                     <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
                         <h2 class="text-xs font-bold uppercase tracking-widest text-rose-500">// PEMBAYARAN</h2>
-                        <button id="refreshPaymentsBtn" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 rounded text-xs font-bold uppercase">Refresh Pembayaran</button>
+<button id="refreshPaymentsBtn" class="spectre-btn spectre-btn--emerald px-4 py-3 rounded-xl text-xs font-bold uppercase">Refresh Pembayaran</button>
                     </div>
                     <div class="overflow-x-auto border border-red-950 bg-black/90">
                         <div id="paymentsContainer" class="p-4 text-xs text-slate-300">
