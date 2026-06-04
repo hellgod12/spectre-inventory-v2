@@ -5,23 +5,71 @@ box-sizing:border-box;
 font-family:'Poppins',sans-serif;
 }
 
+:root{
+--bg0:#070a14;
+--bg1:#0b1020;
+--panel:rgba(17,24,39,.72);
+--panel2:rgba(31,41,55,.72);
+--stroke:rgba(255,255,255,.08);
+--stroke2:rgba(124,58,237,.35);
+--text:#fff;
+--muted:rgba(255,255,255,.72);
+--glow:#7c3aed;
+--glow2:#22c55e;
+--danger:#ef4444;
+--radius:18px;
+}
+
+html,body{height:100%;}
 body{
-background:#0b1020;
-color:#fff;
+background:radial-gradient(1000px 600px at 20% -10%, rgba(124,58,237,.35), transparent 55%),
+radial-gradient(900px 560px at 100% 20%, rgba(34,197,94,.20), transparent 60%),
+linear-gradient(180deg, var(--bg0), var(--bg1));
+color:var(--text);
 display:flex;
 min-height:100vh;
+overflow-x:hidden;
+-webkit-tap-highlight-color:transparent;
 }
+
+/* Horror cyberpunk subtle scanlines */
+body::before{
+content:"";
+position:fixed;
+inset:0;
+pointer-events:none;
+z-index:-1;
+background:
+repeating-linear-gradient(
+180deg,
+rgba(255,255,255,.04) 0px,
+rgba(255,255,255,.04) 1px,
+transparent 2px,
+transparent 6px
+);
+opacity:.10;
+mix-blend-mode:overlay;
+}
+
+/* Avoid horizontal scroll caused by shadows/backdrops */
+*{overflow-wrap:anywhere;}
 
 .sidebar{
 width:260px;
-background:#111827;
+background:linear-gradient(180deg, rgba(17,24,39,.78), rgba(17,24,39,.60));
 padding:30px;
-border-right:1px solid rgba(255,255,255,.08);
+border-right:1px solid var(--stroke);
+position:sticky;
+top:0;
+height:100vh;
+backdrop-filter:blur(10px);
 }
 
 .logo h2{
 font-size:30px;
 font-weight:700;
+letter-spacing:.2px;
+text-shadow:0 0 22px rgba(124,58,237,.35);
 }
 
 .logo p{
@@ -41,19 +89,24 @@ margin-bottom:12px;
 border-radius:12px;
 cursor:pointer;
 transition:.3s;
+border:1px solid transparent;
+background:rgba(17,24,39,.35);
 }
 
 .sidebar li:hover{
-background:#1f2937;
+background:rgba(31,41,55,.75);
+border-color:rgba(124,58,237,.22);
 }
 
 .active{
 background:linear-gradient(135deg,#7c3aed,#9333ea);
+box-shadow:0 0 0 1px rgba(147,51,234,.35), 0 18px 40px rgba(124,58,237,.22);
 }
 
 .content{
 flex:1;
 padding:30px;
+min-width:0;
 }
 
 .topbar{
@@ -61,6 +114,7 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 margin-bottom:30px;
+gap:12px;
 }
 
 .search{
@@ -70,23 +124,35 @@ border:none;
 border-radius:12px;
 background:#111827;
 color:white;
+border:1px solid rgba(255,255,255,.06);
+box-shadow:inset 0 0 0 1px rgba(0,0,0,.15);
+}
+
+.search:focus{
+outline:none;
+border-color:rgba(124,58,237,.45);
+box-shadow:0 0 0 3px rgba(124,58,237,.18);
 }
 
 .profile{
 background:#111827;
 padding:12px 20px;
 border-radius:12px;
+border:1px solid rgba(255,255,255,.06);
 }
 
 h1{
 margin-bottom:25px;
+font-weight:800;
+letter-spacing:.2px;
 }
 
 .cards{
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-gap:20px;
+gap:16px;
 margin-bottom:30px;
+align-items:stretch;
 }
 
 .card{
@@ -94,18 +160,43 @@ padding:25px;
 border-radius:18px;
 backdrop-filter:blur(20px);
 box-shadow:0 10px 25px rgba(0,0,0,.3);
+position:relative;
+overflow:hidden;
+border:1px solid rgba(255,255,255,.06);
+}
+
+.card::after{
+content:"";
+position:absolute;
+inset:-80px;
+background:radial-gradient(circle at 20% 20%, rgba(255,255,255,.16), transparent 45%),
+radial-gradient(circle at 70% 20%, rgba(124,58,237,.22), transparent 52%);
+transform:rotate(8deg);
+opacity:.35;
+pointer-events:none;
 }
 
 .card h4{
 font-size:14px;
-opacity:.8;
+opacity:.85;
 margin-bottom:10px;
+position:relative;
+z-index:1;
 }
 
 .card h2{
 font-size:34px;
-font-weight:700;
+font-weight:800;
+position:relative;
+z-index:1;
 }
+
+/* Better KPI contrast + micro grid */
+.card{
+background:linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+}
+
+.card.purple,.card.blue,.card.green,.card.red{background-image:none;}
 
 .purple{
 background:linear-gradient(135deg,#6d28d9,#8b5cf6);
@@ -133,6 +224,9 @@ gap:20px;
 background:#111827;
 padding:25px;
 border-radius:18px;
+border:1px solid rgba(255,255,255,.06);
+box-shadow:0 14px 35px rgba(0,0,0,.25);
+backdrop-filter:blur(12px);
 }
 
 .box h3{
@@ -161,6 +255,8 @@ gap:20px;
 background:#1f2937;
 padding:18px;
 border-radius:12px;
+border:1px solid rgba(255,255,255,.06);
+box-shadow:0 10px 25px rgba(0,0,0,.22);
 }
 
 .summary span{
@@ -173,10 +269,15 @@ margin-bottom:5px;
 font-size:24px;
 }
 
+/* Mobile-first: sidebar collapses by default */
 @media(max-width:900px){
 
 .sidebar{
 display:none;
+}
+
+.content{
+padding:16px;
 }
 
 .grid{
@@ -187,7 +288,13 @@ grid-template-columns:1fr;
 width:100%;
 }
 
+.topbar{
+flex-direction:column;
+align-items:flex-start;
 }
+
+}
+
 .toolbar{
 display:flex;
 justify-content:space-between;
@@ -200,6 +307,15 @@ padding:12px;
 border-radius:10px;
 border:none;
 width:300px;
+background:#111827;
+color:#fff;
+border:1px solid rgba(255,255,255,.06);
+}
+
+.toolbar input:focus{
+outline:none;
+border-color:rgba(124,58,237,.45);
+box-shadow:0 0 0 3px rgba(124,58,237,.18);
 }
 
 .toolbar button{
@@ -209,6 +325,7 @@ border-radius:10px;
 cursor:pointer;
 background:#7c3aed;
 color:white;
+box-shadow:0 12px 30px rgba(124,58,237,.22);
 }
 
 .form-box{
@@ -219,12 +336,21 @@ background:#111827;
 padding:20px;
 border-radius:15px;
 margin-bottom:20px;
+border:1px solid rgba(255,255,255,.06);
 }
 
 .form-box input{
 padding:12px;
 border:none;
 border-radius:10px;
+background:rgba(17,24,39,.9);
+color:#fff;
+border:1px solid rgba(255,255,255,.06);
+}
+
+.form-box input:focus{
+outline:none;
+border-color:rgba(124,58,237,.45);
 }
 
 .form-box button{
@@ -234,6 +360,7 @@ padding:12px;
 border-radius:10px;
 color:white;
 cursor:pointer;
+box-shadow:0 12px 30px rgba(16,185,129,.18);
 }
 
 table{
@@ -241,6 +368,7 @@ width:100%;
 background:#111827;
 border-radius:15px;
 overflow:hidden;
+border:1px solid rgba(255,255,255,.06);
 }
 
 th,td{
@@ -251,3 +379,14 @@ text-align:left;
 tr{
 border-bottom:1px solid rgba(255,255,255,.08);
 }
+
+/* No horizontal scroll for complex tables */
+table{max-width:100%;}
+
+/* Better mobile touch density */
+@media (max-width:420px){
+.cards{grid-template-columns:1fr;}
+.toolbar{flex-direction:column;align-items:stretch;}
+.toolbar input{width:100%;}
+}
+
