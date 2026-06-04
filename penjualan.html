@@ -3,244 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SPECTRE // Terminal Kasir Rahasia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>SPECTRE // Sales</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="status.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== Digital Marketing Neo-Neon Crypto Theme (Tampilan only) ===== */
-        body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: #020205;
-            background-image:
-              radial-gradient(600px 180px at 50% -20%, rgba(249,115,22,0.10), transparent 60%),
-              radial-gradient(520px 160px at 10% 10%, rgba(236,72,153,0.08), transparent 60%),
-              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%, auto, auto;
-            background-repeat: repeat, repeat, no-repeat, no-repeat;
+        .candle-flame {
+            width: 12px;
+            height: 20px;
+            border-radius: 50% 50% 45% 45%;
+            background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%);
+            position: relative;
+            animation: flicker 1.2s infinite ease-in-out, drift 3.2s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(253, 224, 71, 0.4);
         }
-        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 12px rgba(239,68,68,0.65), 0 0 24px rgba(127,29,29,0.65); letter-spacing: 0.16em; }
-        .ghost-panel { background: rgba(6, 6, 10, 0.94); border: 1px solid rgba(239, 68, 68, 0.18); box-shadow: 0 0 28px rgba(255, 0, 0, 0.08); backdrop-filter: blur(6px); }
-        .panel-glow { box-shadow: 0 0 30px rgba(248, 113, 113, 0.22), inset 0 0 24px rgba(255, 255, 255, 0.02); }
-        .input-field { width: 100%; background: #09090f; border: 1px solid rgba(248, 113, 113, 0.16); color: #f8fafc; border-radius: 0; padding: 0.9rem 1rem; transition: border-color .2s ease, box-shadow .2s ease; }
-        .input-field:focus { outline: none; border-color: #fb7185; box-shadow: 0 0 18px rgba(251, 113, 133, 0.22); }
-        .form-label { display: block; color: #f8fafc; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; margin-bottom: 0.5rem; }
-        .action-btn { transition: all .25s ease; }
-        .action-btn:hover { transform: translateY(-1px); }
-        .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.25); background: rgba(17, 24, 39, 0.8); }
-        .progress-track { flex: 1; height: 10px; border-radius: 999px; background: rgba(248, 113, 113, 0.14); overflow: hidden; }
-        .progress-fill { width: 0%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #f97316, #facc15); box-shadow: 0 0 18px rgba(249, 115, 22, 0.38); position: relative; transition: width .9s ease; }
-        .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fde68a; box-shadow: 0 0 22px rgba(251, 191, 36, 0.45); }
-        .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%); animation: flicker 1.4s infinite ease-in-out, drift 3.2s infinite ease-in-out; box-shadow: 0 0 20px rgba(253, 224, 71, 0.45); }
-        .candle-base { width: 10px; height: 34px; background: linear-gradient(180deg, #f7f7f7, #c4b29a); border-radius: 5px; margin: 0 auto; }
-        .bookkeeper-panel { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; margin-top: 1.5rem; }
-        .bookkeeper-card { background: rgba(15, 23, 42, 0.88); border: 1px solid rgba(248, 113, 113, 0.14); padding: 1rem 1.1rem; border-radius: 0; }
-        .bookkeeper-card h3 { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: #fbbf24; margin-bottom: 0.75rem; }
-        .bookkeeper-card p { font-size: 1.45rem; color: #f8fafc; font-weight: 900; }
-        .bookkeeper-notes { margin-top: 1rem; color: #cbd5e1; font-size: 0.8rem; line-height: 1.6; }
-        .sale-flash { animation: sale-pulse 1s ease-out; }
-        @keyframes sale-pulse { 0% { transform: scale(1); box-shadow: 0 0 0 rgba(249, 115, 22, 0); } 50% { transform: scale(1.01); box-shadow: 0 0 24px rgba(249, 115, 22, 0.35); } 100% { transform: scale(1); box-shadow: 0 0 0 rgba(249, 115, 22, 0); } }
-        .toast-notice { position: fixed; top: 1rem; right: 1rem; z-index: 50; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(248, 113, 113, 0.35); color: #f8fafc; padding: 0.95rem 1.1rem; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); }
-        @media (max-width: 900px) { .bookkeeper-panel { grid-template-columns: 1fr; } }
-        @keyframes flicker { 0%, 100% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; } }
-        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1px); } }
-        @media (max-width: 640px) {
-            .ghost-panel { border-radius: 0; }
-            .overflow-x-auto { overflow-x: visible !important; }
+        .candle-base {
+            width: 8px;
+            height: 28px;
+            background: linear-gradient(180deg, #f7f7f7, #c4b29a);
+            border-radius: 4px;
+            margin: 0 auto;
+        }
+        .candle-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--stroke);
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+        }
+        .progress-track {
+            flex: 1;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--stroke);
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            background: var(--gradient-primary);
+            position: relative;
+            transition: width 0.6s ease;
+        }
+        .progress-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 100px;
+        }
+        .progress-meta span {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .progress-meta strong {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 600;
+        }
+        @keyframes flicker {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
+        }
+        @keyframes drift {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(1px); }
+        }
+        .bookkeeper-panel {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-top: 24px;
+        }
+        .bookkeeper-card {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            padding: 16px;
+            border-radius: var(--radius);
+        }
+        .bookkeeper-card h3 {
+            font-size: 11px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .bookkeeper-card p {
+            font-size: 24px;
+            color: var(--text);
+            font-weight: 600;
+        }
+        @media (max-width: 900px) {
+            .bookkeeper-panel { grid-template-columns: 1fr; }
         }
     </style>
-
-    <link rel="stylesheet" href="status.css">
 </head>
-<body class="text-rose-100 min-h-screen p-4 md:p-8">
+<body class="spectre-body">
 
-    <div class="max-w-6xl mx-auto space-y-6">
-        <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest mb-2">
-            << KEMBALI_KE_CORE
-        </a>
+    <div class="spectre-content">
+        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
 
-        <div class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-red-600">
+        <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
                 <div>
-                    <h2 class="text-4xl text-red-500 scary-logo mb-2 tracking-wider">TERMINAL_KASIR</h2>
-                    <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-3">// PROTOKOL_MUTASI_KELUAR_BARANG</p>
-                    <p class="text-slate-500 text-[11px] leading-6">Eksekusi penjualan dengan mode pengawasan. Semua transaksi terekam, semua status bisa dikonfirmasi.</p>
+                    <h1>Sales Terminal</h1>
+                    <p class="text-muted mt-2">Process sales transactions and manage inventory</p>
                 </div>
-                <div class="ghost-panel panel-glow p-4 bg-black/70 border border-red-950/20">
+                <div class="ghost-panel p-4 bg-surface">
                     <div class="flex items-center gap-3 mb-4">
                         <div>
                             <div class="candle-flame"></div>
                             <div class="candle-base"></div>
                         </div>
                         <div>
-                            <p class="text-[10px] uppercase tracking-[.24em] text-rose-300">Candel Kasir</p>
-                            <p class="text-slate-100 text-sm font-bold">Pantau progres transaksi yang gelap.</p>
+                            <p class="text-xs uppercase tracking-wide text-muted">Transaction Progress</p>
+                            <p class="text-sm font-semibold">Real-time sales monitoring</p>
                         </div>
                     </div>
                     <div class="candle-progress">
                         <div class="progress-track"><div id="kasirProgressFill" class="progress-fill"></div></div>
                         <div class="text-right">
-                            <span id="kasirProgressLabel" class="block text-[10px] uppercase text-slate-400">Status</span>
-                            <strong id="kasirProgressText" class="text-white text-sm">0% selesai</strong>
+                            <span id="kasirProgressLabel" class="block text-xs uppercase text-muted">Status</span>
+                            <strong id="kasirProgressText" class="text-sm">0%</strong>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: kasir yang kuat adalah yang bisa mengendalikan uang dan bayangan.</p>
+                    <p class="text-xs text-muted mt-4">Monitor your sales activity</p>
                 </div>
             </div>
         </div>
 
-        <div class="ghost-panel panel-glow p-5 rounded-none border border-red-950/10">
+        <div class="ghost-panel p-5 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                 <div>
-                    <h3 class="text-[10px] uppercase tracking-widest text-red-500">// BUKU_KASIR</h3>
-                    <p class="text-slate-400 text-[11px] mt-2">Ringkasan ‘candel pembukuan’ untuk transaksi yang baru saja terjadi.</p>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Sales Summary</h3>
+                    <p class="text-muted text-sm mt-2">Overview of recent transactions</p>
                 </div>
                 <div class="candle-progress">
                     <div class="candle-flame"></div>
                     <div class="progress-track"><div id="ledgerProgressFill" class="progress-fill"></div></div>
                     <div class="text-right">
-                        <span class="block text-[10px] uppercase text-slate-400">Pembukuan</span>
-                        <strong id="ledgerProgressText" class="text-white text-sm">0%</strong>
+                        <span class="block text-xs uppercase text-muted">Ledger</span>
+                        <strong id="ledgerProgressText" class="text-sm">0%</strong>
                     </div>
                 </div>
             </div>
             <div class="bookkeeper-panel">
                 <div class="bookkeeper-card">
-                    <h3>TRANSAKSI TERKONFIRMASI</h3>
+                    <h3>Confirmed Transactions</h3>
                     <p id="ledgerSalesCount">0</p>
                 </div>
                 <div class="bookkeeper-card">
-                    <h3>JUMLAH PEMBAYARAN</h3>
+                    <h3>Payments Received</h3>
                     <p id="ledgerPaidCount">0</p>
                 </div>
                 <div class="bookkeeper-card">
-                    <h3>STATUS BELUM LUNAS</h3>
+                    <h3>Pending Payments</h3>
                     <p id="ledgerUnpaidCount">0</p>
                 </div>
             </div>
-            <p class="bookkeeper-notes">Catatan: setiap pencatatan dilihat sebagai bukti transaksi yang sah. Efek animasi muncul saat penjualan berhasil agar sistem terasa hidup.</p>
+            <p class="text-muted text-sm mt-4">Note: All transactions are recorded as proof of sale.</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <div id="salesPanel" class="ghost-panel panel-glow p-6 rounded-none shadow-2xl md:col-span-2 border-t-4 border-t-red-600">
-                <h2 class="text-3xl text-red-500 scary-logo mb-1 tracking-wider">TERMINAL_KASIR</h2>
-                <p class="text-slate-500 text-[9px] uppercase tracking-widest mb-6">// PROTOKOL_MUTASI_KELUAR_BARANG</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div id="salesPanel" class="ghost-panel p-6 md:col-span-2">
+                <h2 class="mb-1">New Sale</h2>
+                <p class="text-muted text-sm mb-6">Process a new sales transaction</p>
                 
-                <form id="salesForm" class="space-y-4 text-xs">
+                <form id="salesForm" class="space-y-4">
                     <div>
-                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// PILIH_PRODUK_TARGET</label>
-                        <select id="selectProduct" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-slate-100 font-medium focus:outline-none focus:border-red-600 uppercase" required>
-                            <option value="">-- MENGAMBIL DATA SERVER... --</option>
+                        <label class="block text-sm font-medium mb-2">Select Product</label>
+                        <select id="selectProduct" required>
+                            <option value="">-- Loading products... --</option>
                         </select>
                     </div>
 
                     <div id="boxUkuranSelect" class="hidden">
-                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// SIZE_VARIANT</label>
-                        <select id="selectUkuran" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-yellow-400 font-bold focus:outline-none focus:border-red-600 uppercase">
-                            <option value="">-- PILIH UKURAN --</option>
+                        <label class="block text-sm font-medium mb-2">Size</label>
+                        <select id="selectUkuran">
+                            <option value="">-- Select Size --</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// KATEGORI_TARIF_DANA</label>
-                        <div class="flex gap-2">
-                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-slate-400 font-bold">
-                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum" class="accent-red-600"> PELANGGAN_UMUM
+                        <label class="block text-sm font-medium mb-2">Customer Type</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum"> Regular Customer
                             </label>
-                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-rose-400 font-bold">
-                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember" class="accent-rose-600"> MEMBER_TERDAFTAR
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember"> Member
                             </label>
                         </div>
                     </div>
 
-                    <div id="boxMemberSelect" class="hidden animate-fade-in">
-                        <label class="block text-[10px] font-bold text-purple-400 uppercase tracking-widest mb-1.5">// KUNCI_NOMOR_TELEPON_MEMBER</label>
-                        <select id="selectMember" class="w-full bg-stone-950 border border-purple-950 rounded-none px-3 py-3 text-purple-300 font-bold focus:outline-none focus:border-purple-600">
-                            <option value="">-- PILIH NO TELEPON MEMBER --</option>
+                    <div id="boxMemberSelect" class="hidden">
+                        <label class="block text-sm font-medium mb-2">Select Member</label>
+                        <select id="selectMember">
+                            <option value="">-- Select Member Phone --</option>
                         </select>
                     </div>
 
                     <div>
-                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// JUMLAH_BARANG_KELUAR</label>
-                        <input type="number" id="inputJumlah" min="1" value="1" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 font-bold text-sm" required>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" id="inputJumlah" min="1" value="1" required>
                     </div>
                     
-                    <div class="bg-stone-950 p-4 border border-red-950/60 space-y-1.5">
-                        <div class="flex justify-between text-[10px] text-slate-500 uppercase">
-                            <span>NILAI_SATUAN:</span>
-                            <span id="previewHargaSatuan" class="text-slate-300 font-bold">Rp 0</span>
+                    <div class="bg-surface p-4 border border-dashed rounded-lg space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted">Unit Price:</span>
+                            <span id="previewHargaSatuan" class="font-semibold">Rp 0</span>
                         </div>
-                        <div class="flex justify-between text-xs font-bold uppercase pt-1.5 border-t border-red-950">
-                            <span class="text-red-500/80">TOTAL_TAGIHAN_DANA:</span>
-                            <span id="previewTotal" class="text-red-500 text-base font-black tracking-wider">Rp 0</span>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-bold text-orange-400/90 uppercase tracking-widest mb-1.5">KATEGORI_TARIF_DANA</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <label class="flex flex-col">
-                                <span class="text-[10px] text-slate-400 font-bold uppercase mb-1.5">UMUM_DEFAULT</span>
-                                <span id="hargaUmumDefault" class="text-white font-black">—</span>
-                            </label>
-                            <label class="flex flex-col">
-                                <span class="text-[10px] text-rose-400 font-bold uppercase mb-1.5">MEMBER_DEFAULT</span>
-                                <span id="hargaMemberDefault" class="text-white font-black">—</span>
-                            </label>
-                        </div>
-
-                        <div class="mt-3">
-                            <span class="block text-[10px] font-bold text-orange-400/90 uppercase tracking-widest mb-1.5">HARGA_OVERRIDE (opsional)</span>
-                            <input type="number" id="harga_override" min="0" step="1" class="w-full bg-stone-950 border border-red-950 rounded-none px-3 py-3 text-white focus:outline-none focus:border-red-600 font-bold text-sm" placeholder="kosong = pakai harga default" >
+                        <div class="flex justify-between font-semibold pt-2 border-t">
+                            <span>Total:</span>
+                            <span id="previewTotal" class="text-lg">Rp 0</span>
                         </div>
                     </div>
 
                     <div>
+                        <label class="block text-sm font-medium mb-2">Price Information</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-muted block mb-1">Regular Price</span>
+                                <span id="hargaUmumDefault" class="font-semibold">—</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-muted block mb-1">Member Price</span>
+                                <span id="hargaMemberDefault" class="font-semibold">—</span>
+                            </div>
+                        </div>
 
-                        <label class="block text-[10px] font-bold text-red-500/70 uppercase tracking-widest mb-1.5">// METODE_PEMBAYARAN</label>
-                        <div class="flex flex-wrap gap-2">
-                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-slate-400 font-bold">
-                                <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash" class="accent-red-600"> TUNAI
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium mb-2">Price Override (optional)</label>
+                            <input type="number" id="harga_override" min="0" step="1" placeholder="Empty = use default price">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Payment Method</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash"> Cash
                             </label>
-                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-rose-400 font-bold">
-                                <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer" class="accent-rose-600"> TRANSFER CASH
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer"> Transfer
                             </label>
-                            <label class="flex items-center gap-2 bg-stone-950 border border-red-950 px-3 py-3 rounded-none flex-1 cursor-pointer text-[11px] text-yellow-400 font-bold">
-                                <input type="radio" name="metode_pembayaran" value="Belum Bayar" id="payBelum" class="accent-yellow-500"> BELUM BAYAR
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="metode_pembayaran" value="Belum Bayar" id="payBelum"> Unpaid
                             </label>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" id="btnScanTerjual" class="action-btn w-full bg-stone-950 hover:bg-stone-900 text-orange-400 font-black text-[11px] uppercase tracking-widest py-3.5 rounded-none border border-orange-600/40">
-                            SCAN_KAMERA_TERJUAL
-                        </button>
-                        <button type="button" id="btnStopTerjual" class="action-btn w-full bg-red-950 hover:bg-red-900 text-red-300 font-black text-[11px] uppercase tracking-widest py-3.5 rounded-none border border-red-900/50">
-                            STOP
-                        </button>
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" id="btnScanTerjual" class="spectre-btn">Scan Camera</button>
+                        <button type="button" id="btnStopTerjual" class="spectre-btn spectre-cta--danger">Stop</button>
                     </div>
 
-                    <div id="scanTerjualStatus" class="mt-3 rounded-sm border border-red-900/40 bg-red-950/10 p-3 text-[10px] text-slate-300 uppercase tracking-[.25em]">
-                        <strong class="block text-red-400 mb-1">STATUS_SCAN: SIAP</strong>
-                        <span>Arahkan kamera ke QR/barcode produk, lalu deteksi.</span>
+                    <div id="scanTerjualStatus" class="p-4 border border-dashed rounded-lg text-xs text-muted">
+                        <strong class="block mb-1">Scan Status: Ready</strong>
+                        <span>Point camera at product QR/barcode</span>
                     </div>
                     <div class="mt-3">
-                        <video id="scanTerjualVideo" class="w-full bg-black border border-red-950" playsinline autoplay muted></video>
+                        <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
                         <canvas id="scanTerjualCanvas" class="hidden"></canvas>
                     </div>
 
-                    <button type="submit" id="btnProses" class="w-full bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-none transition-all duration-300 neon-glow-red">
-                        EKSEKUSI_POTONG_STOK
-                    </button>
+                    <button type="submit" id="btnProses" class="spectre-btn spectre-cta--primary w-full">Process Sale</button>
                 </form>
             </div>
 
-            <div class="ghost-panel panel-glow p-5 rounded-none flex flex-col justify-between bg-stone-950/40 border-l-2 border-l-red-900">
-                <div class="space-y-3">
-                    <h3 class="text-[10px] font-bold text-red-500 uppercase tracking-widest">// SPESIFIKASI_TARGET_BARANG</h3>
-                    <div id="productDetail" class="space-y-3 text-xs text-slate-400">
-                        <p class="text-red-900/60 text-[10px] uppercase animate-pulse">>> Menunggu input parameter data...</p>
+            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Product Details</h3>
+                    <div id="productDetail" class="space-y-3 text-sm text-muted">
+                        <p class="animate-pulse">Waiting for product selection...</p>
                     </div>
                 </div>
             </div>

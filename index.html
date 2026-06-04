@@ -3,145 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SPECTRE // Panel Operasi Rahasia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>SPECTRE // Dashboard</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="status.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== Digital Marketing Neo-Neon Crypto Theme (Tampilan only) ===== */
-        body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: #020205;
-            background-image:
-              radial-gradient(600px 180px at 50% -20%, rgba(249,115,22,0.10), transparent 60%),
-              radial-gradient(520px 160px at 10% 10%, rgba(236,72,153,0.08), transparent 60%),
-              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%, auto, auto;
-            background-repeat: repeat, repeat, no-repeat, no-repeat;
-        }
-
-        .scary-logo {
-            font-family: 'Creepster', cursive;
-            text-shadow: 0 0 10px rgba(239,68,68,0.55), 0 0 22px rgba(127,29,29,0.55);
-            letter-spacing: 0.15em;
-        }
-
-        .ghost-panel {
-            background: rgba(6, 6, 10, 0.92);
-            border: 1px solid rgba(239, 68, 68, 0.18);
-            box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.08);
-            backdrop-filter: blur(6px);
-        }
-
-        .panel-glow {
-            box-shadow: 0 0 30px rgba(248, 113, 113, 0.20), inset 0 0 25px rgba(255, 255, 255, 0.02);
-        }
-
-        .neon-glow-red { box-shadow: 0 0 24px rgba(239, 68, 68, 0.35); }
-
-        .dashboard-quote {
-            color: #f8fafc;
-            font-size: 0.72rem;
-            line-height:1.6;
-            letter-spacing:0.14em;
-            text-transform: uppercase;
-            opacity: 0.95;
-            border-left: 2px solid rgba(248, 113, 113, 0.75);
-            padding-left: 1rem;
-            margin-top: 1rem;
-        }
-
-        /* Candle */
+        /* Candle animation styles */
         .candle-flame {
-            width: 14px;
-            height: 24px;
+            width: 12px;
+            height: 20px;
             border-radius: 50% 50% 45% 45%;
             background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%);
             position: relative;
             animation: flicker 1.2s infinite ease-in-out, drift 3.2s infinite ease-in-out;
-            box-shadow: 0 0 24px rgba(253, 224, 71, 0.48);
+            box-shadow: 0 0 20px rgba(253, 224, 71, 0.4);
         }
-
         .candle-base {
-            width: 10px;
-            height: 34px;
+            width: 8px;
+            height: 28px;
             background: linear-gradient(180deg, #f7f7f7, #c4b29a);
-            border-radius: 5px;
+            border-radius: 4px;
             margin: 0 auto;
-            position: relative;
         }
-
         .candle-progress {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-            padding: 1rem;
-            border: 1px solid rgba(248, 113, 113, 0.28);
-            background: rgba(17, 23, 38, 0.78);
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--stroke);
+            background: var(--surface);
+            border-radius: var(--radius-sm);
         }
-
         .progress-track {
             flex: 1;
-            height: 10px;
+            height: 8px;
             border-radius: 999px;
-            background: rgba(248, 113, 113, 0.14);
+            background: var(--stroke);
             overflow: hidden;
         }
-
         .progress-fill {
             width: 0%;
             height: 100%;
             border-radius: 999px;
-            background: linear-gradient(90deg, #f97316, #facc15);
-            box-shadow: 0 0 18px rgba(249, 115, 22, 0.38);
+            background: var(--gradient-primary);
             position: relative;
-            transition: width 1.4s ease;
+            transition: width 0.6s ease;
         }
-
-        .progress-fill::after {
-            content: '';
-            position: absolute;
-            right: 0;
-            top: -6px;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #fde68a;
-            box-shadow: 0 0 22px rgba(251, 191, 36, 0.45);
-        }
-
         .progress-meta {
             display: flex;
             flex-direction: column;
-            gap: 0.15rem;
-            min-width: 120px;
+            gap: 2px;
+            min-width: 100px;
         }
-
         .progress-meta span {
-            font-size: 0.72rem;
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 0.18em;
-            color: #e5e7eb;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
         }
-
         .progress-meta strong {
-            font-size: 0.95rem;
-            color: #f8fafc;
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 600;
         }
-
-        /* Subtle glitch + ticker */
-        .glitch-text {
-            position: relative;
-            animation: glitch-1 2.4s infinite linear;
-        }
-        @keyframes glitch-1 {
-            0%, 90%, 100% { text-shadow: 0 0 10px rgba(239,68,68,0.45); }
-            91% { text-shadow: 2px 0 rgba(34,197,94,0.35), -2px 0 rgba(239,68,68,0.45); }
-        }
-
         @keyframes flicker {
             0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
             50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
@@ -150,53 +74,38 @@
             0%, 100% { transform: translateX(0); }
             50% { transform: translateX(1px); }
         }
-
-        /* Mobile: prevent truncation/overlap */
-        @media (max-width: 640px) {
-            .dashboard-quote { font-size: 0.65rem; line-height:1.4; }
-            .grid-cards { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-            .ghost-panel { border-radius: 0; }
-            .ghost-panel table { min-width: auto; }
-            .ghost-panel .overflow-x-auto { overflow-x: visible; }
-        }
     </style>
 
 </head>
-<body class="spectre-body text-rose-100 min-h-screen p-3 sm:p-4 md:p-8 selection:bg-red-600 selection:text-white">
+<body class="spectre-body">
 
             <div class="spectre-shell">
 
         <!-- Sidebar Navigation (permanent) -->
         <aside class="spectre-sidebar" aria-label="Primary">
             <div class="spectre-sidebar__brand">
-                <div class="flex items-center gap-3">
-                    <div class="candle-flame" aria-hidden="true"></div>
-                    <div>
-                        <h1 class="text-3xl text-red-500 scary-logo glitch-text">SPECTRE</h1>
-                        <p class="text-red-400 text-[10px] uppercase tracking-[.22em] mt-1">// SISTEM_OVERLOAD</p>
-                    </div>
-                </div>
-                <p class="spectre-sidebar__warn">PERINGATAN: AKSES TANPA IZIN KE TERMINAL INI AKAN DIKUNCI DAN DIHANCURKAN.</p>
+                <h1>SPECTRE</h1>
+                <p class="spectre-sidebar__warn">Inventory Management System</p>
             </div>
 
             <nav class="spectre-sidebar__nav">
                 <ul>
-                    <li class="active"><a href="index.html" class="spectre-navlink">☠️ DASHBOARD</a></li>
-                    <li><a href="member.html" class="spectre-navlink">👤 MEMBER</a></li>
-                    <li><a href="penjualan.html" class="spectre-navlink">☠️ TERMINAL KASIR</a></li>
-                    <li><a href="barang.html" class="spectre-navlink">+ SUNTIK BARANG</a></li>
-                    <li><a href="pengeluaran.html" class="spectre-navlink">💸 PENGELUARAN</a></li>
+                    <li class="active"><a href="index.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Dashboard</a></li>
+                    <li><a href="member.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Members</a></li>
+                    <li><a href="penjualan.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sales</a></li>
+                    <li><a href="barang.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Products</a></li>
+                    <li><a href="pengeluaran.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Expenses</a></li>
                 </ul>
             </nav>
 
             <div class="spectre-sidebar__footer">
-                <div class="candle-progress spectre-candle-progress--sidebar">
+                <div class="candle-progress">
                     <div class="candle-flame"></div>
                     <div class="progress-track"><div id="dashboardProgressFill" class="progress-fill"></div></div>
                     <div class="progress-meta">
-                        <span>PROGRESS CANDEL</span>
-                        <strong id="dashboardProgressText">0% dikonfirmasi — neraka rekening semakin mendekat</strong>
-                        <span id="dashboardProgressSub" class="text-[10px] text-slate-400 uppercase tracking-wider">Belum ada data pembayaran</span>
+                        <span>Progress</span>
+                        <strong id="dashboardProgressText">0%</strong>
+                        <span id="dashboardProgressSub" class="text-xs text-muted">No payment data</span>
                     </div>
                 </div>
             </div>
@@ -204,181 +113,169 @@
 
         <!-- Main content -->
         <main class="spectre-content" role="main">
-            <!-- Top header + HERO (reduced height by ~60%) -->
-<section class="spectre-hero spectre-hero--premium" data-layout="stripe-linear-vercel-notion">
+            <!-- Top header + HERO -->
+<section class="spectre-hero">
                     <header class="spectre-header" role="banner">
-                        <button class="spectre-btn spectre-btn--danger" type="button" id="spectreTopRefreshPayments" style="display:none;">Refresh</button>
                         <div class="spectre-header__left">
-                            <div class="scary-logo glitch-text text-3xl md:text-4xl text-red-500">SPECTRE</div>
-                            <span class="spectre-header__tag">// SISTEM_OVERLOAD</span>
+                            <h1>Dashboard</h1>
                         </div>
                         <div class="spectre-header__right">
-                            <button class="spectre-btn spectre-btn--ghost" type="button">Export Data</button>
-
-
+                            <button class="spectre-btn" type="button" id="spectreTopRefreshPayments" style="display:none;">Refresh</button>
                         </div>
                     </header>
 
-                    <div class="spectre-hero__top spectre-hero__top--premium">
+                    <div class="spectre-hero__top">
                     <div class="min-w-0">
-                        <div class="flex items-baseline gap-3 flex-wrap">
-                            <div class="scary-logo glitch-text text-4xl md:text-5xl text-red-500">SPECTRE</div>
-                            <span class="text-xs font-bold tracking-widest text-red-600 animate-pulse">// SISTEM_OVERLOAD</span>
-                            <div class="text-red-400 text-[11px] uppercase tracking-[.22em] mt-2">// YANG MEMANDANG • SISTEM HIDUP</div>
-                        </div>
-
-                        <div class="dashboard-quote mt-4">
-                            “Jika takut, ingat: hantu nggak bisa masuk jaringanmu — yang paling menyeramkan adalah sunyi yang memaksa kamu tetap bekerja.”
-                        </div>
+                        <h1>Overview</h1>
+                        <p class="text-muted mt-2">Monitor your inventory, sales, and expenses in real-time.</p>
                     </div>
 
                     <div class="spectre-hero__cta">
-                        <a href="member.html" class="spectre-cta spectre-cta--purple">👤 + DAFTAR MEMBER</a>
-                        <a href="penjualan.html" class="spectre-cta spectre-cta--red">☠️ TERMINAL KASIR</a>
-                        <a href="barang.html" class="spectre-cta spectre-cta--danger">+ SUNTIK BARANG</a>
-                        <a href="pengeluaran.html" class="spectre-cta spectre-cta--orange">💸 CATAT PENGELUARAN</a>
+                        <a href="member.html" class="spectre-cta spectre-cta--primary">Add Member</a>
+                        <a href="penjualan.html" class="spectre-cta">New Sale</a>
+                        <a href="barang.html" class="spectre-cta">Add Product</a>
+                        <a href="pengeluaran.html" class="spectre-cta">Record Expense</a>
                     </div>
                 </div>
 
                 <!-- HERO stock progress (required by candle-manager.js) -->
                 <div class="spectre-hero__bottom">
-                    <div class="ghost-panel spectre-mini" style="padding:16px; border-radius:0; background:rgba(17,23,38,0.72); border:1px solid rgba(248,113,113,0.22);">
+                    <div class="ghost-panel spectre-mini">
                         <div style="display:none;" aria-hidden="true">
                             <div id="spectreTopRefreshPaymentsSlot">.</div>
                         </div>
                         <div class="flex items-center justify-between gap-3">
                             <div>
-                                <div class="text-xs uppercase tracking-widest text-red-400 font-bold">STOCK CANDEL SEAL</div>
-                                <div class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Gudang berjalan makin pekat.</div>
+                                <h3>Stock Capacity</h3>
+                                <p class="text-sm text-muted mt-1">Warehouse utilization</p>
                             </div>
                             <div class="text-right">
-                                <div id="stockCapacityLabel" class="text-[10px] font-bold uppercase tracking-widest text-red-400">STOK_GELAP</div>
-                                <div id="stockCapacityText" class="text-[10px] font-bold text-slate-300 mt-1">0% terserap</div>
+                                <div id="stockCapacityLabel" class="text-xs font-semibold uppercase text-muted">Capacity</div>
+                                <div id="stockCapacityText" class="text-sm font-semibold mt-1">0%</div>
                             </div>
                         </div>
-                        <div class="candle-progress" style="margin-top:12px;">
+                        <div class="candle-progress mt-4">
                             <div class="candle-flame" aria-hidden="true"></div>
-                            <div class="progress-track"><div id="stockProgressFill" class="progress-fill" style="background:linear-gradient(90deg, #f97316, #facc15);"></div></div>
+                            <div class="progress-track"><div id="stockProgressFill" class="progress-fill"></div></div>
                             <div class="progress-meta">
-                                <span>CAPACITY</span>
-                                <strong id="stockProgressText" style="color:#f8fafc; font-size:0.95rem;">0% terserap</strong>
-                                <span id="stockStatusNote" class="text-[10px] text-slate-400 uppercase tracking-wider">Gudang masih kosong, candel tidur.</span>
+                                <span>Utilization</span>
+                                <strong id="stockProgressText">0%</strong>
+                                <span id="stockStatusNote" class="text-xs text-muted">Warehouse is empty</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="ghost-panel spectre-quote" style="padding:16px; border-radius:0; background:rgba(6,6,10,0.92); border:1px solid rgba(239,68,68,0.18);">
+                    <div class="ghost-panel">
                         <div class="flex items-center gap-3">
                             <div>
                                 <div class="candle-flame"></div>
                                 <div class="candle-base"></div>
                             </div>
-                            <div>
-                                <p class="text-xs uppercase tracking-widest text-red-400">SPECTRE HAUNT THE STREET</p>
-                                <p class="text-sm text-slate-200 font-bold">Dashboard Analytics Horror Cyberpunk Premium.</p>
+                            <div class="flex-1">
+                                <h3 class="text-sm">System Status</h3>
+                                <p class="text-sm font-semibold">All systems operational</p>
                             </div>
                         </div>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-3">Motivasi: kerja cepat, jangan biarkan waktu memakanmu.</p>
+                        <p class="text-xs text-muted mt-2">Last updated: Just now</p>
                     </div>
                 </div>
 
                 <!-- KPI (immediately above fold) -->
-<section class="spectre-grid spectre-kpi-grid-4 spectre-kpi-grid spectre-kpi-grid--top" aria-label="KPIs">
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-600 bg-red-950/10"> 
-                    <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// OMSET_KOTOR]</p>
-                    <p id="totalOmset" class="text-lg md:text-xl font-black text-red-400 mt-2">Rp 0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">VALUASI_BRUTO</span>
+<section class="spectre-kpi-grid spectre-kpi-grid--top" aria-label="KPIs">
+                <div class="ghost-panel p-4"> 
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Total Revenue</p>
+                    <p id="totalOmset" class="text-xl font-semibold mt-2">Rp 0</p>
+                    <span class="text-xs text-muted block mt-1">Gross Revenue</span>
                 </div>
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-rose-500">
-                    <p class="text-rose-400/70 text-[10px] font-bold uppercase tracking-widest">[// PROFIT_BERSIH]</p>
-                    <p id="totalProfit" class="text-lg md:text-xl font-black text-rose-400 mt-2">Rp 0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">KEUNTUNGAN_BERSIH</span>
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Net Profit</p>
+                    <p id="totalProfit" class="text-xl font-semibold mt-2">Rp 0</p>
+                    <span class="text-xs text-muted block mt-1">Profit After Expenses</span>
                 </div>
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-red-900 bg-red-950/15">
-                    <p class="text-red-500/70 text-[10px] font-bold uppercase tracking-widest">[// PENGELUARAN_TOTAL]</p>
-                    <p id="totalExpenses" class="text-lg md:text-xl font-black text-red-500 mt-2">Rp 0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">DANA_KELUAR</span>
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Total Expenses</p>
+                    <p id="totalExpenses" class="text-xl font-semibold mt-2">Rp 0</p>
+                    <span class="text-xs text-muted block mt-1">Operating Costs</span>
                 </div>
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-lime-600 bg-lime-950/10">
-                    <p class="text-lime-400 text-[10px] font-bold uppercase tracking-widest">[// SALDO_BERSIH]</p>
-                    <p id="netProfit" class="text-lg md:text-xl font-black text-lime-400 mt-2">Rp 0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">NERACA_KAS_PEKAT</span>
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Net Balance</p>
+                    <p id="netProfit" class="text-xl font-semibold mt-2">Rp 0</p>
+                    <span class="text-xs text-muted block mt-1">Cash Balance</span>
                 </div>
             </section>
 
-            <section class="spectre-grid spectre-kpi-grid2" aria-label="Secondary KPIs">
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-stone-600">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">[// ITEM_TERJUAL]</p>
-                    <p id="totalSalesCount" class="text-xl md:text-2xl font-black text-white mt-2">0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">TOTAL_DIKASIRKAN</span>
+            <section class="spectre-kpi-grid2" aria-label="Secondary KPIs">
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Items Sold</p>
+                    <p id="totalSalesCount" class="text-xl font-semibold mt-2">0</p>
+                    <span class="text-xs text-muted block mt-1">Total Sales</span>
                 </div>
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-purple-600">
-                    <p class="text-purple-400 text-[10px] font-bold uppercase tracking-widest">[// ANGGOTA_TERKUNCI]</p>
-                    <p id="totalMembers" class="text-xl md:text-2xl font-black text-purple-500 mt-2">0 Jiwa</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">JUMLAH_MEMBER</span>
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Members</p>
+                    <p id="totalMembers" class="text-xl font-semibold mt-2">0</p>
+                    <span class="text-xs text-muted block mt-1">Registered Members</span>
                 </div>
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-zinc-700">
-                    <p class="text-slate-400 text-[10px] font-bold uppercase tracking-widest">[// VARIAN_MODEL]</p>
-                    <p id="totalItems" class="text-xl md:text-2xl font-black text-zinc-300 mt-2">0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">SKU_TERDAFTAR</span>
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Products</p>
+                    <p id="totalItems" class="text-xl font-semibold mt-2">0</p>
+                    <span class="text-xs text-muted block mt-1">SKUs Registered</span>
                 </div>
-                <div class="ghost-panel p-4 rounded-none border-b-2 border-b-orange-700">
-                    <p class="text-orange-500/70 text-[10px] font-bold uppercase tracking-widest">[// AMUNISI_STOK]</p>
-                    <p id="totalStock" class="text-xl md:text-2xl font-black text-orange-400 mt-2">0</p>
-                    <span class="text-[9px] text-slate-600 block mt-1">STOK_FISIK_GUDANG</span>
+                <div class="ghost-panel p-4">
+                    <p class="text-xs text-muted font-semibold uppercase tracking-wide">Stock</p>
+                    <p id="totalStock" class="text-xl font-semibold mt-2">0</p>
+                    <span class="text-xs text-muted block mt-1">Physical Stock</span>
                 </div>
             </section>
 
             <!-- Compact Cards (no stacked waste) -->
             <section class="spectre-widgets" aria-label="Dashboard Widgets">
-                <div class="ghost-panel rounded-none p-4 md:p-6 spectre-widget">
-                    <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// DATABASE_STOK_BARANG</h2>
-                        <span class="text-[9px] text-red-700 font-bold animate-pulse">KONEKSI_AMAN_TERSEDIA</span>
+                <div class="ghost-panel p-4 md:p-6 spectre-widget">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
+                        <h2>Product Inventory</h2>
+                        <span class="text-xs text-muted">Connected</span>
                     </div>
-                    <div class="overflow-x-auto border border-red-950 bg-black/80">
-                        <div id="productContainer" style="position:relative; will-change: contents;">
-                            <div class="p-12 text-center text-red-600 text-xs uppercase animate-pulse">>> MENGEKSTRAKSI ENKRIPSI DATA SERVER UTAMA...</div>
+                    <div class="overflow-x-auto">
+                        <div id="productContainer">
+                            <div class="p-12 text-center text-muted text-xs uppercase">Loading inventory data...</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="ghost-panel rounded-none p-4 md:p-6 spectre-widget spectre-widget--sold">
-                    <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
+                <div class="ghost-panel p-4 md:p-6 spectre-widget spectre-widget--sold">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="badge status-sudahbayar">LIVE</span>
-                            <h2 class="text-xs font-bold uppercase tracking-widest text-rose-500">// LOG_BARANG_TERJUAL_REALTIME</h2>
+                            <span class="badge status-sudahbayar">Live</span>
+                            <h2>Recent Sales</h2>
                         </div>
-                        <span class="text-[9px] text-rose-800 font-bold">MUTASI_KASIR_AKTIF</span>
+                        <span class="text-xs text-muted">Real-time</span>
                     </div>
-                    <div class="overflow-x-auto border border-red-950 bg-black/90">
+                    <div class="overflow-x-auto">
                         <div id="soldContainer">
-                            <div class="p-8 text-center text-slate-600 text-xs uppercase">>> Tidak ada aktivitas keluar kasir baru-baru ini.</div>
+                            <div class="p-8 text-center text-muted text-xs">No recent sales activity</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="ghost-panel rounded-none p-4 md:p-6 spectre-widget spectre-widget--expense">
-                    <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-orange-500">// LOG_PENGELUARAN_DANA</h2>
-                        <span class="text-[9px] text-orange-800 font-bold">ALIRAN_UANG_KELUAR</span>
+                <div class="ghost-panel p-4 md:p-6 spectre-widget spectre-widget--expense">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
+                        <h2>Expenses</h2>
+                        <span class="text-xs text-muted">Outflow</span>
                     </div>
-                    <div class="overflow-x-auto border border-red-950 bg-black/90">
+                    <div class="overflow-x-auto">
                         <div id="expenseContainer">
-                            <div class="p-8 text-center text-slate-600 text-xs uppercase">>> Tidak ada pengeluaran tercatat baru-baru ini.</div>
+                            <div class="p-8 text-center text-muted text-xs">No recent expenses</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="ghost-panel rounded-none p-4 md:p-6 spectre-widget spectre-widget--payments">
-                    <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
-                        <h2 class="text-xs font-bold uppercase tracking-widest text-rose-500">// PEMBAYARAN</h2>
-<button id="refreshPaymentsBtn" class="spectre-btn spectre-btn--emerald px-4 py-3 rounded-xl text-xs font-bold uppercase">Refresh Pembayaran</button>
-
+                <div class="ghost-panel p-4 md:p-6 spectre-widget spectre-widget--payments">
+                    <div class="flex justify-between items-center mb-4 border-b pb-3">
+                        <h2>Payments</h2>
+<button id="refreshPaymentsBtn" class="spectre-btn spectre-btn--emerald">Refresh</button>
                     </div>
-                    <div class="overflow-x-auto border border-red-950 bg-black/90">
-                        <div id="paymentsContainer" class="p-4 text-xs text-slate-300">
-                            <div class="p-8 text-center text-slate-500 uppercase">>> Memuat data pembayaran...</div>
+                    <div class="overflow-x-auto">
+                        <div id="paymentsContainer" class="p-4">
+                            <div class="p-8 text-center text-muted text-xs">Loading payment data...</div>
                         </div>
                     </div>
                 </div>
@@ -387,9 +284,9 @@
             <!-- Mobile Bottom Navigation (keep) -->
             <nav class="spectre-bottomnav" aria-label="Mobile navigation">
                 <a href="index.html" class="spectre-bottomnav__item is-active">Dashboard</a>
-                <a href="penjualan.html" class="spectre-bottomnav__item">Kasir</a>
-                <a href="barang.html" class="spectre-bottomnav__item">Barang</a>
-                <a href="pengeluaran.html" class="spectre-bottomnav__item">Pengeluaran</a>
+                <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
+                <a href="barang.html" class="spectre-bottomnav__item">Products</a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
             </nav>
         </main>
     </div>

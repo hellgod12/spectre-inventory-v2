@@ -3,141 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SPECTRE // Pengeluaran Gelap</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>SPECTRE // Expenses</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ===== Digital Marketing Neo-Neon Crypto Theme (Tampilan only) ===== */
-        body {
-            font-family: 'Share Tech Mono', monospace;
-            background-color: #020205;
-            background-image:
-              radial-gradient(600px 180px at 50% -20%, rgba(220,38,38,0.10), transparent 60%),
-              radial-gradient(520px 160px at 10% 10%, rgba(236,72,153,0.08), transparent 60%),
-              linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
-              linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            background-size: 100% 4px, 6px 100%, auto, auto;
-            background-repeat: repeat, repeat, no-repeat, no-repeat;
+        .candle-flame {
+            width: 12px;
+            height: 20px;
+            border-radius: 50% 50% 45% 45%;
+            background: radial-gradient(circle at 50% 18%, #fff3c5 0%, #fcd34d 35%, transparent 70%);
+            position: relative;
+            animation: flicker 1.2s infinite ease-in-out, drift 3.2s infinite ease-in-out;
+            box-shadow: 0 0 20px rgba(253, 224, 71, 0.4);
         }
-        .scary-logo { font-family: 'Creepster', cursive; text-shadow: 0 0 12px rgba(239,68,68,0.65), 0 0 24px rgba(127,29,29,0.65); letter-spacing: 0.16em; }
-        .ghost-panel { background: rgba(6, 6, 10, 0.94); border: 1px solid rgba(239, 68, 68, 0.18); box-shadow: 0 0 28px rgba(255, 0, 0, 0.08); backdrop-filter: blur(6px); }
-        .panel-glow { box-shadow: 0 0 30px rgba(248, 113, 113, 0.22), inset 0 0 24px rgba(255, 255, 255, 0.02); }
-        .input-field { width: 100%; background: #09090f; border: 1px solid rgba(248, 113, 113, 0.16); color: #f8fafc; border-radius: 0; padding: 0.9rem 1rem; transition: border-color .2s ease, box-shadow .2s ease; }
-        .input-field:focus { outline: none; border-color: #fb7185; box-shadow: 0 0 18px rgba(251, 113, 133, 0.22); }
-        .form-label { display: block; color: #f8fafc; text-transform: uppercase; letter-spacing: 0.18em; font-size: 0.72rem; margin-bottom: 0.5rem; }
-        .action-btn { transition: all .25s ease; }
-        .action-btn:hover { transform: translateY(-1px); }
-        .candle-progress { display: flex; align-items: center; gap: 1rem; padding: 1rem; border: 1px solid rgba(248, 113, 113, 0.25); background: rgba(17, 24, 39, 0.8); }
-        .progress-track { flex: 1; height: 10px; border-radius: 999px; background: rgba(248, 113, 113, 0.14); overflow: hidden; }
-        .progress-fill { width: 0%; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #dc2626, #7f1d1d); box-shadow: 0 0 18px rgba(220, 38, 38, 0.38); position: relative; transition: width .9s ease; }
-        .progress-fill::after { content: ''; position: absolute; right: 0; top: -5px; width: 14px; height: 14px; border-radius: 50%; background: #fca5a5; box-shadow: 0 0 22px rgba(252, 165, 165, 0.45); }
-        .candle-flame { width: 16px; height: 24px; border-radius: 50% 50% 45% 45%; background: radial-gradient(circle at 50% 18%, #fca5a5 0%, #dc2626 35%, transparent 70%); animation: flicker-red 1.4s infinite ease-in-out, drift 3.2s infinite ease-in-out; box-shadow: 0 0 20px rgba(220, 38, 38, 0.45); }
-        .candle-base { width: 10px; height: 34px; background: linear-gradient(180deg, #7f1d1d, #5a1a1a); border-radius: 5px; margin: 0 auto; }
-        @keyframes flicker-red { 0%, 100% { transform: translateY(0) scale(1); opacity: 1; } 50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; } }
-        @keyframes drift { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(1px); } }
-        .toast-notice { position: fixed; top: 1rem; right: 1rem; z-index: 50; background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(248, 113, 113, 0.35); color: #f8fafc; padding: 0.95rem 1.1rem; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35); }
-        .neon-glow-red { box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
-        @media (max-width: 640px) {
-            .ghost-panel { border-radius: 0; }
-            .overflow-x-auto { overflow-x: visible !important; }
+        .candle-base {
+            width: 8px;
+            height: 28px;
+            background: linear-gradient(180deg, #f7f7f7, #c4b29a);
+            border-radius: 4px;
+            margin: 0 auto;
+        }
+        .candle-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border: 1px solid var(--stroke);
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+        }
+        .progress-track {
+            flex: 1;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--stroke);
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            background: var(--gradient-primary);
+            position: relative;
+            transition: width 0.6s ease;
+        }
+        .progress-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 100px;
+        }
+        .progress-meta span {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+        .progress-meta strong {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 600;
+        }
+        @keyframes flicker {
+            0%, 100% { transform: translateY(0) scale(1); opacity: 1; }
+            50% { transform: translateY(-1px) scale(0.96); opacity: 0.88; }
+        }
+        @keyframes drift {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(1px); }
         }
     </style>
-
 </head>
-<body class="text-rose-100 min-h-screen p-4 md:p-8">
+<body class="spectre-body">
 
-    <div class="max-w-6xl mx-auto space-y-6">
-        <a href="index.html" class="inline-flex items-center text-xs text-red-600 hover:text-red-400 transition-colors uppercase font-bold tracking-widest mb-2">
-            << KEMBALI_KE_CORE
-        </a>
+    <div class="spectre-content">
+        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
 
-        <div class="ghost-panel panel-glow p-6 rounded-none border-l-4 border-l-red-600">
+        <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
                 <div>
-                    <h2 class="text-4xl text-red-500 scary-logo mb-2 tracking-wider">PENGELUARAN_GELAP</h2>
-                    <p class="text-slate-400 text-[10px] uppercase tracking-widest mb-3">// PROTOKOL_MUTASI_KELUAR_DANA</p>
-                    <p class="text-slate-500 text-[11px] leading-6">Catat setiap uang yang pergi dari gudang gelap. Operasional, pembelian, sewa—semua harus tercatat.</p>
+                    <h1>Expenses</h1>
+                    <p class="text-muted mt-2">Track and manage business expenses</p>
                 </div>
-                <div class="ghost-panel panel-glow p-4 bg-black/70 border border-red-950/20">
+                <div class="ghost-panel p-4 bg-surface">
                     <div class="flex items-center gap-3 mb-4">
                         <div>
                             <div class="candle-flame"></div>
                             <div class="candle-base"></div>
                         </div>
                         <div>
-                            <p class="text-[10px] uppercase tracking-[.24em] text-rose-300">Candel Pengeluaran</p>
-                            <p class="text-slate-100 text-sm font-bold">Pantau aliran dana keluar.</p>
+                            <p class="text-xs uppercase tracking-wide text-muted">Expense Tracker</p>
+                            <p class="text-sm font-semibold">Monitor cash outflow</p>
                         </div>
                     </div>
                     <div class="candle-progress">
                         <div class="progress-track"><div id="expenseProgressFill" class="progress-fill"></div></div>
                         <div class="text-right">
-                            <span id="expenseProgressLabel" class="block text-[10px] uppercase text-slate-400">Status</span>
-                            <strong id="expenseProgressText" class="text-white text-sm">0% terserap</strong>
+                            <span id="expenseProgressLabel" class="block text-xs uppercase text-muted">Status</span>
+                            <strong id="expenseProgressText" class="text-sm">0%</strong>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-500 uppercase tracking-widest mt-4">Motivasi: pengeluaran terkontrol adalah kunci neraca keuangan tetap hidup.</p>
+                    <p class="text-xs text-muted mt-4">Control expenses to maintain financial health</p>
                 </div>
             </div>
         </div>
 
-        <div class="ghost-panel panel-glow p-6 rounded-none shadow-2xl border-t-4 border-t-red-600">
-            <h2 class="text-3xl text-red-500 scary-logo mb-1 tracking-wider">CATAT_PENGELUARAN</h2>
-            <p class="text-slate-500 text-[9px] uppercase tracking-widest mb-6">// PROTOKOL_PENCATATAN_DANA_KELUAR</p>
+        <div class="ghost-panel p-6 mb-6">
+            <h2 class="mb-1">Record Expense</h2>
+            <p class="text-muted text-sm mb-6">Enter expense details below</p>
 
-            <form id="expenseForm" class="space-y-4 text-xs">
+            <form id="expenseForm" class="space-y-4">
                 <div>
-                    <label class="form-label">// KETERANGAN_PENGELUARAN</label>
-                    <input type="text" id="keterangan" class="input-field uppercase" placeholder="E.G. BELI PACKAGING, BIAYA LISTRIK" required>
+                    <label class="block text-sm font-medium mb-2">Description</label>
+                    <input type="text" id="keterangan" class="uppercase" placeholder="e.g. Packaging, Electricity" required>
                 </div>
 
                 <div>
-                    <label class="form-label">// KATEGORI_PENGELUARAN</label>
-                    <select id="kategori" class="input-field" required>
-                        <option value="">-- PILIH KATEGORI --</option>
-                        <option value="Operasional">💼 OPERASIONAL</option>
-                        <option value="Pembelian Stok">📦 PEMBELIAN_STOK</option>
-                        <option value="Listrik">⚡ LISTRIK_AIR</option>
-                        <option value="Transport">🚚 TRANSPORT</option>
-                        <option value="Maintenance">🔧 MAINTENANCE</option>
-                        <option value="Gaji">👥 GAJI_KARYAWAN</option>
-                        <option value="Lainnya">📋 LAINNYA</option>
+                    <label class="block text-sm font-medium mb-2">Category</label>
+                    <select id="kategori" required>
+                        <option value="">-- Select Category --</option>
+                        <option value="Operasional">Operations</option>
+                        <option value="Pembelian Stok">Stock Purchase</option>
+                        <option value="Listrik">Utilities</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Gaji">Salaries</option>
+                        <option value="Lainnya">Other</option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="form-label">// NOMINAL_PENGELUARAN</label>
-                    <input type="number" id="nominal" class="input-field" placeholder="Jumlah rupiah" required>
+                    <label class="block text-sm font-medium mb-2">Amount</label>
+                    <input type="number" id="nominal" placeholder="Amount in IDR" required>
                 </div>
 
                 <div>
-                    <label class="form-label">// TANGGAL_PENGELUARAN</label>
-                    <input type="date" id="tanggal" class="input-field" required>
+                    <label class="block text-sm font-medium mb-2">Date</label>
+                    <input type="date" id="tanggal" required>
                 </div>
 
                 <div>
-                    <label class="form-label">// CATATAN_TAMBAHAN (OPSIONAL)</label>
-                    <textarea id="catatan" class="input-field" placeholder="Catatan atau deskripsi lanjutan" rows="3"></textarea>
+                    <label class="block text-sm font-medium mb-2">Notes (optional)</label>
+                    <textarea id="catatan" placeholder="Additional notes or description" rows="3"></textarea>
                 </div>
 
-                <button type="submit" id="btnTambah" class="action-btn w-full bg-red-700 hover:bg-red-600 text-white font-black text-xs uppercase tracking-widest py-3.5 rounded-none transition-all duration-300 neon-glow-red">
-                    CATAT_PENGELUARAN
-                </button>
+                <button type="submit" id="btnTambah" class="spectre-btn spectre-cta--primary w-full">Record Expense</button>
 
-                <div id="expenseStatus" class="mt-4 rounded-sm border border-red-900/40 bg-red-950/10 p-4 text-[11px] text-slate-300 uppercase tracking-[.25em]">
-                    <strong class="block text-red-400 mb-2">STATUS: MENUNGGU DATA PENGELUARAN</strong>
-                    <span>Masukkan pengeluaran untuk melacak aliran dana.</span>
+                <div id="expenseStatus" class="mt-4 p-4 border border-dashed rounded-lg text-xs text-muted">
+                    <strong class="block mb-2">Status: Waiting for expense data</strong>
+                    <span>Enter expense details to track cash outflow</span>
                 </div>
             </form>
         </div>
 
-        <div class="ghost-panel rounded-none p-4 md:p-6 shadow-2xl">
-            <div class="flex justify-between items-center mb-4 border-b border-red-950 pb-3">
-                <h2 class="text-xs font-bold uppercase tracking-widest text-red-500">// RIWAYAT_PENGELUARAN_TERBARU</h2>
+        <div class="ghost-panel p-4 md:p-6">
+            <div class="flex justify-between items-center mb-4 border-b pb-3">
+                <h2>Recent Expenses</h2>
             </div>
             <div id="expenseContainer" class="overflow-x-auto">
-                <div class="p-8 text-center text-slate-500 text-xs uppercase">>> MEMUAT DATA...</div>
+                <div class="p-8 text-center text-muted text-xs">Loading expense data...</div>
             </div>
         </div>
     </div>
