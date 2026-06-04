@@ -119,8 +119,9 @@ async function loadPayments() {
                             <div class="mt-2"><span class="badge ${statusClass}">${payment.status}</span></div>
                         </div>
                         <div class="text-right">
-                            ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold uppercase mb-2">Konfirmasi</button>` : ``}
-                            <button onclick="deletePayment('${payment.id}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                            ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-3 py-1 bg-emerald-900/70 hover:bg-emerald-800 border border-emerald-700/60 rounded-lg text-[10px] font-bold uppercase transition-all duration-200 shadow-[0_10px_25px_rgba(16,185,129,.15)] hover:shadow-[0_14px_35px_rgba(16,185,129,.25)] active:scale-[0.98] mb-2">Konfirmasi</button>` : ``}
+                            <button onclick="deletePayment('${payment.id}')" class="px-3 py-1 bg-red-900/70 hover:bg-red-800 border border-red-700/60 rounded-lg text-[10px] font-bold uppercase transition-all duration-200 shadow-[0_10px_25px_rgba(239,68,68,.12)] hover:shadow-[0_14px_35px_rgba(239,68,68,.22)] active:scale-[0.98]">Hapus</button>
+
                         </div>
                     </div>
                 </div>
@@ -163,8 +164,9 @@ async function loadPayments() {
                 <td class="p-3">${payment.method}</td>
                 <td class="p-3"><span class="badge ${statusClass}">${payment.status}</span></td>
                 <td class="p-3 text-center">
-                    ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold uppercase mr-2">Konfirmasi</button>` : ``}
-                    <button onclick="deletePayment('${payment.id}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                    ${payment.status === 'Belum Bayar' ? `<button onclick="confirmPayment('${payment.id}')" class="px-3 py-1 bg-emerald-900/70 hover:bg-emerald-800 border border-emerald-700/60 rounded-lg text-[10px] font-bold uppercase transition-all duration-200 shadow-[0_10px_25px_rgba(16,185,129,.15)] hover:shadow-[0_14px_35px_rgba(16,185,129,.25)] active:scale-[0.98] mr-2">Konfirmasi</button>` : ``}
+                    <button onclick="deletePayment('${payment.id}')" class="px-3 py-1 bg-red-900/70 hover:bg-red-800 border border-red-700/60 rounded-lg text-[10px] font-bold uppercase transition-all duration-200 shadow-[0_10px_25px_rgba(239,68,68,.12)] hover:shadow-[0_14px_35px_rgba(239,68,68,.22)] active:scale-[0.98]">Hapus</button>
+
                 </td>
             </tr>
         `;
