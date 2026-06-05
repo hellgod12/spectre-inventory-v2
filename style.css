@@ -693,11 +693,6 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   letter-spacing: -0.01em;
 }
 
-@media (max-width: 600px){
-  .spectre-system-status__metrics{
-    grid-template-columns: 1fr;
-  }
-}
 
 /* Premium Animations */
 @keyframes fadeIn {
@@ -1121,15 +1116,6 @@ html {
   letter-spacing: -0.01em;
 }
 
-@media (max-width: 600px){
-  .spectre-dashboard-hero{
-    padding: 20px;
-  }
-  
-  .spectre-dashboard-hero__username{
-    font-size: 28px;
-  }
-}
 
 /* Top header glass */
 .spectre-header{
@@ -1210,7 +1196,6 @@ html {
   .spectre-kpi-grid2{
     grid-template-columns: repeat(3, minmax(0,1fr));
   }
-  .spectre-content{padding:28px;}
 }
 
 /* Desktop: 4 columns */
@@ -1219,7 +1204,6 @@ html {
   .spectre-kpi-grid2{
     grid-template-columns: repeat(4, minmax(0,1fr));
   }
-  .spectre-content{padding:32px;}
 }
 
 /* Widgets section: keep 2-up on desktop, 1-up on mobile */
@@ -1378,15 +1362,6 @@ html, body{
   scroll-behavior: smooth;
 }
 
-/* Touch feedback */
-@media (hover: none) and (pointer: coarse){
-  .spectre-btn:active,
-  .spectre-cta:active,
-  .spectre-navlink:active{
-    transform: scale(0.95);
-    opacity: 0.8;
-  }
-}
 
 .spectre-btn--emerald{
   background: rgba(16,185,129,.15);
@@ -1436,51 +1411,26 @@ html, body{
 @media(max-width:900px){
   .spectre-shell{display:block;}
   .spectre-sidebar{display:none;}
-  .spectre-content{padding:20px; padding-bottom:84px;}
   .spectre-bottomnav{display:flex;}
   .spectre-charts-section{grid-template-columns: 1fr;}
 }
 
 @media(max-width:420px){
-  .spectre-content{padding:16px; padding-bottom:80px;}
-  /* Keep KPI grid layout consistent (no forced 1-column on phones) */
-  .spectre-kpi-grid{grid-template-columns: repeat(2, minmax(0,1fr));}
-  .spectre-kpi-grid2{grid-template-columns: repeat(2, minmax(0,1fr));}
   .spectre-widgets{grid-template-columns: 1fr;}
-  .spectre-chart-card{padding:16px;}
   .spectre-chart-placeholder{height:150px;}
 }
 
 
 @media(max-width:600px){
-  /* Keep KPI grid layout consistent (no forced 1-column on phones) */
-  .spectre-kpi-grid{grid-template-columns: repeat(2, minmax(0,1fr));}
-  .spectre-kpi-grid2{grid-template-columns: repeat(2, minmax(0,1fr));}
   .spectre-widgets{grid-template-columns: 1fr;}
   .spectre-charts-section{grid-template-columns: 1fr;}
 }
 
 
 @media(min-width: 601px) and (max-width: 900px){
-  .spectre-kpi-grid{grid-template-columns: repeat(2, minmax(0,1fr));}
-  .spectre-kpi-grid2{grid-template-columns: repeat(2, minmax(0,1fr));}
   .spectre-charts-section{grid-template-columns: repeat(2, minmax(0,1fr));}
 }
 
-/* Android-specific optimizations */
-@media (hover: none) and (pointer: coarse){
-  /* Restore desktop visual sizing to keep Android/iPhone consistent with web */
-  .spectre-kpi-card{ padding:24px; }
-  .spectre-kpi-icon{ width:48px; height:48px; }
-  .spectre-kpi-value{ font-size:42px; }
-  .spectre-dashboard-hero{ padding:24px; }
-  .spectre-dashboard-hero__username{ font-size:32px; }
-  .spectre-system-status__metrics{ grid-template-columns: repeat(2, 1fr); gap:12px; }
-  .spectre-system-metric{ padding:10px 12px; }
-  /* Keep bottom navigation structure; avoid extra typography scaling */
-  .spectre-bottomnav{ height:64px; padding:8px; }
-  .spectre-bottomnav__item{ font-size:12px; }
-}
 
 
 /* Make the hero buttons wrap nicely */

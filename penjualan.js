@@ -592,5 +592,5 @@ salesForm.addEventListener('submit', async (e) => {
 
 
 document.addEventListener('DOMContentLoaded', initTerminalData);
-}
+
 

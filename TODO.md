@@ -1,10 +1,10 @@
-# TODO - Digital Marketing Theme
+# TODO (SPECTRE UI consistency mobile)
 
-+- [x] 1) Unify theme (neo neon crypto/trading) di: `index.html`, `barang.html`, `penjualan.html`, `pengeluaran.html` (styling only, rumus/logic tidak diubah)
-+- [x] 2) Tambah micro-UI: neon glow, grid background, glitch kecil (ringan), ticker/progress float (tampilan only)
-+- [x] 3) Pastikan tampilan HP: overflow/table list tidak terpotong (min-width/overflow-x)
-+- [x] 4) Verifikasi candle sync di semua halaman: stock & payment animasi tetap jalan setelah pindah halaman
-+- [x] 5) Smoke test: buka tiap halaman di HP-size, lakukan 1 transaksi masuk & 1 keluar, cek candle tetap sinkron
-
-+- [ ] 6) Seragamkan hover row desktop di `script.js` untuk tabel stok, sold, dan payments (tanpa ubah perhitungan/logic)
+- [ ] Audit mobile-specific responsive CSS rules in `style.css` and `www/style.css`.
+- [ ] Create backups of `style.css` and `www/style.css`.
+- [ ] Override/remove `@media (hover: none) and (pointer: coarse)` visual adjustments (padding/icon/font-size/metrics spacing) to restore desktop values.
+- [ ] Remove rules that force `.spectre-kpi-grid` and `.spectre-kpi-grid2` to `grid-template-columns: 1fr` on `@media(max-width:420px)` and `@media(max-width:600px)`.
+- [ ] Ensure changes are applied identically to both `style.css` and `www/style.css`.
+- [ ] Preserve navigation structure: keep `@media(max-width:900px)` behavior (sidebar hidden, bottom nav shown).
+- [ ] Testing: open member/dashboard/penjualan/barang/pengeluaran pages on desktop mobile emulation + Capacitor preview; verify no horizontal overflow.
 
