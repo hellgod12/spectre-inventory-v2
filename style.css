@@ -1443,19 +1443,23 @@ html, body{
 
 @media(max-width:420px){
   .spectre-content{padding:16px; padding-bottom:80px;}
-  .spectre-kpi-grid{grid-template-columns: 1fr;}
-  .spectre-kpi-grid2{grid-template-columns: 1fr;}
+  /* Keep KPI grid layout consistent (no forced 1-column on phones) */
+  .spectre-kpi-grid{grid-template-columns: repeat(2, minmax(0,1fr));}
+  .spectre-kpi-grid2{grid-template-columns: repeat(2, minmax(0,1fr));}
   .spectre-widgets{grid-template-columns: 1fr;}
   .spectre-chart-card{padding:16px;}
   .spectre-chart-placeholder{height:150px;}
 }
 
+
 @media(max-width:600px){
-  .spectre-kpi-grid{grid-template-columns: 1fr;}
-  .spectre-kpi-grid2{grid-template-columns: 1fr;}
+  /* Keep KPI grid layout consistent (no forced 1-column on phones) */
+  .spectre-kpi-grid{grid-template-columns: repeat(2, minmax(0,1fr));}
+  .spectre-kpi-grid2{grid-template-columns: repeat(2, minmax(0,1fr));}
   .spectre-widgets{grid-template-columns: 1fr;}
   .spectre-charts-section{grid-template-columns: 1fr;}
 }
+
 
 @media(min-width: 601px) and (max-width: 900px){
   .spectre-kpi-grid{grid-template-columns: repeat(2, minmax(0,1fr));}
@@ -1465,45 +1469,19 @@ html, body{
 
 /* Android-specific optimizations */
 @media (hover: none) and (pointer: coarse){
-  .spectre-kpi-card{
-    padding: 16px;
-  }
-  
-  .spectre-kpi-icon{
-    width: 44px;
-    height: 44px;
-  }
-  
-  .spectre-kpi-value{
-    font-size: 36px;
-  }
-  
-  .spectre-dashboard-hero{
-    padding: 20px;
-  }
-  
-  .spectre-dashboard-hero__username{
-    font-size: 28px;
-  }
-  
-  .spectre-system-status__metrics{
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  
-  .spectre-system-metric{
-    padding: 12px;
-  }
-  
-  .spectre-bottomnav{
-    height: 60px;
-    padding: 6px;
-  }
-  
-  .spectre-bottomnav__item{
-    font-size: 11px;
-  }
+  /* Restore desktop visual sizing to keep Android/iPhone consistent with web */
+  .spectre-kpi-card{ padding:24px; }
+  .spectre-kpi-icon{ width:48px; height:48px; }
+  .spectre-kpi-value{ font-size:42px; }
+  .spectre-dashboard-hero{ padding:24px; }
+  .spectre-dashboard-hero__username{ font-size:32px; }
+  .spectre-system-status__metrics{ grid-template-columns: repeat(2, 1fr); gap:12px; }
+  .spectre-system-metric{ padding:10px 12px; }
+  /* Keep bottom navigation structure; avoid extra typography scaling */
+  .spectre-bottomnav{ height:64px; padding:8px; }
+  .spectre-bottomnav__item{ font-size:12px; }
 }
+
 
 /* Make the hero buttons wrap nicely */
 .spectre-hero__cta{display:flex; gap:12px; flex-wrap:wrap; margin-top:20px;}
