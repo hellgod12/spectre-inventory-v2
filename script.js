@@ -9,6 +9,29 @@ function isMobile() {
     return window.innerWidth < 640; // cocok untuk iPhone/Android (Tailwind sm)
 }
 
+// Safe growth calculation function
+// Returns growth percentage as a string with arrow indicator
+// Returns "0%" if previous value is 0 or data is invalid
+function calculateGrowth(currentValue, previousValue) {
+    if (previousValue === 0 || previousValue === null || previousValue === undefined || isNaN(previousValue)) {
+        return '0%';
+    }
+    if (currentValue === null || currentValue === undefined || isNaN(currentValue)) {
+        return '0%';
+    }
+
+    const growth = ((currentValue - previousValue) / previousValue) * 100;
+    
+    // Handle edge cases
+    if (!isFinite(growth) || isNaN(growth)) {
+        return '0%';
+    }
+
+    const arrow = growth >= 0 ? '↑' : '↓';
+    const percentage = Math.abs(growth).toFixed(1);
+    return `${arrow} ${percentage}%`;
+}
+
 
 function makeSkuFromNamaBarang(nama) {
     const txt = String(nama || '').trim().toUpperCase();
@@ -598,6 +621,25 @@ async function loadDashboard() {
     if (kpiTotalStockEl) kpiTotalStockEl.innerText = totalStock;
     document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
     document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
+
+    // Update trend indicators - set to 0% since we don't have historical data
+    const revenueTrendEl = document.getElementById('revenueTrend');
+    const profitTrendEl = document.getElementById('profitTrend');
+    const expensesTrendEl = document.getElementById('expensesTrend');
+    const balanceTrendEl = document.getElementById('balanceTrend');
+    const salesTrendEl = document.getElementById('salesTrend');
+    const membersTrendEl = document.getElementById('membersTrend');
+    const productsTrendEl = document.getElementById('productsTrend');
+    const stockTrendEl = document.getElementById('stockTrend');
+
+    if (revenueTrendEl) revenueTrendEl.innerText = '↑ 0%';
+    if (profitTrendEl) profitTrendEl.innerText = '↑ 0%';
+    if (expensesTrendEl) expensesTrendEl.innerText = '↓ 0%';
+    if (balanceTrendEl) balanceTrendEl.innerText = '↑ 0%';
+    if (salesTrendEl) salesTrendEl.innerText = '↑ 0%';
+    if (membersTrendEl) membersTrendEl.innerText = '↑ 0%';
+    if (productsTrendEl) productsTrendEl.innerText = '↑ 0%';
+    if (stockTrendEl) stockTrendEl.innerText = '↑ 0%';
 
     // Calculate inventory value and low stock items for main dashboard Inventory Overview
     let totalModalBarang = 0;
