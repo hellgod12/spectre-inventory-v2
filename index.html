@@ -313,6 +313,18 @@
         <main class="spectre-content" role="main">
             <!-- Top header + HERO -->
 <section class="spectre-hero">
+                    <!-- Dashboard Hero Section -->
+                    <div class="spectre-dashboard-hero">
+                        <div class="spectre-dashboard-hero__greeting">
+                            <p class="spectre-dashboard-hero__welcome">Welcome Back</p>
+                            <h2 class="spectre-dashboard-hero__username" id="dashboardUsername">Admin</h2>
+                            <div class="spectre-dashboard-hero__meta">
+                                <span class="spectre-dashboard-hero__role" id="dashboardRole">Administrator</span>
+                                <span class="spectre-dashboard-hero__date" id="dashboardDate"></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <header class="spectre-header" role="banner">
                         <div class="spectre-header__left">
                             <h1>Dashboard</h1>
@@ -393,7 +405,7 @@
                                     </div>
                                     <div class="flex-1">
                                         <h3 class="text-sm">System Status</h3>
-                                        <p class="text-sm font-semibold text-green-400">✓ All systems operational</p>
+                                        <p class="text-sm font-semibold text-green-400">● Online</p>
                                     </div>
                                 </div>
                             </div>
@@ -401,25 +413,15 @@
                                 <div class="spectre-system-metric">
                                     <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
                                     <span class="spectre-system-metric__label">Database</span>
-                                    <span class="spectre-system-metric__value">Online</span>
-                                </div>
-                                <div class="spectre-system-metric">
-                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
-                                    <span class="spectre-system-metric__label">Supabase</span>
                                     <span class="spectre-system-metric__value">Connected</span>
                                 </div>
                                 <div class="spectre-system-metric">
                                     <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
-                                    <span class="spectre-system-metric__label">Storage</span>
-                                    <span class="spectre-system-metric__value">Healthy</span>
-                                </div>
-                                <div class="spectre-system-metric">
-                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
-                                    <span class="spectre-system-metric__label">PWA</span>
+                                    <span class="spectre-system-metric__label">Supabase</span>
                                     <span class="spectre-system-metric__value">Active</span>
                                 </div>
                             </div>
-                            <p class="text-xs text-muted mt-3">Last updated: <span id="systemStatusLastUpdated">Just now</span></p>
+                            <p class="text-xs text-muted mt-3">Last Sync: <span id="systemStatusLastUpdated">Just now</span></p>
                         </div>
                     </div>
                 </div>

@@ -34,12 +34,28 @@
             border: 1px solid var(--stroke);
             padding: 20px;
             border-radius: var(--radius-lg);
-            transition: all .2s ease;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 120px;
         }
         .member-kpi-card:hover {
             border-color: var(--stroke-accent);
             box-shadow: var(--shadow-glow);
             transform: translateY(-2px);
+        }
+        .member-kpi-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius);
+            background: var(--gradient-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 12px rgba(124,92,255,0.3);
         }
         .member-kpi-label {
             font-size: 12px;
@@ -50,10 +66,14 @@
             font-weight: 500;
         }
         .member-kpi-value {
-            font-size: 28px;
+            font-size: 32px;
             color: var(--text);
-            font-weight: 700;
+            font-weight: 800;
             line-height: 1.1;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         @media (max-width: 900px) {
             .member-kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -85,6 +105,32 @@
             }
             .member-kpi-card {
                 padding: 16px;
+                min-height: 100px;
+            }
+            .member-kpi-icon {
+                width: 36px;
+                height: 36px;
+            }
+        }
+        
+        /* Consistent layout improvements */
+        .spectre-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        @media (max-width: 900px) {
+            .spectre-content {
+                padding: 16px;
+                padding-bottom: 84px;
+            }
+        }
+        
+        @media (max-width: 420px) {
+            .spectre-content {
+                padding: 12px;
+                padding-bottom: 80px;
             }
         }
     </style>
@@ -104,38 +150,64 @@
 
         <div class="member-kpi-grid">
             <div class="member-kpi-card">
-                <div class="member-kpi-label">Total Members</div>
-                <div class="member-kpi-value" id="memberTotal">0</div>
+                <div class="member-kpi-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div>
+                    <div class="member-kpi-label">Total Members</div>
+                    <div class="member-kpi-value" id="memberTotal">0</div>
+                </div>
             </div>
             <div class="member-kpi-card">
-                <div class="member-kpi-label">Active Members</div>
-                <div class="member-kpi-value" id="memberActive">0</div>
+                <div class="member-kpi-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                </div>
+                <div>
+                    <div class="member-kpi-label">Active Members</div>
+                    <div class="member-kpi-value" id="memberActive">0</div>
+                </div>
             </div>
             <div class="member-kpi-card">
-                <div class="member-kpi-label">Member Revenue</div>
-                <div class="member-kpi-value" id="memberRevenue">Rp 0</div>
+                <div class="member-kpi-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <div>
+                    <div class="member-kpi-label">Member Revenue</div>
+                    <div class="member-kpi-value" id="memberRevenue">Rp 0</div>
+                </div>
             </div>
             <div class="member-kpi-card">
-                <div class="member-kpi-label">New Members</div>
-                <div class="member-kpi-value" id="memberNew">0</div>
+                <div class="member-kpi-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+                </div>
+                <div>
+                    <div class="member-kpi-label">New Members</div>
+                    <div class="member-kpi-value" id="memberNew">0</div>
+                </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="ghost-panel p-6 md:col-span-2">
+            <div class="ghost-panel p-5 md:col-span-2">
                 <h2 class="text-2xl font-bold mb-1">Register New Member</h2>
-                <p class="text-muted text-sm mb-6">Add new member to access exclusive pricing</p>
+                <p class="text-muted text-sm mb-4">Add new member to access exclusive pricing</p>
 
-                <form id="memberForm" class="space-y-4">
-                    <div>
+                <form id="memberForm" class="space-y-3">
+                    <div class="relative">
                         <label class="block text-sm font-medium mb-2">Member Name</label>
-                        <input type="text" id="inputNama" class="uppercase" placeholder="e.g. John Doe" required>
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <input type="text" id="inputNama" class="uppercase pl-10" placeholder="e.g. John Doe" required>
+                        </div>
                     </div>
-                    <div>
+                    <div class="relative">
                         <label class="block text-sm font-medium mb-2">Phone Number (Cashier ID)</label>
-                        <input type="text" id="inputTelepon" placeholder="e.g. 0812345678" required>
+                        <div class="relative">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                            <input type="text" id="inputTelepon" class="pl-10" placeholder="e.g. 0812345678" required>
+                        </div>
                     </div>
-                    <button type="submit" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Register Member</button>
+                    <button type="submit" class="spectre-cta spectre-cta--primary w-full text-base py-3">Register Member</button>
                 </form>
             </div>
 
@@ -216,12 +288,22 @@
                 const memberInsightsEl = document.getElementById('memberInsights');
                 if (memberInsightsEl && members && members.length > 0) {
                     const recentMembers = members.slice(-3).reverse();
-                    let insightsHtml = '<div class="space-y-2">';
-                    insightsHtml += '<div class="text-xs uppercase tracking-wide text-muted">Recent Members</div>';
+                    let insightsHtml = '<div class="space-y-3">';
+                    insightsHtml += '<div class="text-xs uppercase tracking-wide text-muted mb-2">Recent Members</div>';
                     recentMembers.forEach(m => {
-                        insightsHtml += `<div class="p-2 bg-black/30 rounded border border-stone-800">
-                            <div class="font-semibold text-white">${m.nama}</div>
-                            <div class="text-xs text-muted">${m.telepon}</div>
+                        const initial = m.nama.charAt(0).toUpperCase();
+                        const regDate = new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                        insightsHtml += `<div class="flex items-center gap-3 p-3 bg-black/30 rounded-lg border border-stone-800 hover:border-purple-500/30 transition">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                ${initial}
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="font-semibold text-white text-sm truncate">${m.nama}</div>
+                                <div class="text-xs text-muted">${m.telepon}</div>
+                            </div>
+                            <div class="text-xs text-muted text-right">
+                                ${regDate}
+                            </div>
                         </div>`;
                     });
                     insightsHtml += '</div>';
@@ -259,17 +341,27 @@
                     });
                 }
 
-                const statusClass = hasOutstanding ? 'text-red-400' : 'text-green-400';
+                const statusClass = hasOutstanding ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30';
                 const statusText = hasOutstanding ? 'Has Outstanding' : 'Active';
+                const initial = member.nama.charAt(0).toUpperCase();
 
                 tableHtml += `
                     <tr class="border-b border-stone-800/50 hover:bg-white/5 transition">
-                        <td class="py-3 px-4 font-semibold">${member.nama}</td>
-                        <td class="py-3 px-4 text-muted">${member.telepon}</td>
-                        <td class="py-3 px-4 ${statusClass}">${statusText}</td>
                         <td class="py-3 px-4">
-                            <button onclick="deleteMember('${member.id}', '${member.nama}')" data-role="admin-only" class="px-3 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition border border-red-600/30">
-                                🗑 Hapus
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                    ${initial}
+                                </div>
+                                <span class="font-semibold">${member.nama}</span>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-muted">${member.telepon}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium border ${statusClass}">${statusText}</span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <button onclick="deleteMember('${member.id}', '${member.nama}')" data-role="admin-only" class="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg transition border border-red-600/30 font-medium">
+                                Delete
                             </button>
                         </td>
                     </tr>

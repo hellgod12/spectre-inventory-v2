@@ -41,6 +41,39 @@ async function populateUserProfile() {
     }
 }
 
+// Populate dashboard hero section
+async function populateDashboardHero() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            const userEmail = user.email;
+            const dashboardUsernameEl = document.getElementById('dashboardUsername');
+            const dashboardRoleEl = document.getElementById('dashboardRole');
+            const dashboardDateEl = document.getElementById('dashboardDate');
+            
+            if (dashboardUsernameEl) {
+                dashboardUsernameEl.textContent = userEmail.split('@')[0];
+            }
+            if (dashboardRoleEl) {
+                if (userEmail.includes('admin')) {
+                    dashboardRoleEl.textContent = 'Administrator';
+                } else if (userEmail.includes('kasir')) {
+                    dashboardRoleEl.textContent = 'Cashier';
+                } else {
+                    dashboardRoleEl.textContent = 'User';
+                }
+            }
+            if (dashboardDateEl) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dashboardDateEl.textContent = now.toLocaleDateString('en-US', options);
+            }
+        }
+    } catch (error) {
+        console.error('Error populating dashboard hero:', error);
+    }
+}
+
 // Update system status timestamp
 function updateSystemStatusTimestamp() {
     const timestampEl = document.getElementById('systemStatusLastUpdated');
@@ -48,6 +81,83 @@ function updateSystemStatusTimestamp() {
         const now = new Date();
         timestampEl.textContent = now.toLocaleTimeString();
     }
+}
+
+// Animated counter for statistics
+function animateCounter(element, targetValue, duration = 1000) {
+    const startValue = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function (ease-out cubic)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = startValue + (targetValue - startValue) * easeOut;
+        
+        if (typeof targetValue === 'number') {
+            element.textContent = Math.round(currentValue).toLocaleString('id-ID');
+        } else {
+            // For currency values, format as Rp
+            element.textContent = 'Rp ' + Math.round(currentValue).toLocaleString('id-ID');
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+// Show loading skeleton
+function showLoadingSkeleton() {
+    const kpiCards = document.querySelectorAll('.spectre-kpi-card');
+    kpiCards.forEach(card => {
+        const valueEl = card.querySelector('.spectre-kpi-value');
+        if (valueEl) {
+            const originalText = valueEl.textContent;
+            valueEl.innerHTML = '<div class="skeleton skeleton-value"></div>';
+            valueEl.dataset.originalValue = originalText;
+        }
+    });
+}
+
+// Hide loading skeleton and show actual values
+function hideLoadingSkeleton() {
+    const kpiCards = document.querySelectorAll('.spectre-kpi-card');
+    kpiCards.forEach(card => {
+        const valueEl = card.querySelector('.spectre-kpi-value');
+        if (valueEl && valueEl.dataset.originalValue) {
+            valueEl.textContent = valueEl.dataset.originalValue;
+            delete valueEl.dataset.originalValue;
+        }
+    });
+}
+
+// Add ripple effect to buttons
+function addRippleEffect() {
+    const buttons = document.querySelectorAll('.spectre-btn, .spectre-cta');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const rect = button.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
 }
 
 // Safe growth calculation function
@@ -535,8 +645,23 @@ async function loadDashboard() {
     // Populate user profile section
     await populateUserProfile();
     
+    // Populate dashboard hero section
+    await populateDashboardHero();
+    
     // Update system status timestamp
     updateSystemStatusTimestamp();
+    
+    // Show loading skeleton
+    showLoadingSkeleton();
+    
+    // Add ripple effect to buttons
+    addRippleEffect();
+    
+    // Add card animation to KPI cards
+    const kpiCards = document.querySelectorAll('.spectre-kpi-card');
+    kpiCards.forEach((card, index) => {
+        card.classList.add('card-animate');
+    });
     
     // Debug: pastikan elemen yang dipakai ada
     if (!container) {
@@ -660,6 +785,24 @@ async function loadDashboard() {
     document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
     document.getElementById('totalProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
+
+    // Hide loading skeleton after data is loaded
+    hideLoadingSkeleton();
+    
+    // Animate counters for key statistics
+    const totalOmsetEl = document.getElementById('totalOmset');
+    const totalProfitEl = document.getElementById('totalProfit');
+    const totalStockEl = document.getElementById('totalStock');
+    
+    if (totalOmsetEl) {
+        animateCounter(totalOmsetEl, omsetAsli, 1200);
+    }
+    if (totalProfitEl) {
+        animateCounter(totalProfitEl, profitBersih, 1200);
+    }
+    if (totalStockEl) {
+        animateCounter(totalStockEl, totalStock, 800);
+    }
 
     // Update KPI cards (separate from Inventory Overview to avoid duplicate ID conflicts)
     const kpiTotalItemsEl = document.getElementById('kpiTotalItems');
