@@ -9,6 +9,38 @@ function isMobile() {
     return window.innerWidth < 640; // cocok untuk iPhone/Android (Tailwind sm)
 }
 
+// Populate user profile section
+async function populateUserProfile() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            const userEmail = user.email;
+            const userAvatarEl = document.getElementById('userAvatar');
+            const userNameEl = document.getElementById('userName');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (userAvatarEl) {
+                userAvatarEl.textContent = userEmail.charAt(0).toUpperCase();
+            }
+            if (userNameEl) {
+                userNameEl.textContent = userEmail.split('@')[0];
+            }
+            if (userRoleEl) {
+                // Determine role based on email
+                if (userEmail.includes('admin')) {
+                    userRoleEl.textContent = 'Administrator';
+                } else if (userEmail.includes('kasir')) {
+                    userRoleEl.textContent = 'Cashier';
+                } else {
+                    userRoleEl.textContent = 'User';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error populating user profile:', error);
+    }
+}
+
 // Safe growth calculation function
 // Returns growth percentage as a string with arrow indicator
 // Returns "0%" if previous value is 0 or data is invalid
@@ -490,6 +522,9 @@ function updateAnalyticsKPIs({ revenue = 0, orders = 0, productsSold = 0, pendin
 async function loadDashboard() {
     const container = document.getElementById('productContainer');
     const soldContainer = document.getElementById('soldContainer');
+    
+    // Populate user profile section
+    await populateUserProfile();
     
     // Debug: pastikan elemen yang dipakai ada
     if (!container) {
