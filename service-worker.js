@@ -1,5 +1,5 @@
 // Service Worker for SPECTRE Inventory PWA
-const CACHE_NAME = 'spectre-inventory-v1';
+const CACHE_NAME = 'spectre-inventory-v2';
 const urlsToCache = [
     './',
     './index.html',
@@ -15,6 +15,7 @@ const urlsToCache = [
     './penjualan.js',
     './auth.js',
     './manifest.json',
+    './spectrelogo.png',
     'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
 ];
 
