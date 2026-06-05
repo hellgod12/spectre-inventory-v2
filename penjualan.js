@@ -5,11 +5,9 @@ if (window.__PENJUALAN_INIT__) {
     console.warn('penjualan.js sudah pernah di-load, skip init');
 } else {
     window.__PENJUALAN_INIT__ = true;
-
-    const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
+    // Supabase client is initialized in auth.js
+    // Use global supabaseClient from auth.js
+}
 
 
 const selectProduct = document.getElementById('selectProduct');
@@ -36,24 +34,6 @@ const kasirProgressLabel = document.getElementById('kasirProgressLabel');
 
 let allProducts = [];
 let selectedProduct = null;
-
-// LocalStorage payments helpers
-function loadPayments() {
-    try { return JSON.parse(localStorage.getItem('payments') || '[]'); } catch (e) { return []; }
-}
-
-function savePaymentRecord(record) {
-    const payments = loadPayments();
-    payments.push(record);
-    localStorage.setItem('payments', JSON.stringify(payments));
-}
-
-function mergePayments(remotePayments = []) {
-    const merged = new Map();
-    remotePayments.forEach(p => { if (p && p.id) merged.set(p.id, p); });
-    loadPayments().forEach(p => { if (p && p.id) merged.set(p.id, p); });
-    return Array.from(merged.values());
-}
 
 async function updateLedgerBookkeeping() {
     console.log('=== SALES STATISTICS CALCULATION START ===');
@@ -544,7 +524,7 @@ salesForm.addEventListener('submit', async (e) => {
         created_at: new Date().toISOString()
     };
 
-    // Try to save to Supabase payments table; fallback to localStorage
+    // Save payment to Supabase
     console.log('=== PAYMENT INSERT START ===');
     console.log('Payment record to insert:', paymentRecord);
 
@@ -570,15 +550,17 @@ salesForm.addEventListener('submit', async (e) => {
             console.error('Supabase insert payments failed:', payErr.message);
             console.error('Error details:', payErr);
             console.error('Payment record:', paymentRecord);
-            savePaymentRecord(paymentRecord);
-        } else {
-            console.log('Payment saved successfully to Supabase:', paymentRecord.invoice_number);
-            console.log('Payment data returned:', paymentData);
+            alert('Gagal menyimpan pembayaran: ' + payErr.message);
+            return;
         }
+
+        console.log('Payment saved successfully to Supabase:', paymentRecord.invoice_number);
+        console.log('Payment data returned:', paymentData);
     } catch (err) {
-        console.error('Supabase unavailable, saving payment locally:', err);
+        console.error('Supabase error:', err);
         console.error('Payment record:', paymentRecord);
-        savePaymentRecord(paymentRecord);
+        alert('Gagal menyimpan pembayaran: ' + err.message);
+        return;
     }
 
     console.log('=== PAYMENT INSERT END ===');

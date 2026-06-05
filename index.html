@@ -6,7 +6,13 @@
     <title>SPECTRE // Dashboard</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="status.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0f1f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
     <style>
         /* Candle animation styles */
         .candle-flame {
@@ -181,13 +187,23 @@
                     </div>
 
                     <div class="ghost-panel">
-                        <div class="flex items-center gap-3">
-                            <div class="spectre-status-icon">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                        <div class="flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="spectre-status-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-sm">System Status</h3>
+                                    <p class="text-sm font-semibold">All systems operational</p>
+                                </div>
                             </div>
-                            <div class="flex-1">
-                                <h3 class="text-sm">System Status</h3>
-                                <p class="text-sm font-semibold">All systems operational</p>
+                            <div class="flex items-center gap-3">
+                                <div id="userInfo" class="flex items-center gap-2">
+                                    <!-- User info will be loaded by auth.js -->
+                                </div>
+                                <button onclick="logout()" class="px-3 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition border border-red-600/30">
+                                    Logout
+                                </button>
                             </div>
                         </div>
                         <p class="text-xs text-muted mt-2">Last updated: Just now</p>
@@ -409,8 +425,57 @@
         </main>
     </div>
 
+    <!-- PWA Install Button -->
+    <div id="pwa-install-button" style="display: none; position: fixed; bottom: 80px; right: 20px; z-index: 1000;">
+        <button onclick="installPWA()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg shadow-lg transition text-sm font-semibold">
+            📲 Install App
+        </button>
+    </div>
 
     <script src="candle-manager.js"></script>
     <script src="script.js"></script>
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('[PWA] Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('[PWA] Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        const installButton = document.getElementById('pwa-install-button');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installButton.style.display = 'block';
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('[PWA] User accepted the install prompt');
+                        installButton.style.display = 'none';
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        // Hide install button if app is already installed
+        window.addEventListener('appinstalled', () => {
+            installButton.style.display = 'none';
+            console.log('[PWA] App was installed');
+        });
+    </script>
 </body>
 </html>

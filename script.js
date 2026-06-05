@@ -1,6 +1,5 @@
-const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
 
 function formatCurrency(value) {
     return 'Rp ' + Number(value).toLocaleString('id-ID');
@@ -18,17 +17,6 @@ function makeSkuFromNamaBarang(nama) {
         .replace(/[^A-Z0-9]+/g, '-')
         .replace(/-+/g, '-')
         .replace(/^-|-$/g, '');
-}
-
-
-
-function loadLocalPayments() {
-
-    try {
-        return JSON.parse(localStorage.getItem('payments') || '[]');
-    } catch (error) {
-        return [];
-    }
 }
 
 function normalizePayments(payments) {
@@ -77,16 +65,7 @@ async function loadPayments() {
         supabaseError = error;
     }
 
-    const localPayments = normalizePayments(loadLocalPayments());
-    if (localPayments.length > 0) {
-        const merged = new Map();
-        [...localPayments, ...payments].forEach(payment => {
-            if (payment && payment.id) merged.set(payment.id, payment);
-        });
-        payments = Array.from(merged.values()).sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    }
-
-    if ((!payments || payments.length === 0) && supabaseError) {
+    if (supabaseError) {
         updateDashboardProgress([]);
         paymentsContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat pembayaran</div>`;
         return;
@@ -217,28 +196,11 @@ async function confirmPayment(id) {
         .eq('id', id);
 
     if (error) {
-        const localPayments = loadLocalPayments();
-        const index = localPayments.findIndex(p => p.id === id);
-        if (index !== -1) {
-            localPayments[index].status = 'Sudah Bayar';
-            localPayments[index].confirmed_at = new Date().toISOString();
-            localStorage.setItem('payments', JSON.stringify(localPayments));
-
-            // animasi pembayaran turun/naik saat konfirmasi (di HP)
-            try {
-                window.CandleManager?.applyPaymentDelta?.();
-                localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
-            } catch (e) {}
-
-            await loadPayments();
-            return;
-        }
-
         alert('Gagal konfirmasi pembayaran: ' + error.message);
         return;
     }
 
-    // sukses remote => animasi pembayaran (naik)
+    // animasi pembayaran turun/naik saat konfirmasi (di HP)
     try {
         window.CandleManager?.applyPaymentDelta?.();
         localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
@@ -743,10 +705,10 @@ async function loadDashboard() {
                                 ${payment.status === 'partial' ? `
                                     <button onclick="window.markAsPaid('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-500 text-white rounded transition">Mark Paid</button>
                                 ` : ''}
-                                <button onclick="window.cancelInvoice('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded transition">Cancel</button>
+                                <button onclick="window.cancelInvoice('${payment.id}')" data-role="admin-only" class="flex-1 px-3 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded transition">Cancel</button>
                             </div>
                         ` : ''}
-                        <button onclick="window.deleteTransaction('${payment.id}')" class="w-full mt-2 px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition">Delete Permanently</button>
+                        <button onclick="window.deleteTransaction('${payment.id}')" data-role="admin-only" class="w-full mt-2 px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition">Delete Permanently</button>
                     </div>
                 `;
             });
@@ -902,6 +864,11 @@ async function loadDashboard() {
     };
 
     window.cancelInvoice = async function(invoiceId) {
+        // Role check: Only ADMIN can cancel invoices
+        if (!requireAdmin()) {
+            return;
+        }
+
         if (!confirm('Cancel this invoice and restore stock?')) return;
 
         try {
@@ -964,6 +931,11 @@ async function loadDashboard() {
     };
 
     window.deleteTransaction = async function(invoiceId) {
+        // Role check: Only ADMIN can delete transactions
+        if (!requireAdmin()) {
+            return;
+        }
+
         if (!confirm('Yakin ingin menghapus transaksi ini? Semua data penjualan dan pembayaran akan dihapus.')) return;
 
         try {

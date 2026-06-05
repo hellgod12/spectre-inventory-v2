@@ -1,6 +1,5 @@
-const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
 
 const expenseForm = document.getElementById('expenseForm');
 const btnTambah = document.getElementById('btnTambah');
