@@ -106,6 +106,25 @@
                 </div>
             </div>
         </div>
+
+        <div class="ghost-panel p-6 mt-6">
+            <h2 class="text-2xl font-bold mb-4">Member List</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-stone-800">
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Name</th>
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Phone</th>
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Status</th>
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody">
+                        <tr><td colspan="4" class="py-4 text-center text-muted">Loading members...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -115,6 +134,7 @@
 
         // Load member KPI data
         async function loadMemberKPIs() {
+            console.log('=== LOAD MEMBER KPIs START ===');
             try {
                 const { data: members } = await supabaseClient.from('members').select('*');
                 const { data: payments } = await supabaseClient.from('payments').select('*');
@@ -167,10 +187,128 @@
                     insightsHtml += '</div>';
                     memberInsightsEl.innerHTML = insightsHtml;
                 }
+
+                // Load member table
+                loadMemberTable(members, payments);
+
+                console.log('Member KPIs loaded:', { totalMembers, activeMembers, memberRevenue, newMembers });
+                console.log('=== LOAD MEMBER KPIs END ===');
             } catch (error) {
                 console.warn('Failed to load member KPIs:', error);
             }
         }
+
+        // Load member table
+        function loadMemberTable(members, payments) {
+            const memberTableBody = document.getElementById('memberTableBody');
+            if (!memberTableBody) return;
+
+            if (!members || members.length === 0) {
+                memberTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-muted">No members found</td></tr>';
+                return;
+            }
+
+            let tableHtml = '';
+            members.forEach(member => {
+                // Check if member has outstanding balance
+                let hasOutstanding = false;
+                let outstandingAmount = 0;
+                if (payments) {
+                    payments.forEach(payment => {
+                        if (payment.buyer === member.nama && (payment.status === 'pending' || payment.status === 'partial')) {
+                            hasOutstanding = true;
+                            outstandingAmount += parseFloat(payment.remaining_amount || 0);
+                        }
+                    });
+                }
+
+                const statusClass = hasOutstanding ? 'text-red-400' : 'text-green-400';
+                const statusText = hasOutstanding ? 'Has Outstanding' : 'Active';
+
+                tableHtml += `
+                    <tr class="border-b border-stone-800/50 hover:bg-white/5 transition">
+                        <td class="py-3 px-4 font-semibold">${member.nama}</td>
+                        <td class="py-3 px-4 text-muted">${member.telepon}</td>
+                        <td class="py-3 px-4 ${statusClass}">${statusText}</td>
+                        <td class="py-3 px-4">
+                            <button onclick="deleteMember('${member.id}', '${member.nama}')" class="px-3 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition border border-red-600/30">
+                                🗑 Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            memberTableBody.innerHTML = tableHtml;
+        }
+
+        // Delete member function
+        window.deleteMember = async function(memberId, memberName) {
+            console.log('=== DELETE MEMBER START ===');
+            console.log('Member ID:', memberId);
+            console.log('Member Name:', memberName);
+
+            if (!confirm('Yakin ingin menghapus member ini?')) {
+                console.log('Delete cancelled by user');
+                return;
+            }
+
+            try {
+                // Check if member has outstanding balance
+                const { data: payments } = await supabaseClient
+                    .from('payments')
+                    .select('*')
+                    .eq('buyer', memberName);
+
+                let hasOutstanding = false;
+                let outstandingAmount = 0;
+
+                if (payments) {
+                    payments.forEach(payment => {
+                        if (payment.status === 'pending' || payment.status === 'partial') {
+                            hasOutstanding = true;
+                            outstandingAmount += parseFloat(payment.remaining_amount || 0);
+                        }
+                    });
+                }
+
+                console.log('Has outstanding balance:', hasOutstanding);
+                console.log('Outstanding amount:', outstandingAmount);
+
+                if (hasOutstanding) {
+                    alert('Member masih memiliki tagihan aktif.');
+                    console.log('Delete aborted: member has outstanding balance');
+                    return;
+                }
+
+                // Delete member record
+                console.log('Deleting member from database...');
+                const { error } = await supabaseClient
+                    .from('members')
+                    .delete()
+                    .eq('id', memberId);
+
+                if (error) {
+                    console.error('Failed to delete member:', error);
+                    alert('Gagal menghapus member: ' + error.message);
+                    return;
+                }
+
+                console.log('Member deleted successfully');
+
+                alert('Member berhasil dihapus.');
+
+                // Refresh member list and KPIs
+                console.log('Refreshing member data...');
+                await loadMemberKPIs();
+                console.log('Member data refreshed');
+
+                console.log('=== DELETE MEMBER END ===');
+            } catch (err) {
+                console.error('Error deleting member:', err);
+                alert('Error deleting member: ' + err.message);
+            }
+        };
 
         // Load KPIs on page load
         loadMemberKPIs();
