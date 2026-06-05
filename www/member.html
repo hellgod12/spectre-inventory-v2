@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // CRM Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0f1f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <style>
+        .member-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .member-kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            transition: all .2s ease;
+        }
+        .member-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+        .member-kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .member-kpi-value {
+            font-size: 28px;
+            color: var(--text);
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        @media (max-width: 900px) {
+            .member-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .member-kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="spectre-body">
+    <div class="spectre-content">
+        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
+
+        <div class="ghost-panel p-6 mb-6">
+            <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">CRM Dashboard</h1>
+                    <p class="text-muted text-lg mt-1">Manage members and track customer relationships</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="member-kpi-grid">
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">Total Members</div>
+                <div class="member-kpi-value" id="memberTotal">0</div>
+            </div>
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">Active Members</div>
+                <div class="member-kpi-value" id="memberActive">0</div>
+            </div>
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">Member Revenue</div>
+                <div class="member-kpi-value" id="memberRevenue">Rp 0</div>
+            </div>
+            <div class="member-kpi-card">
+                <div class="member-kpi-label">New Members</div>
+                <div class="member-kpi-value" id="memberNew">0</div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="ghost-panel p-6 md:col-span-2">
+                <h2 class="text-2xl font-bold mb-1">Register New Member</h2>
+                <p class="text-muted text-sm mb-6">Add new member to access exclusive pricing</p>
+
+                <form id="memberForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Member Name</label>
+                        <input type="text" id="inputNama" class="uppercase" placeholder="e.g. John Doe" required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Phone Number (Cashier ID)</label>
+                        <input type="text" id="inputTelepon" placeholder="e.g. 0812345678" required>
+                    </div>
+                    <button type="submit" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Register Member</button>
+                </form>
+            </div>
+
+            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Member Insights</h3>
+                    <div id="memberInsights" class="space-y-3 text-sm text-muted">
+                        <p class="animate-pulse">Loading member data...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ghost-panel p-6 mt-6">
+            <h2 class="text-2xl font-bold mb-4">Member List</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="border-b border-stone-800">
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Name</th>
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Phone</th>
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Status</th>
+                            <th class="text-left py-3 px-4 font-semibold text-muted">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="memberTableBody">
+                        <tr><td colspan="4" class="py-4 text-center text-muted">Loading members...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase client is initialized in auth.js
+        // Use global supabaseClient from auth.js
+
+        // Load member KPI data
+        async function loadMemberKPIs() {
+            try {
+                const { data: members } = await supabaseClient.from('members').select('*');
+                const { data: payments } = await supabaseClient.from('payments').select('*');
+
+                const totalMembers = members ? members.length : 0;
+                const activeMembers = members ? members.length : 0; // All members are considered active
+
+                // Calculate member revenue from payments where buyer contains "Member"
+                let memberRevenue = 0;
+                if (payments) {
+                    payments.forEach(payment => {
+                        if (payment.buyer && payment.buyer.includes('Member')) {
+                            memberRevenue += parseFloat(payment.total_harga) || 0;
+                        }
+                    });
+                }
+
+                // Calculate new members (joined this month)
+                const now = new Date();
+                const currentMonth = now.getMonth();
+                const currentYear = now.getFullYear();
+                const newMembers = members ? members.filter(m => {
+                    const memberDate = new Date(m.created_at);
+                    return memberDate.getMonth() === currentMonth && memberDate.getFullYear() === currentYear;
+                }).length : 0;
+
+                // Update KPI cards
+                const memberTotalEl = document.getElementById('memberTotal');
+                const memberActiveEl = document.getElementById('memberActive');
+                const memberRevenueEl = document.getElementById('memberRevenue');
+                const memberNewEl = document.getElementById('memberNew');
+
+                if (memberTotalEl) memberTotalEl.innerText = totalMembers;
+                if (memberActiveEl) memberActiveEl.innerText = activeMembers;
+                if (memberRevenueEl) memberRevenueEl.innerText = 'Rp ' + memberRevenue.toLocaleString('id-ID');
+                if (memberNewEl) memberNewEl.innerText = newMembers;
+
+                // Update member insights
+                const memberInsightsEl = document.getElementById('memberInsights');
+                if (memberInsightsEl && members && members.length > 0) {
+                    const recentMembers = members.slice(-3).reverse();
+                    let insightsHtml = '<div class="space-y-2">';
+                    insightsHtml += '<div class="text-xs uppercase tracking-wide text-muted">Recent Members</div>';
+                    recentMembers.forEach(m => {
+                        insightsHtml += `<div class="p-2 bg-black/30 rounded border border-stone-800">
+                            <div class="font-semibold text-white">${m.nama}</div>
+                            <div class="text-xs text-muted">${m.telepon}</div>
+                        </div>`;
+                    });
+                    insightsHtml += '</div>';
+                    memberInsightsEl.innerHTML = insightsHtml;
+                }
+
+                // Load member table
+                loadMemberTable(members, payments);
+            } catch (error) {
+                console.warn('Failed to load member KPIs:', error);
+            }
+        }
+
+        // Load member table
+        function loadMemberTable(members, payments) {
+            const memberTableBody = document.getElementById('memberTableBody');
+            if (!memberTableBody) return;
+
+            if (!members || members.length === 0) {
+                memberTableBody.innerHTML = '<tr><td colspan="4" class="py-4 text-center text-muted">No members found</td></tr>';
+                return;
+            }
+
+            let tableHtml = '';
+            members.forEach(member => {
+                // Check if member has outstanding balance
+                let hasOutstanding = false;
+                let outstandingAmount = 0;
+                if (payments) {
+                    payments.forEach(payment => {
+                        if (payment.buyer === member.nama && (payment.status === 'pending' || payment.status === 'partial')) {
+                            hasOutstanding = true;
+                            outstandingAmount += parseFloat(payment.remaining_amount || 0);
+                        }
+                    });
+                }
+
+                const statusClass = hasOutstanding ? 'text-red-400' : 'text-green-400';
+                const statusText = hasOutstanding ? 'Has Outstanding' : 'Active';
+
+                tableHtml += `
+                    <tr class="border-b border-stone-800/50 hover:bg-white/5 transition">
+                        <td class="py-3 px-4 font-semibold">${member.nama}</td>
+                        <td class="py-3 px-4 text-muted">${member.telepon}</td>
+                        <td class="py-3 px-4 ${statusClass}">${statusText}</td>
+                        <td class="py-3 px-4">
+                            <button onclick="deleteMember('${member.id}', '${member.nama}')" data-role="admin-only" class="px-3 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition border border-red-600/30">
+                                🗑 Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            memberTableBody.innerHTML = tableHtml;
+        }
+
+        // Delete member function
+        window.deleteMember = async function(memberId, memberName) {
+            // Role check: Only ADMIN can delete members
+            if (!requireAdmin()) {
+                return;
+            }
+
+            if (!confirm('Yakin ingin menghapus member ini?')) {
+                return;
+            }
+
+            try {
+                // Check if member has outstanding balance
+                const { data: payments } = await supabaseClient
+                    .from('payments')
+                    .select('*')
+                    .eq('buyer', memberName);
+
+                let hasOutstanding = false;
+                let outstandingAmount = 0;
+
+                if (payments) {
+                    payments.forEach(payment => {
+                        if (payment.status === 'pending' || payment.status === 'partial') {
+                            hasOutstanding = true;
+                            outstandingAmount += parseFloat(payment.remaining_amount || 0);
+                        }
+                    });
+                }
+
+                if (hasOutstanding) {
+                    alert('Member masih memiliki tagihan aktif.');
+                    return;
+                }
+
+                // Delete member record
+                const { error } = await supabaseClient
+                    .from('members')
+                    .delete()
+                    .eq('id', memberId);
+
+                if (error) {
+                    console.error('Failed to delete member:', error);
+                    alert('Gagal menghapus member: ' + error.message);
+                    return;
+                }
+
+                alert('Member berhasil dihapus.');
+
+                // Refresh member list and KPIs
+                await loadMemberKPIs();
+            } catch (err) {
+                console.error('Error deleting member:', err);
+                alert('Error deleting member: ' + err.message);
+            }
+        };
+
+        // Load KPIs on page load
+        loadMemberKPIs();
+
+        document.getElementById('memberForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nama = document.getElementById('inputNama').value;
+            const telepon = document.getElementById('inputTelepon').value;
+
+            const { error } = await supabaseClient.from('members').insert([{ nama, telepon }]);
+
+            if (error) {
+                alert('Gagal registrasi: ' + error.message);
+            } else {
+                alert('🎉 MEMBER BERHASIL DIKUNCI KE DATABASE!');
+                document.getElementById('memberForm').reset();
+                loadMemberKPIs(); // Refresh KPIs after registration
+            }
+        });
+    </script>
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        // Service Worker registered
+                    })
+                    .catch(error => {
+                        console.error('[PWA] Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

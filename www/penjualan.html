@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SPECTRE // Sales</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="status.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0a0f1f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <style>
+        .sales-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .sales-kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            transition: all .2s ease;
+        }
+        .sales-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-2px);
+        }
+        .sales-kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .sales-kpi-value {
+            font-size: 28px;
+            color: var(--text);
+            font-weight: 700;
+            line-height: 1.1;
+        }
+        .sales-kpi-trend {
+            font-size: 12px;
+            margin-top: 4px;
+            color: var(--success);
+        }
+        @media (max-width: 900px) {
+            .sales-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .sales-kpi-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body class="spectre-body">
+
+    <div class="spectre-content">
+        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
+
+        <div class="ghost-panel p-6 mb-6">
+            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">Sales Terminal</h1>
+                    <p class="text-muted text-lg mt-1">Process sales transactions and manage inventory</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sales-kpi-grid">
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Revenue Today</div>
+                <div class="sales-kpi-value" id="salesRevenueToday">Rp 0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Transactions Today</div>
+                <div class="sales-kpi-value" id="salesTransactionsToday">0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Items Sold Today</div>
+                <div class="sales-kpi-value" id="salesItemsToday">0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+            <div class="sales-kpi-card">
+                <div class="sales-kpi-label">Profit Today</div>
+                <div class="sales-kpi-value" id="salesProfitToday">Rp 0</div>
+                <div class="sales-kpi-trend">↑ Live</div>
+            </div>
+        </div>
+
+        <div class="ghost-panel p-5 mb-6">
+            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
+                <div>
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Sales Summary</h3>
+                    <p class="text-muted text-sm mt-2">Overview of recent transactions</p>
+                </div>
+            </div>
+            <div class="sales-kpi-grid" style="margin-top: 16px; margin-bottom: 0;">
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Confirmed Transactions</div>
+                    <div class="sales-kpi-value" id="ledgerSalesCount">0</div>
+                </div>
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Payments Received</div>
+                    <div class="sales-kpi-value" id="ledgerPaidCount">0</div>
+                </div>
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Pending Payments</div>
+                    <div class="sales-kpi-value" id="ledgerUnpaidCount">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div id="salesPanel" class="ghost-panel p-6 md:col-span-2">
+                <h2 class="text-2xl font-bold mb-1">New Sale</h2>
+                <p class="text-muted text-sm mb-6">Process a new sales transaction</p>
+
+                <form id="salesForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Select Product</label>
+                        <select id="selectProduct" required>
+                            <option value="">-- Loading products... --</option>
+                        </select>
+                    </div>
+
+                    <div id="boxUkuranSelect" class="hidden">
+                        <label class="block text-sm font-medium mb-2">Size</label>
+                        <select id="selectUkuran">
+                            <option value="">-- Select Size --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Customer Type</label>
+                        <div class="flex gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum"> Regular Customer
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember"> Member
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="boxMemberSelect" class="hidden">
+                        <label class="block text-sm font-medium mb-2">Select Member</label>
+                        <select id="selectMember">
+                            <option value="">-- Select Member Phone --</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Quantity</label>
+                        <input type="number" id="inputJumlah" min="1" value="1" required>
+                    </div>
+
+                    <div class="bg-surface p-4 border border-dashed rounded-lg space-y-2">
+                        <div class="flex justify-between text-sm">
+                            <span class="text-muted">Unit Price:</span>
+                            <span id="previewHargaSatuan" class="font-semibold">Rp 0</span>
+                        </div>
+                        <div class="flex justify-between font-semibold pt-2 border-t">
+                            <span>Total:</span>
+                            <span id="previewTotal" class="text-lg">Rp 0</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Price Information</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <span class="text-xs text-muted block mb-1">Regular Price</span>
+                                <span id="hargaUmumDefault" class="font-semibold">—</span>
+                            </div>
+                            <div>
+                                <span class="text-xs text-muted block mb-1">Member Price</span>
+                                <span id="hargaMemberDefault" class="font-semibold">—</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium mb-2">Price Override (optional)</label>
+                            <input type="number" id="harga_override" min="0" step="1" placeholder="Empty = use default price">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Payment Status</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_status" value="paid_full" checked id="payFull"> Paid Full
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_status" value="partial" id="payPartial"> Partial Payment
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="payment_status" value="pay_later" id="payLater"> Pay Later
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="partialPaymentSection" class="hidden">
+                        <label class="block text-sm font-medium mb-2">Amount Paid</label>
+                        <input type="number" id="amountPaid" min="0" step="1" placeholder="Enter payment amount">
+                        <div class="mt-2 p-3 bg-black/50 border border-stone-800 rounded text-xs space-y-1">
+                            <div class="flex justify-between">
+                                <span class="text-muted">Total:</span>
+                                <span id="partialTotal" class="font-semibold">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted">Paid:</span>
+                                <span id="partialPaid" class="font-semibold text-green-400">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-muted">Remaining:</span>
+                                <span id="partialRemaining" class="font-semibold text-yellow-400">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Payment Method</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash"> Cash
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer"> Transfer
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <button type="button" id="btnScanTerjual" class="spectre-btn">Scan Camera</button>
+                        <button type="button" id="btnStopTerjual" class="spectre-btn spectre-cta--danger">Stop</button>
+                    </div>
+
+                    <div id="scanTerjualStatus" class="p-4 border border-dashed rounded-lg text-xs text-muted">
+                        <strong class="block mb-1">Scan Status: Ready</strong>
+                        <span>Point camera at product QR/barcode</span>
+                    </div>
+                    <div class="mt-3">
+                        <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
+                        <canvas id="scanTerjualCanvas" class="hidden"></canvas>
+                    </div>
+
+                    <button type="submit" id="btnProses" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Process Sale</button>
+                </form>
+            </div>
+
+            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
+                <div class="space-y-4">
+                    <h3 class="text-sm font-semibold uppercase tracking-wide">Live Transaction Summary</h3>
+                    <div id="productDetail" class="space-y-3 text-sm text-muted">
+                        <p class="animate-pulse">Waiting for product selection...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="scan-helper.js"></script>
+    <script src="scan-terjual.js"></script>
+    <script src="candle-manager.js"></script>
+    <script src="penjualan.js"></script>
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .then(registration => {
+                        console.log('[PWA] Service Worker registered with scope:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.error('[PWA] Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
