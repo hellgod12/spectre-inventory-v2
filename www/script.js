@@ -9,6 +9,180 @@ function isMobile() {
     return window.innerWidth < 640; // cocok untuk iPhone/Android (Tailwind sm)
 }
 
+// Populate user profile section
+async function populateUserProfile() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            const userEmail = user.email;
+            const userAvatarEl = document.getElementById('userAvatar');
+            const userNameEl = document.getElementById('userName');
+            const userRoleEl = document.getElementById('userRole');
+            
+            if (userAvatarEl) {
+                userAvatarEl.textContent = userEmail.charAt(0).toUpperCase();
+            }
+            if (userNameEl) {
+                userNameEl.textContent = userEmail.split('@')[0];
+            }
+            if (userRoleEl) {
+                // Determine role based on email
+                if (userEmail.includes('admin')) {
+                    userRoleEl.textContent = 'Administrator';
+                } else if (userEmail.includes('kasir')) {
+                    userRoleEl.textContent = 'Cashier';
+                } else {
+                    userRoleEl.textContent = 'User';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error populating user profile:', error);
+    }
+}
+
+// Populate dashboard hero section
+async function populateDashboardHero() {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (user) {
+            const userEmail = user.email;
+            const dashboardUsernameEl = document.getElementById('dashboardUsername');
+            const dashboardRoleEl = document.getElementById('dashboardRole');
+            const dashboardDateEl = document.getElementById('dashboardDate');
+            
+            if (dashboardUsernameEl) {
+                dashboardUsernameEl.textContent = userEmail.split('@')[0];
+            }
+            if (dashboardRoleEl) {
+                if (userEmail.includes('admin')) {
+                    dashboardRoleEl.textContent = 'Administrator';
+                } else if (userEmail.includes('kasir')) {
+                    dashboardRoleEl.textContent = 'Cashier';
+                } else {
+                    dashboardRoleEl.textContent = 'User';
+                }
+            }
+            if (dashboardDateEl) {
+                const now = new Date();
+                const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                dashboardDateEl.textContent = now.toLocaleDateString('en-US', options);
+            }
+        }
+    } catch (error) {
+        console.error('Error populating dashboard hero:', error);
+    }
+}
+
+// Update system status timestamp
+function updateSystemStatusTimestamp() {
+    const timestampEl = document.getElementById('systemStatusLastUpdated');
+    if (timestampEl) {
+        const now = new Date();
+        timestampEl.textContent = now.toLocaleTimeString();
+    }
+}
+
+// Animated counter for statistics
+function animateCounter(element, targetValue, duration = 1000) {
+    const startValue = 0;
+    const startTime = performance.now();
+    
+    function update(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Easing function (ease-out cubic)
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const currentValue = startValue + (targetValue - startValue) * easeOut;
+        
+        if (typeof targetValue === 'number') {
+            element.textContent = Math.round(currentValue).toLocaleString('id-ID');
+        } else {
+            // For currency values, format as Rp
+            element.textContent = 'Rp ' + Math.round(currentValue).toLocaleString('id-ID');
+        }
+        
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        }
+    }
+    
+    requestAnimationFrame(update);
+}
+
+// Show loading skeleton
+function showLoadingSkeleton() {
+    const kpiCards = document.querySelectorAll('.spectre-kpi-card');
+    kpiCards.forEach(card => {
+        const valueEl = card.querySelector('.spectre-kpi-value');
+        if (valueEl) {
+            const originalText = valueEl.textContent;
+            valueEl.innerHTML = '<div class="skeleton skeleton-value"></div>';
+            valueEl.dataset.originalValue = originalText;
+        }
+    });
+}
+
+// Hide loading skeleton and show actual values
+function hideLoadingSkeleton() {
+    const kpiCards = document.querySelectorAll('.spectre-kpi-card');
+    kpiCards.forEach(card => {
+        const valueEl = card.querySelector('.spectre-kpi-value');
+        if (valueEl && valueEl.dataset.originalValue) {
+            valueEl.textContent = valueEl.dataset.originalValue;
+            delete valueEl.dataset.originalValue;
+        }
+    });
+}
+
+// Add ripple effect to buttons
+function addRippleEffect() {
+    const buttons = document.querySelectorAll('.spectre-btn, .spectre-cta');
+    buttons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const rect = button.getBoundingClientRect();
+            const ripple = document.createElement('span');
+            ripple.classList.add('ripple');
+            
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            
+            button.appendChild(ripple);
+            
+            setTimeout(() => ripple.remove(), 600);
+        });
+    });
+}
+
+// Safe growth calculation function
+// Returns growth percentage as a string with arrow indicator
+// Returns "0%" if previous value is 0 or data is invalid
+function calculateGrowth(currentValue, previousValue) {
+    if (previousValue === 0 || previousValue === null || previousValue === undefined || isNaN(previousValue)) {
+        return '0%';
+    }
+    if (currentValue === null || currentValue === undefined || isNaN(currentValue)) {
+        return '0%';
+    }
+
+    const growth = ((currentValue - previousValue) / previousValue) * 100;
+    
+    // Handle edge cases
+    if (!isFinite(growth) || isNaN(growth)) {
+        return '0%';
+    }
+
+    const arrow = growth >= 0 ? '↑' : '↓';
+    const percentage = Math.abs(growth).toFixed(1);
+    return `${arrow} ${percentage}%`;
+}
+
 
 function makeSkuFromNamaBarang(nama) {
     const txt = String(nama || '').trim().toUpperCase();
@@ -468,6 +642,27 @@ async function loadDashboard() {
     const container = document.getElementById('productContainer');
     const soldContainer = document.getElementById('soldContainer');
     
+    // Populate user profile section
+    await populateUserProfile();
+    
+    // Populate dashboard hero section
+    await populateDashboardHero();
+    
+    // Update system status timestamp
+    updateSystemStatusTimestamp();
+    
+    // Show loading skeleton
+    showLoadingSkeleton();
+    
+    // Add ripple effect to buttons
+    addRippleEffect();
+    
+    // Add card animation to KPI cards
+    const kpiCards = document.querySelectorAll('.spectre-kpi-card');
+    kpiCards.forEach((card, index) => {
+        card.classList.add('card-animate');
+    });
+    
     // Debug: pastikan elemen yang dipakai ada
     if (!container) {
         console.error('loadDashboard(): element #productContainer is null');
@@ -591,6 +786,24 @@ async function loadDashboard() {
     document.getElementById('totalProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
 
+    // Hide loading skeleton after data is loaded
+    hideLoadingSkeleton();
+    
+    // Animate counters for key statistics
+    const totalOmsetEl = document.getElementById('totalOmset');
+    const totalProfitEl = document.getElementById('totalProfit');
+    const totalStockEl = document.getElementById('totalStock');
+    
+    if (totalOmsetEl) {
+        animateCounter(totalOmsetEl, omsetAsli, 1200);
+    }
+    if (totalProfitEl) {
+        animateCounter(totalProfitEl, profitBersih, 1200);
+    }
+    if (totalStockEl) {
+        animateCounter(totalStockEl, totalStock, 800);
+    }
+
     // Update KPI cards (separate from Inventory Overview to avoid duplicate ID conflicts)
     const kpiTotalItemsEl = document.getElementById('kpiTotalItems');
     const kpiTotalStockEl = document.getElementById('kpiTotalStock');
@@ -598,6 +811,25 @@ async function loadDashboard() {
     if (kpiTotalStockEl) kpiTotalStockEl.innerText = totalStock;
     document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
     document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
+
+    // Update trend indicators - set to 0% since we don't have historical data
+    const revenueTrendEl = document.getElementById('revenueTrend');
+    const profitTrendEl = document.getElementById('profitTrend');
+    const expensesTrendEl = document.getElementById('expensesTrend');
+    const balanceTrendEl = document.getElementById('balanceTrend');
+    const salesTrendEl = document.getElementById('salesTrend');
+    const membersTrendEl = document.getElementById('membersTrend');
+    const productsTrendEl = document.getElementById('productsTrend');
+    const stockTrendEl = document.getElementById('stockTrend');
+
+    if (revenueTrendEl) revenueTrendEl.innerText = '↑ 0%';
+    if (profitTrendEl) profitTrendEl.innerText = '↑ 0%';
+    if (expensesTrendEl) expensesTrendEl.innerText = '↓ 0%';
+    if (balanceTrendEl) balanceTrendEl.innerText = '↑ 0%';
+    if (salesTrendEl) salesTrendEl.innerText = '↑ 0%';
+    if (membersTrendEl) membersTrendEl.innerText = '↑ 0%';
+    if (productsTrendEl) productsTrendEl.innerText = '↑ 0%';
+    if (stockTrendEl) stockTrendEl.innerText = '↑ 0%';
 
     // Calculate inventory value and low stock items for main dashboard Inventory Overview
     let totalModalBarang = 0;

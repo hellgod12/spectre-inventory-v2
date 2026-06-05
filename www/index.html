@@ -14,6 +14,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <style>
+        /* iPhone Safe Area Support */
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        
         /* Candle animation styles */
         .candle-flame {
             width: 12px;
@@ -80,6 +90,183 @@
             0%, 100% { transform: translateX(0); }
             50% { transform: translateX(1px); }
         }
+        
+        /* Mobile responsive styles for inventory overview grid */
+        @media (max-width: 900px) {
+            .spectre-inventory-overview-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 600px) {
+            .spectre-inventory-overview-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Mobile logout button size */
+        @media (max-width: 900px) {
+            button[onclick="logout()"] {
+                min-height: 44px;
+                min-width: 44px;
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Mobile typography improvements */
+        @media (max-width: 600px) {
+            .text-7xl {
+                font-size: 1.5rem;
+                line-height: 1.1;
+            }
+            .text-4xl {
+                font-size: 1.125rem;
+                line-height: 1.2;
+            }
+            .text-2xl {
+                font-size: 0.875rem;
+                line-height: 1.4;
+            }
+            .text-lg {
+                font-size: 0.8rem;
+                line-height: 1.5;
+            }
+            .spectre-inventory-overview-value {
+                font-size: 1rem;
+                font-weight: 600;
+            }
+            .spectre-kpi-value {
+                font-size: 1rem;
+                font-weight: 600;
+            }
+            
+            /* Mobile spacing improvements */
+            .ghost-panel {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+            .spectre-inventory-overview-panel {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+            .spectre-hero__top {
+                gap: 8px;
+                padding-bottom: 8px;
+            }
+            .spectre-hero__cta {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            .spectre-cta {
+                flex: 1;
+                min-width: calc(50% - 3px);
+                text-align: center;
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+            .spectre-inventory-overview-card {
+                padding: 10px;
+            }
+            .spectre-inventory-overview-icon {
+                width: 20px;
+                height: 20px;
+            }
+            .spectre-inventory-overview-icon svg {
+                width: 10px;
+                height: 10px;
+            }
+            .spectre-inventory-overview-label {
+                font-size: 9px;
+            }
+            .spectre-inventory-overview-header h3 {
+                font-size: 12px;
+            }
+            .spectre-header h1 {
+                font-size: 1.125rem;
+            }
+            
+            /* Hide hero section on mobile to save space */
+            .spectre-hero__top {
+                display: none;
+            }
+        }
+        
+        /* iPhone specific improvements */
+        @media (max-width: 430px) {
+            .spectre-content {
+                padding: 4px;
+                padding-bottom: 80px;
+            }
+            .spectre-inventory-overview-grid {
+                gap: 2px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .ghost-panel {
+                padding: 3px;
+                margin-bottom: 3px;
+            }
+            .spectre-inventory-overview-panel {
+                padding: 3px;
+                margin-bottom: 3px;
+            }
+            .spectre-inventory-overview-card {
+                padding: 3px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 1px;
+                min-height: 40px;
+            }
+            .spectre-inventory-overview-icon {
+                width: 12px;
+                height: 12px;
+                margin-bottom: 0;
+            }
+            .spectre-inventory-overview-icon svg {
+                width: 6px;
+                height: 6px;
+            }
+            .text-7xl {
+                font-size: 1.25rem;
+            }
+            .spectre-inventory-overview-value {
+                font-size: 0.7rem;
+                font-weight: 600;
+                line-height: 1;
+                word-break: break-all;
+            }
+            .spectre-kpi-value {
+                font-size: 0.7rem;
+                line-height: 1;
+                font-weight: 600;
+            }
+            .spectre-inventory-overview-label {
+                font-size: 5px;
+                line-height: 1;
+            }
+            
+            /* Hide KPI cards on iPhone to prevent text cutoff */
+            .spectre-kpi-grid {
+                display: none;
+            }
+            
+            /* Hide header on iPhone to save more space */
+            .spectre-header {
+                display: none;
+            }
+            
+            /* Hide system status panel on iPhone */
+            .ghost-panel:has(.spectre-status-icon) {
+                display: none;
+            }
+            
+            /* Hide inventory overview header on iPhone */
+            .spectre-inventory-overview-header {
+                display: none;
+            }
+        }
     </style>
 
 </head>
@@ -108,6 +295,17 @@
             </nav>
 
             <div class="spectre-sidebar__footer">
+                <!-- User Profile Section -->
+                <div class="spectre-user-profile">
+                    <div class="spectre-user-avatar" id="userAvatar">A</div>
+                    <div class="spectre-user-info">
+                        <div class="spectre-user-name" id="userName">Admin</div>
+                        <div class="spectre-user-role" id="userRole">Administrator</div>
+                    </div>
+                    <div class="spectre-user-actions">
+                        <button class="spectre-logout-btn" onclick="logout()">Logout</button>
+                    </div>
+                </div>
             </div>
         </aside>
 
@@ -115,6 +313,18 @@
         <main class="spectre-content" role="main">
             <!-- Top header + HERO -->
 <section class="spectre-hero">
+                    <!-- Dashboard Hero Section -->
+                    <div class="spectre-dashboard-hero">
+                        <div class="spectre-dashboard-hero__greeting">
+                            <p class="spectre-dashboard-hero__welcome">Welcome Back</p>
+                            <h2 class="spectre-dashboard-hero__username" id="dashboardUsername">Admin</h2>
+                            <div class="spectre-dashboard-hero__meta">
+                                <span class="spectre-dashboard-hero__role" id="dashboardRole">Administrator</span>
+                                <span class="spectre-dashboard-hero__date" id="dashboardDate"></span>
+                            </div>
+                        </div>
+                    </div>
+
                     <header class="spectre-header" role="banner">
                         <div class="spectre-header__left">
                             <h1>Dashboard</h1>
@@ -187,26 +397,32 @@
                     </div>
 
                     <div class="ghost-panel">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="spectre-status-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-sm">System Status</h3>
-                                    <p class="text-sm font-semibold">All systems operational</p>
+                        <div class="spectre-system-status">
+                            <div class="spectre-system-status__header">
+                                <div class="flex items-center gap-3">
+                                    <div class="spectre-status-icon">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-sm">System Status</h3>
+                                        <p class="text-sm font-semibold text-green-400">● Online</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <div id="userInfo" class="flex items-center gap-2">
-                                    <!-- User info will be loaded by auth.js -->
+                            <div class="spectre-system-status__metrics">
+                                <div class="spectre-system-metric">
+                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
+                                    <span class="spectre-system-metric__label">Database</span>
+                                    <span class="spectre-system-metric__value">Connected</span>
                                 </div>
-                                <button onclick="logout()" class="px-3 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition border border-red-600/30">
-                                    Logout
-                                </button>
+                                <div class="spectre-system-metric">
+                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
+                                    <span class="spectre-system-metric__label">Supabase</span>
+                                    <span class="spectre-system-metric__value">Active</span>
+                                </div>
                             </div>
+                            <p class="text-xs text-muted mt-3">Last Sync: <span id="systemStatusLastUpdated">Just now</span></p>
                         </div>
-                        <p class="text-xs text-muted mt-2">Last updated: Just now</p>
                     </div>
                 </div>
 
@@ -219,7 +435,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Total Revenue</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ 12.4%</span>
+                            <span id="revenueTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="totalOmset" class="spectre-kpi-value">Rp 0</p>
                         <span class="spectre-kpi-subtitle">Gross Revenue</span>
@@ -232,7 +448,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Net Profit</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ 8.7%</span>
+                            <span id="profitTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="totalProfit" class="spectre-kpi-value">Rp 0</p>
                         <span class="spectre-kpi-subtitle">Profit After Expenses</span>
@@ -245,7 +461,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Total Expenses</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--neutral">↓ 0%</span>
+                            <span id="expensesTrend" class="spectre-kpi-trend spectre-kpi-trend--neutral">↓ 0%</span>
                         </div>
                         <p id="totalExpenses" class="spectre-kpi-value">Rp 0</p>
                         <span class="spectre-kpi-subtitle">Operating Costs</span>
@@ -258,7 +474,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Net Balance</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ growth</span>
+                            <span id="balanceTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="netProfit" class="spectre-kpi-value">Rp 0</p>
                         <span class="spectre-kpi-subtitle">Cash Balance</span>
@@ -274,7 +490,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Items Sold</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ growth</span>
+                            <span id="salesTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="totalSalesCount" class="spectre-kpi-value">0</p>
                         <span class="spectre-kpi-subtitle">Total Sales</span>
@@ -287,7 +503,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Members</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ growth</span>
+                            <span id="membersTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="totalMembers" class="spectre-kpi-value">0</p>
                         <span class="spectre-kpi-subtitle">Registered Members</span>
@@ -300,7 +516,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Products</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ inventory</span>
+                            <span id="productsTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="kpiTotalItems" class="spectre-kpi-value">0</p>
                         <span class="spectre-kpi-subtitle">SKUs Registered</span>
@@ -313,7 +529,7 @@
                     <div class="spectre-kpi-content">
                         <div class="spectre-kpi-header">
                             <span class="spectre-kpi-label">Stock</span>
-                            <span class="spectre-kpi-trend spectre-kpi-trend--up">↑ capacity</span>
+                            <span id="stockTrend" class="spectre-kpi-trend spectre-kpi-trend--up">↑ 0%</span>
                         </div>
                         <p id="kpiTotalStock" class="spectre-kpi-value">0</p>
                         <span class="spectre-kpi-subtitle">Physical Stock</span>
@@ -418,6 +634,7 @@
             <!-- Mobile Bottom Navigation (keep) -->
             <nav class="spectre-bottomnav" aria-label="Mobile navigation">
                 <a href="index.html" class="spectre-bottomnav__item is-active">Dashboard</a>
+                <a href="member.html" class="spectre-bottomnav__item">Members</a>
                 <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
                 <a href="barang.html" class="spectre-bottomnav__item">Products</a>
                 <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
