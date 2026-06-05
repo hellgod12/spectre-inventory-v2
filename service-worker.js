@@ -20,15 +20,12 @@ const urlsToCache = [
 
 // Install event - cache assets
 self.addEventListener('install', event => {
-    console.log('[Service Worker] Install event triggered');
     event.waitUntil(
         caches.open(CACHE_NAME)
             .then(cache => {
-                console.log('[Service Worker] Caching app shell');
                 return cache.addAll(urlsToCache);
             })
             .then(() => {
-                console.log('[Service Worker] Skip waiting');
                 return self.skipWaiting();
             })
             .catch(error => {
@@ -39,21 +36,18 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-    console.log('[Service Worker] Activate event triggered');
     event.waitUntil(
         caches.keys()
             .then(cacheNames => {
                 return Promise.all(
                     cacheNames.map(cacheName => {
                         if (cacheName !== CACHE_NAME) {
-                            console.log('[Service Worker] Deleting old cache:', cacheName);
                             return caches.delete(cacheName);
                         }
                     })
                 );
             })
             .then(() => {
-                console.log('[Service Worker] Claiming clients');
                 return self.clients.claim();
             })
     );
@@ -71,12 +65,10 @@ self.addEventListener('fetch', event => {
             .then(response => {
                 // Cache hit - return response
                 if (response) {
-                    console.log('[Service Worker] Serving from cache:', event.request.url);
                     return response;
                 }
 
                 // Cache miss - fetch from network
-                console.log('[Service Worker] Fetching from network:', event.request.url);
                 return fetch(event.request)
                     .then(response => {
                         // Check if valid response
@@ -95,7 +87,7 @@ self.addEventListener('fetch', event => {
                     })
                     .catch(error => {
                         console.error('[Service Worker] Fetch failed:', error);
-                        
+
                         // Return offline fallback for HTML pages
                         if (event.request.headers.get('accept').includes('text/html')) {
                             return caches.match('./index.html');

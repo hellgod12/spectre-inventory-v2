@@ -139,7 +139,6 @@
 
         // Load member KPI data
         async function loadMemberKPIs() {
-            console.log('=== LOAD MEMBER KPIs START ===');
             try {
                 const { data: members } = await supabaseClient.from('members').select('*');
                 const { data: payments } = await supabaseClient.from('payments').select('*');
@@ -195,9 +194,6 @@
 
                 // Load member table
                 loadMemberTable(members, payments);
-
-                console.log('Member KPIs loaded:', { totalMembers, activeMembers, memberRevenue, newMembers });
-                console.log('=== LOAD MEMBER KPIs END ===');
             } catch (error) {
                 console.warn('Failed to load member KPIs:', error);
             }
@@ -254,12 +250,7 @@
                 return;
             }
 
-            console.log('=== DELETE MEMBER START ===');
-            console.log('Member ID:', memberId);
-            console.log('Member Name:', memberName);
-
             if (!confirm('Yakin ingin menghapus member ini?')) {
-                console.log('Delete cancelled by user');
                 return;
             }
 
@@ -282,17 +273,12 @@
                     });
                 }
 
-                console.log('Has outstanding balance:', hasOutstanding);
-                console.log('Outstanding amount:', outstandingAmount);
-
                 if (hasOutstanding) {
                     alert('Member masih memiliki tagihan aktif.');
-                    console.log('Delete aborted: member has outstanding balance');
                     return;
                 }
 
                 // Delete member record
-                console.log('Deleting member from database...');
                 const { error } = await supabaseClient
                     .from('members')
                     .delete()
@@ -304,16 +290,10 @@
                     return;
                 }
 
-                console.log('Member deleted successfully');
-
                 alert('Member berhasil dihapus.');
 
                 // Refresh member list and KPIs
-                console.log('Refreshing member data...');
                 await loadMemberKPIs();
-                console.log('Member data refreshed');
-
-                console.log('=== DELETE MEMBER END ===');
             } catch (err) {
                 console.error('Error deleting member:', err);
                 alert('Error deleting member: ' + err.message);
@@ -345,7 +325,7 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
-                        console.log('[PWA] Service Worker registered with scope:', registration.scope);
+                        // Service Worker registered
                     })
                     .catch(error => {
                         console.error('[PWA] Service Worker registration failed:', error);

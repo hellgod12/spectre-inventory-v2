@@ -17,42 +17,19 @@ let currentUserId = null;
 
 // Track auth state changes
 supabaseClient.auth.onAuthStateChange((event, session) => {
-    console.log('=== AUTH STATE CHANGE (auth.js) ===');
-    console.log('AUTH EVENT:', event);
-    console.log('AUTH SESSION:', session);
+    // Auth state changed
 });
 
 // Initialize authentication
 async function initAuth() {
-    console.log('=== AUTH INIT START ===');
-
-    // Debug: Current URL
-    console.log('CURRENT URL:', window.location.href);
-
-    // Debug: Entire localStorage contents
-    console.log('LOCAL STORAGE KEYS:', Object.keys(localStorage));
-    Object.keys(localStorage).forEach(key => {
-        console.log('LS KEY:', key);
-        console.log('LS VALUE:', localStorage.getItem(key));
-    });
-
-    // Debug: Supabase client configuration
-    console.log('SUPABASE CLIENT CONFIG:', supabaseClient);
-
     try {
         // Check session
         const { data: { session } } = await supabaseClient.auth.getSession();
-        console.log('SESSION IN AUTH:', session);
-        console.log('SESSION USER ID:', session?.user?.id);
 
         if (!session) {
-            console.log('No session found, would redirect to login');
-            console.warn('Would redirect to login.html');
-            // window.location.href = 'login.html';
+            window.location.href = 'login.html';
             return false;
         }
-
-        console.log('Session found:', session.user.email);
 
         // Get user role from profiles table
         const { data: profile, error } = await supabaseClient
@@ -61,17 +38,11 @@ async function initAuth() {
             .eq('id', session.user.id)
             .single();
 
-        console.log('PROFILE RESULT:', profile);
-        console.log('PROFILE ERROR:', error);
-
         if (error || !profile) {
             console.error('Failed to get profile:', error);
-            console.error('Profile data:', profile);
             alert('Failed to get user profile. Please contact administrator.');
             await supabaseClient.auth.signOut();
-            console.log('Profile error, would redirect to login');
-            console.warn('Would redirect to login.html');
-            // window.location.href = 'login.html';
+            window.location.href = 'login.html';
             return false;
         }
 
@@ -84,15 +55,10 @@ async function initAuth() {
         localStorage.setItem('userEmail', currentUserEmail);
         localStorage.setItem('userId', currentUserId);
 
-        console.log('User role:', currentUserRole);
-        console.log('=== AUTH INIT END ===');
-
         return true;
     } catch (err) {
         console.error('Auth init error:', err);
-        console.log('Auth init error, would redirect to login');
-        console.warn('Would redirect to login.html');
-        // window.location.href = 'login.html';
+        window.location.href = 'login.html';
         return false;
     }
 }
@@ -123,20 +89,15 @@ function requireAdmin() {
 
 // Logout function
 async function logout() {
-    console.log('=== LOGOUT START ===');
-    
     try {
         await supabaseClient.auth.signOut();
-        
+
         // Clear localStorage
         localStorage.removeItem('userRole');
         localStorage.removeItem('userEmail');
         localStorage.removeItem('userId');
-        
-        console.log('Logout successful');
-        console.log('Logout, would redirect to login');
-        console.warn('Would redirect to login.html');
-        // window.location.href = 'login.html';
+
+        window.location.href = 'login.html';
     } catch (err) {
         console.error('Logout error:', err);
         alert('Logout failed. Please try again.');

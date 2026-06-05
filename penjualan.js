@@ -1,8 +1,6 @@
-console.log('penjualan.js loaded');
-
 // Guard agar script tidak di-load dua kali (hindari redeclaration)
 if (window.__PENJUALAN_INIT__) {
-    console.warn('penjualan.js sudah pernah di-load, skip init');
+    // Script already loaded
 } else {
     window.__PENJUALAN_INIT__ = true;
     // Supabase client is initialized in auth.js
@@ -36,8 +34,6 @@ let allProducts = [];
 let selectedProduct = null;
 
 async function updateLedgerBookkeeping() {
-    console.log('=== SALES STATISTICS CALCULATION START ===');
-    
     // Calculate directly from Supabase (no localStorage)
     let allPayments = [];
     try {
@@ -46,7 +42,6 @@ async function updateLedgerBookkeeping() {
             console.error('Failed to load payments from Supabase:', error);
         } else {
             allPayments = remotePayments || [];
-            console.log('Loaded payments from Supabase:', allPayments.length, 'records');
         }
     } catch (err) {
         console.error('Error loading payments:', err);
@@ -56,13 +51,8 @@ async function updateLedgerBookkeeping() {
     const confirmedCount = allPayments.filter(p => p.status === 'paid').length;
     const pendingCount = allPayments.filter(p => p.status === 'pending' || p.status === 'partial').length;
     const totalCount = allPayments.length;
-    
-    console.log('Confirmed Transactions (status=paid):', confirmedCount);
-    console.log('Pending Payments (status=pending/partial):', pendingCount);
-    console.log('Total Transactions:', totalCount);
 
     const progress = totalCount ? Math.min(100, Math.round((confirmedCount / totalCount) * 100)) : 0;
-    console.log('Progress:', progress + '%');
 
     if (ledgerSalesCount) ledgerSalesCount.innerText = confirmedCount;
     if (ledgerPaidCount) ledgerPaidCount.innerText = 'Rp ' + allPayments.reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0).toLocaleString('id-ID');
@@ -80,33 +70,23 @@ async function updateLedgerBookkeeping() {
         return paymentDate === today;
     });
 
-    console.log('Today\'s payments:', todayPayments.length, 'records');
-
     const revenueToday = todayPayments.reduce((sum, p) => sum + (parseFloat(p.total_harga) || 0), 0);
     const transactionsToday = todayPayments.length;
     const itemsSoldToday = todayPayments.reduce((sum, p) => sum + (parseInt(p.jumlah) || 0), 0);
-    
+
     // Payments Received = SUM(paid_amount) from today's paid transactions
     const paymentsReceived = todayPayments
         .filter(p => p.status === 'paid')
         .reduce((sum, p) => sum + (parseFloat(p.paid_amount) || 0), 0);
-    
+
     // Confirmed Transactions Today = count of today's paid transactions
     const confirmedToday = todayPayments.filter(p => p.status === 'paid').length;
-    
+
     // Pending Payments Today = count of today's pending/partial transactions
     const pendingToday = todayPayments.filter(p => p.status === 'pending' || p.status === 'partial').length;
 
-    console.log('Revenue Today (SUM total_harga):', revenueToday);
-    console.log('Transactions Today (count):', transactionsToday);
-    console.log('Items Sold Today (SUM jumlah):', itemsSoldToday);
-    console.log('Payments Received (SUM paid_amount from paid):', paymentsReceived);
-    console.log('Confirmed Transactions Today:', confirmedToday);
-    console.log('Pending Payments Today:', pendingToday);
-
     // Calculate profit today (estimated as 30% of revenue)
     const profitToday = revenueToday * 0.3;
-    console.log('Profit Today (estimated 30%):', profitToday);
 
     const salesRevenueTodayEl = document.getElementById('salesRevenueToday');
     const salesTransactionsTodayEl = document.getElementById('salesTransactionsToday');
@@ -117,8 +97,6 @@ async function updateLedgerBookkeeping() {
     if (salesTransactionsTodayEl) salesTransactionsTodayEl.innerText = transactionsToday;
     if (salesItemsTodayEl) salesItemsTodayEl.innerText = itemsSoldToday;
     if (salesProfitTodayEl) salesProfitTodayEl.innerText = 'Rp ' + profitToday.toLocaleString('id-ID');
-    
-    console.log('=== SALES STATISTICS CALCULATION END ===');
 }
 
 function showSaleSuccess(message) {
@@ -544,26 +522,16 @@ salesForm.addEventListener('submit', async (e) => {
             created_at: paymentRecord.created_at
         }]).select();
 
-        console.log('Payment insert result:', { paymentData, error: payErr });
-
         if (payErr) {
             console.error('Supabase insert payments failed:', payErr.message);
-            console.error('Error details:', payErr);
-            console.error('Payment record:', paymentRecord);
             alert('Gagal menyimpan pembayaran: ' + payErr.message);
             return;
         }
-
-        console.log('Payment saved successfully to Supabase:', paymentRecord.invoice_number);
-        console.log('Payment data returned:', paymentData);
     } catch (err) {
         console.error('Supabase error:', err);
-        console.error('Payment record:', paymentRecord);
         alert('Gagal menyimpan pembayaran: ' + err.message);
         return;
     }
-
-    console.log('=== PAYMENT INSERT END ===');
 
     // 1. Potong Stok
     const sisaStokBaru = selectedProduct.stok - jumlahJual;
@@ -571,25 +539,21 @@ salesForm.addEventListener('submit', async (e) => {
     if (updateError) return alert('Gagal potong stok: ' + updateError.message);
 
     // 2. Simpan Riwayat
-    console.log('=== SALES HISTORY INSERT START ===');
     const { error: historyError } = await supabaseClient.from('sales_history').insert([{
         payment_id: paymentRecord.id,
         product_id: selectedProduct.id,
-        nama_barang: selectedProduct.nama_barang, 
+        nama_barang: selectedProduct.nama_barang,
         kategori: selectedProduct.kategori,
         ukuran: selectedProduct.ukuran || null,
-        jumlah: jumlahJual, 
-        total_harga: totalHarga, 
+        jumlah: jumlahJual,
+        total_harga: totalHarga,
         tipe_pembeli: identitasPembeli
     }]);
-
-    console.log('Sales history insert result:', { error: historyError });
 
     if (historyError) {
         console.error('Sales history insert failed:', historyError.message);
         alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
     } else {
-        console.log('Sales history saved successfully');
 
         // Animasi inventory stok: keluar (-jumlahJual)
         try {
@@ -624,7 +588,6 @@ salesForm.addEventListener('submit', async (e) => {
         await updateLedgerBookkeeping();
         showSaleSuccess('TRANSAKSI TERJUAL // Buku kas menjadi lebih hidup.');
     }
-    console.log('=== SALES HISTORY INSERT END ===');
 });
 
 

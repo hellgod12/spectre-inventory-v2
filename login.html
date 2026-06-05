@@ -143,20 +143,11 @@
             }
         });
 
-        // Track auth state changes
-        supabaseClient.auth.onAuthStateChange((event, session) => {
-            console.log('=== AUTH STATE CHANGE (login.html) ===');
-            console.log('AUTH EVENT:', event);
-            console.log('AUTH SESSION:', session);
-        });
-
         // Check if user is already logged in
         async function checkAuth() {
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
-                console.log('Session found in login.html, would redirect to dashboard');
-                console.warn('Would redirect to index.html');
-                // window.location.href = 'index.html';
+                window.location.href = 'index.html';
             }
         }
 
@@ -194,13 +185,6 @@
                     throw error;
                 }
 
-                console.log('Login successful:', data.user.email);
-                console.log('SESSION AFTER LOGIN:', data.session);
-
-                // Check session immediately after login
-                const { data: { session: sessionCheck } } = await supabaseClient.auth.getSession();
-                console.log('SESSION CHECK AFTER LOGIN:', sessionCheck);
-
                 // Get user role from profiles table
                 const { data: profile, error: profileError } = await supabaseClient
                     .from('profiles')
@@ -213,8 +197,6 @@
                     throw new Error('Failed to get user profile');
                 }
 
-                console.log('User role:', profile.role);
-
                 // Store role in localStorage
                 localStorage.setItem('userRole', profile.role);
                 localStorage.setItem('userEmail', data.user.email);
@@ -223,20 +205,9 @@
                 successMessage.textContent = 'Login successful! Redirecting...';
                 successMessage.style.display = 'block';
 
-                console.log('=== LOGIN END ===');
-
-                // Debug: Check localStorage after login
-                console.log('LOCAL STORAGE KEYS AFTER LOGIN:', Object.keys(localStorage));
-                Object.keys(localStorage).forEach(key => {
-                    console.log('LS KEY:', key);
-                    console.log('LS VALUE:', localStorage.getItem(key));
-                });
-
                 // Redirect to dashboard
                 setTimeout(() => {
-                    console.log('Login successful, would redirect to dashboard');
-                    console.warn('Would redirect to index.html');
-                    // window.location.href = 'index.html';
+                    window.location.href = 'index.html';
                 }, 1000);
 
             } catch (err) {

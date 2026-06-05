@@ -440,7 +440,7 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
                     .then(registration => {
-                        console.log('[PWA] Service Worker registered with scope:', registration.scope);
+                        // Service Worker registered
                     })
                     .catch(error => {
                         console.error('[PWA] Service Worker registration failed:', error);
@@ -463,7 +463,6 @@
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        console.log('[PWA] User accepted the install prompt');
                         installButton.style.display = 'none';
                     }
                     deferredPrompt = null;
@@ -474,7 +473,6 @@
         // Hide install button if app is already installed
         window.addEventListener('appinstalled', () => {
             installButton.style.display = 'none';
-            console.log('[PWA] App was installed');
         });
     </script>
 </body>

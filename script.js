@@ -497,7 +497,6 @@ async function loadDashboard() {
     }
 
     // --- HITUNG MATRIKS FINANSIAL ASLI ---
-    console.log('=== DASHBOARD CALCULATION START ===');
     let totalStock = 0;
     let omsetAsli = 0;
     let profitAsli = 0;
@@ -512,7 +511,6 @@ async function loadDashboard() {
     if (products) {
         products.forEach(item => { totalStock += parseInt(item.stok || 0); });
         document.getElementById('totalItems').innerText = products.length;
-        console.log('Total Stock calculated:', totalStock);
     }
 
     // Pre-map produk modal per nama_barang (for profit calculation)
@@ -550,7 +548,6 @@ async function loadDashboard() {
 
             profitProduk.set(nama, prev);
         });
-        console.log('Items Sold calculated:', totalTerjualCount);
     }
 
     // Tarik data pengeluaran
@@ -573,8 +570,6 @@ async function loadDashboard() {
                 pendingRevenue += parseFloat(payment.remaining_amount || 0);
             }
         });
-        console.log('Revenue calculated (from paid payments):', omsetAsli);
-        console.log('Pending Revenue calculated:', pendingRevenue);
     }
 
     // Calculate profit from sales_history (for cost tracking)
@@ -587,7 +582,6 @@ async function loadDashboard() {
             const totalModal = modalSatuan * qty;
             profitAsli += (revenue - totalModal);
         });
-        console.log('Profit calculated:', profitAsli);
     }
 
     const profitBersih = profitAsli - totalExpenses;
@@ -596,8 +590,6 @@ async function loadDashboard() {
     document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
     document.getElementById('totalProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
-
-    console.log('=== DASHBOARD CALCULATION END ===');
 
     // Update KPI cards (separate from Inventory Overview to avoid duplicate ID conflicts)
     const kpiTotalItemsEl = document.getElementById('kpiTotalItems');
@@ -608,45 +600,33 @@ async function loadDashboard() {
     document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
 
     // Calculate inventory value and low stock items for main dashboard Inventory Overview
-    console.log('=== INVENTORY CALCULATION START ===');
-    
-    // Total Modal Barang (fixed): SUM(initial_stock × base_cost)
-    // Initial stock = current stock + total sold from sales_history
     let totalModalBarang = 0;
     let inventoryValue = 0;
     let lowStockItems = 0;
-    
+
     if (products && products.length > 0) {
         products.forEach(item => {
             const currentStock = parseInt(item.stok || 0);
             const baseCost = parseFloat(item.harga_modal || 0);
-            
+
             // Calculate total sold for this product from sales_history
             const totalSold = (salesHistory || [])
                 .filter(s => s.product_id === item.id)
                 .reduce((sum, s) => sum + (parseInt(s.jumlah) || 0), 0);
-            
+
             const initialStock = currentStock + totalSold;
-            
+
             // Total Modal Barang = initial_stock × base_cost
             totalModalBarang += initialStock * baseCost;
-            
+
             // Inventory Value = current_stock × base_cost
             inventoryValue += currentStock * baseCost;
-            
+
             if (currentStock <= 5) {
                 lowStockItems++;
             }
-            
-            console.log(`Product: ${item.nama_barang}, Initial Stock: ${initialStock}, Current Stock: ${currentStock}, Base Cost: ${baseCost}, Total Sold: ${totalSold}`);
         });
     }
-    
-    console.log('Total Modal Barang (fixed):', totalModalBarang);
-    console.log('Inventory Value (dynamic):', inventoryValue);
-    console.log('Total Stock:', totalStock);
-    console.log('Low Stock Items:', lowStockItems);
-    console.log('=== INVENTORY CALCULATION END ===');
 
     // Update main dashboard Inventory Overview elements
     const inventoryValueEl = document.getElementById('inventoryValue');
