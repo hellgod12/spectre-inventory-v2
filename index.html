@@ -116,42 +116,175 @@
         /* Mobile typography improvements */
         @media (max-width: 600px) {
             .text-7xl {
-                font-size: 3rem;
+                font-size: 1.5rem;
                 line-height: 1.1;
             }
             .text-4xl {
-                font-size: 2rem;
+                font-size: 1.125rem;
                 line-height: 1.2;
             }
             .text-2xl {
-                font-size: 1.25rem;
+                font-size: 0.875rem;
                 line-height: 1.4;
             }
             .text-lg {
-                font-size: 1.125rem;
+                font-size: 0.8rem;
                 line-height: 1.5;
             }
             .spectre-inventory-overview-value {
-                font-size: 1.5rem;
+                font-size: 1rem;
+                font-weight: 600;
             }
             .spectre-kpi-value {
-                font-size: 1.5rem;
+                font-size: 1rem;
+                font-weight: 600;
             }
             
             /* Mobile spacing improvements */
             .ghost-panel {
-                padding: 16px;
+                padding: 12px;
+                margin-bottom: 12px;
             }
             .spectre-inventory-overview-panel {
-                padding: 16px;
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+            .spectre-hero__top {
+                gap: 8px;
+                padding-bottom: 8px;
             }
             .spectre-hero__cta {
-                flex-direction: column;
-                gap: 12px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 6px;
             }
             .spectre-cta {
-                width: 100%;
+                flex: 1;
+                min-width: calc(50% - 3px);
                 text-align: center;
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+            .spectre-inventory-overview-card {
+                padding: 10px;
+            }
+            .spectre-inventory-overview-icon {
+                width: 20px;
+                height: 20px;
+            }
+            .spectre-inventory-overview-icon svg {
+                width: 10px;
+                height: 10px;
+            }
+            .spectre-inventory-overview-label {
+                font-size: 9px;
+            }
+            .spectre-inventory-overview-header h3 {
+                font-size: 12px;
+            }
+            .spectre-header h1 {
+                font-size: 1.125rem;
+            }
+            
+            /* Hide hero section on mobile to save space */
+            .spectre-hero__top {
+                display: none;
+            }
+        }
+        
+        /* iPhone specific improvements */
+        @media (max-width: 430px) {
+            .spectre-content {
+                padding: 6px;
+                padding-bottom: 80px;
+            }
+            .spectre-inventory-overview-grid {
+                gap: 3px;
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .ghost-panel {
+                padding: 5px;
+                margin-bottom: 5px;
+            }
+            .spectre-inventory-overview-panel {
+                padding: 5px;
+                margin-bottom: 5px;
+            }
+            .spectre-inventory-overview-card {
+                padding: 5px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 1px;
+                min-height: 45px;
+            }
+            .spectre-inventory-overview-icon {
+                width: 14px;
+                height: 14px;
+                margin-bottom: 0;
+            }
+            .spectre-inventory-overview-icon svg {
+                width: 7px;
+                height: 7px;
+            }
+            .text-7xl {
+                font-size: 1.25rem;
+            }
+            .spectre-inventory-overview-value {
+                font-size: 0.8rem;
+                font-weight: 600;
+                line-height: 1;
+            }
+            .spectre-kpi-value {
+                font-size: 0.8rem;
+                line-height: 1;
+                font-weight: 600;
+            }
+            .spectre-inventory-overview-label {
+                font-size: 6px;
+                line-height: 1;
+            }
+            
+            /* Make KPI cards smaller on iPhone */
+            .spectre-kpi-grid {
+                gap: 4px;
+            }
+            .spectre-kpi-card {
+                padding: 6px;
+                min-height: 50px;
+            }
+            .spectre-kpi-icon {
+                width: 16px;
+                height: 16px;
+            }
+            .spectre-kpi-icon svg {
+                width: 8px;
+                height: 8px;
+            }
+            .spectre-kpi-label {
+                font-size: 8px;
+            }
+            .spectre-kpi-trend {
+                font-size: 7px;
+            }
+            .spectre-kpi-subtitle {
+                font-size: 6px;
+            }
+            
+            /* Hide header on iPhone to save more space */
+            .spectre-header {
+                display: none;
+            }
+            
+            /* Hide system status panel on iPhone */
+            .ghost-panel:has(.spectre-status-icon) {
+                display: none;
+            }
+            
+            /* Hide inventory overview header on iPhone */
+            .spectre-inventory-overview-header {
+                display: none;
             }
         }
     </style>
