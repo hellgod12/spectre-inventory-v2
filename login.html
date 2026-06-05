@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SPECTRE // Login</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -12,6 +12,16 @@
     <meta name="apple-mobile-web-app-title" content="SPECTRE">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        /* iPhone Safe Area Support */
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        
         .login-container {
             min-height: 100vh;
             display: flex;
@@ -104,6 +114,16 @@
             border-radius: var(--radius-md);
             margin-bottom: 20px;
             font-size: 14px;
+        }
+        
+        /* Mobile typography improvements */
+        @media (max-width: 600px) {
+            .login-title {
+                font-size: 24px;
+            }
+            .login-card {
+                padding: 24px;
+            }
         }
     </style>
 </head>

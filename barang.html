@@ -13,6 +13,16 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <style>
+        /* iPhone Safe Area Support */
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        
         .inventory-kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -50,6 +60,32 @@
         }
         @media (max-width: 600px) {
             .inventory-kpi-grid { grid-template-columns: 1fr; }
+        }
+        
+        /* Mobile typography improvements */
+        @media (max-width: 600px) {
+            .inventory-kpi-value {
+                font-size: 1.5rem;
+            }
+            .text-4xl {
+                font-size: 2rem;
+                line-height: 1.2;
+            }
+            .text-lg {
+                font-size: 1.125rem;
+                line-height: 1.5;
+            }
+            
+            /* Mobile spacing improvements */
+            .ghost-panel {
+                padding: 16px;
+            }
+            .inventory-kpi-grid {
+                gap: 12px;
+            }
+            .inventory-kpi-card {
+                padding: 16px;
+            }
         }
     </style>
 </head>
@@ -218,5 +254,13 @@
             });
         }
     </script>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="spectre-bottomnav" aria-label="Mobile navigation">
+        <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
+        <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
+        <a href="barang.html" class="spectre-bottomnav__item is-active">Products</a>
+        <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
+    </nav>
 </body>
 </html>
