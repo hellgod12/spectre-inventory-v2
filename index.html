@@ -249,30 +249,48 @@
             /* Make KPI cards smaller on iPhone */
             .spectre-kpi-grid {
                 gap: 4px;
+                grid-template-columns: 1fr;
             }
             .spectre-kpi-card {
-                padding: 4px;
-                min-height: 45px;
+                padding: 6px;
+                min-height: auto;
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
             }
             .spectre-kpi-icon {
-                width: 14px;
-                height: 14px;
+                width: 20px;
+                height: 20px;
             }
             .spectre-kpi-icon svg {
-                width: 7px;
-                height: 7px;
+                width: 10px;
+                height: 10px;
             }
             .spectre-kpi-label {
-                font-size: 7px;
+                font-size: 8px;
             }
             .spectre-kpi-trend {
-                font-size: 6px;
+                font-size: 7px;
+                display: none;
             }
             .spectre-kpi-subtitle {
-                font-size: 5px;
+                font-size: 6px;
+                display: none;
             }
             .spectre-kpi-value {
-                font-size: 0.7rem;
+                font-size: 0.8rem;
+                line-height: 1;
+            }
+            .spectre-kpi-header {
+                gap: 2px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .spectre-kpi-content {
+                gap: 4px;
+                align-items: center;
+                flex: 1;
             }
             
             /* Hide header on iPhone to save more space */
