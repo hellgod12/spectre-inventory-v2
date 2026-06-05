@@ -133,6 +133,104 @@
                 padding-bottom: 80px;
             }
         }
+        
+        /* Member Avatar Gradient */
+        .member-avatar-gradient {
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-badge--active {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        
+        .status-badge--outstanding {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        
+        /* Member Insights Item */
+        .member-insights-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--radius);
+            border: 1px solid var(--stroke);
+            transition: all 0.2s ease;
+        }
+        
+        .member-insights-item:hover {
+            border-color: rgba(124, 92, 255, 0.3);
+        }
+        
+        .member-insights-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .member-insights-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .member-insights-name {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .member-insights-phone {
+            font-size: 12px;
+            color: var(--text-tertiary);
+        }
+        
+        .member-insights-date {
+            font-size: 12px;
+            color: var(--text-tertiary);
+            text-align: right;
+        }
+        
+        /* Table Avatar */
+        .table-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body class="spectre-body">
@@ -293,15 +391,15 @@
                     recentMembers.forEach(m => {
                         const initial = m.nama.charAt(0).toUpperCase();
                         const regDate = new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-                        insightsHtml += `<div class="flex items-center gap-3 p-3 bg-black/30 rounded-lg border border-stone-800 hover:border-purple-500/30 transition">
-                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                        insightsHtml += `<div class="member-insights-item">
+                            <div class="member-insights-avatar">
                                 ${initial}
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="font-semibold text-white text-sm truncate">${m.nama}</div>
-                                <div class="text-xs text-muted">${m.telepon}</div>
+                            <div class="member-insights-info">
+                                <div class="member-insights-name">${m.nama}</div>
+                                <div class="member-insights-phone">${m.telepon}</div>
                             </div>
-                            <div class="text-xs text-muted text-right">
+                            <div class="member-insights-date">
                                 ${regDate}
                             </div>
                         </div>`;
@@ -341,7 +439,7 @@
                     });
                 }
 
-                const statusClass = hasOutstanding ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30';
+                const statusClass = hasOutstanding ? 'status-badge--outstanding' : 'status-badge--active';
                 const statusText = hasOutstanding ? 'Has Outstanding' : 'Active';
                 const initial = member.nama.charAt(0).toUpperCase();
 
@@ -349,7 +447,7 @@
                     <tr class="border-b border-stone-800/50 hover:bg-white/5 transition">
                         <td class="py-3 px-4">
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                <div class="table-avatar">
                                     ${initial}
                                 </div>
                                 <span class="font-semibold">${member.nama}</span>
@@ -357,7 +455,7 @@
                         </td>
                         <td class="py-3 px-4 text-muted">${member.telepon}</td>
                         <td class="py-3 px-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium border ${statusClass}">${statusText}</span>
+                            <span class="status-badge ${statusClass}">${statusText}</span>
                         </td>
                         <td class="py-3 px-4">
                             <button onclick="deleteMember('${member.id}', '${member.nama}')" data-role="admin-only" class="px-3 py-1.5 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg transition border border-red-600/30 font-medium">
