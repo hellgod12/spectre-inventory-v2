@@ -385,26 +385,42 @@
                     </div>
 
                     <div class="ghost-panel">
-                        <div class="flex items-center justify-between gap-3">
-                            <div class="flex items-center gap-3">
-                                <div class="spectre-status-icon">
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h3 class="text-sm">System Status</h3>
-                                    <p class="text-sm font-semibold">All systems operational</p>
+                        <div class="spectre-system-status">
+                            <div class="spectre-system-status__header">
+                                <div class="flex items-center gap-3">
+                                    <div class="spectre-status-icon">
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h3 class="text-sm">System Status</h3>
+                                        <p class="text-sm font-semibold text-green-400">✓ All systems operational</p>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <div id="userInfo" class="flex items-center gap-2">
-                                    <!-- User info will be loaded by auth.js -->
+                            <div class="spectre-system-status__metrics">
+                                <div class="spectre-system-metric">
+                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
+                                    <span class="spectre-system-metric__label">Database</span>
+                                    <span class="spectre-system-metric__value">Online</span>
                                 </div>
-                                <button onclick="logout()" class="px-3 py-1 text-xs bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded transition border border-red-600/30">
-                                    Logout
-                                </button>
+                                <div class="spectre-system-metric">
+                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
+                                    <span class="spectre-system-metric__label">Supabase</span>
+                                    <span class="spectre-system-metric__value">Connected</span>
+                                </div>
+                                <div class="spectre-system-metric">
+                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
+                                    <span class="spectre-system-metric__label">Storage</span>
+                                    <span class="spectre-system-metric__value">Healthy</span>
+                                </div>
+                                <div class="spectre-system-metric">
+                                    <span class="spectre-system-metric__dot spectre-system-metric__dot--online"></span>
+                                    <span class="spectre-system-metric__label">PWA</span>
+                                    <span class="spectre-system-metric__value">Active</span>
+                                </div>
                             </div>
+                            <p class="text-xs text-muted mt-3">Last updated: <span id="systemStatusLastUpdated">Just now</span></p>
                         </div>
-                        <p class="text-xs text-muted mt-2">Last updated: Just now</p>
                     </div>
                 </div>
 

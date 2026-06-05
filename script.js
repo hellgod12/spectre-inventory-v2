@@ -41,6 +41,15 @@ async function populateUserProfile() {
     }
 }
 
+// Update system status timestamp
+function updateSystemStatusTimestamp() {
+    const timestampEl = document.getElementById('systemStatusLastUpdated');
+    if (timestampEl) {
+        const now = new Date();
+        timestampEl.textContent = now.toLocaleTimeString();
+    }
+}
+
 // Safe growth calculation function
 // Returns growth percentage as a string with arrow indicator
 // Returns "0%" if previous value is 0 or data is invalid
@@ -525,6 +534,9 @@ async function loadDashboard() {
     
     // Populate user profile section
     await populateUserProfile();
+    
+    // Update system status timestamp
+    updateSystemStatusTimestamp();
     
     // Debug: pastikan elemen yang dipakai ada
     if (!container) {
