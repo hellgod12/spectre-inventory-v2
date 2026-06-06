@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPECTRE // Expenses</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -55,37 +55,9 @@
             font-weight: 700;
             line-height: 1.1;
         }
-        @media (max-width: 900px) {
-            .expense-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .expense-kpi-grid { grid-template-columns: 1fr; }
-        }
         
-        /* Mobile typography improvements */
-        @media (max-width: 600px) {
-            .expense-kpi-value {
-                font-size: 1.5rem;
-            }
-            .text-4xl {
-                font-size: 2rem;
-                line-height: 1.2;
-            }
-            .text-lg {
-                font-size: 1.125rem;
-                line-height: 1.5;
-            }
-            
-            /* Mobile spacing improvements */
-            .ghost-panel {
-                padding: 16px;
-            }
-            .expense-kpi-grid {
-                gap: 12px;
-            }
-            .expense-kpi-card {
-                padding: 16px;
-            }
+        /* KPI grid - horizontal scroll for desktop layout on mobile */
+        .expense-kpi-grid {
         }
     </style>
 </head>

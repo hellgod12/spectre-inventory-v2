@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPECTRE // Sales</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="status.css">
@@ -51,19 +51,15 @@
             margin-top: 4px;
             color: var(--success);
         }
-        @media (max-width: 900px) {
-            .sales-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .sales-kpi-grid { grid-template-columns: 1fr; }
+        
+        /* KPI grid - horizontal scroll for desktop layout on mobile */
+        .sales-kpi-grid {
         }
     </style>
 </head>
 <body class="spectre-body">
-
     <div class="spectre-content">
         <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
-
         <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
                 <div>
@@ -72,7 +68,6 @@
                 </div>
             </div>
         </div>
-
         <div class="sales-kpi-grid">
             <div class="sales-kpi-card">
                 <div class="sales-kpi-label">Revenue Today</div>
@@ -95,7 +90,6 @@
                 <div class="sales-kpi-trend">↑ Live</div>
             </div>
         </div>
-
         <div class="ghost-panel p-5 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
                 <div>
@@ -118,12 +112,10 @@
                 </div>
             </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div id="salesPanel" class="ghost-panel p-6 md:col-span-2">
                 <h2 class="text-2xl font-bold mb-1">New Sale</h2>
                 <p class="text-muted text-sm mb-6">Process a new sales transaction</p>
-
                 <form id="salesForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Select Product</label>
@@ -131,14 +123,12 @@
                             <option value="">-- Loading products... --</option>
                         </select>
                     </div>
-
                     <div id="boxUkuranSelect" class="hidden">
                         <label class="block text-sm font-medium mb-2">Size</label>
                         <select id="selectUkuran">
                             <option value="">-- Select Size --</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Customer Type</label>
                         <div class="flex gap-4">
@@ -150,19 +140,16 @@
                             </label>
                         </div>
                     </div>
-
                     <div id="boxMemberSelect" class="hidden">
                         <label class="block text-sm font-medium mb-2">Select Member</label>
                         <select id="selectMember">
                             <option value="">-- Select Member Phone --</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Quantity</label>
                         <input type="number" id="inputJumlah" min="1" value="1" required>
                     </div>
-
                     <div class="bg-surface p-4 border border-dashed rounded-lg space-y-2">
                         <div class="flex justify-between text-sm">
                             <span class="text-muted">Unit Price:</span>
@@ -173,7 +160,6 @@
                             <span id="previewTotal" class="text-lg">Rp 0</span>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Price Information</label>
                         <div class="grid grid-cols-2 gap-4">
@@ -186,13 +172,11 @@
                                 <span id="hargaMemberDefault" class="font-semibold">—</span>
                             </div>
                         </div>
-
                         <div class="mt-4">
                             <label class="block text-sm font-medium mb-2">Price Override (optional)</label>
                             <input type="number" id="harga_override" min="0" step="1" placeholder="Empty = use default price">
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Payment Status</label>
                         <div class="flex flex-wrap gap-4">
@@ -207,7 +191,6 @@
                             </label>
                         </div>
                     </div>
-
                     <div id="partialPaymentSection" class="hidden">
                         <label class="block text-sm font-medium mb-2">Amount Paid</label>
                         <input type="number" id="amountPaid" min="0" step="1" placeholder="Enter payment amount">
@@ -226,7 +209,6 @@
                             </div>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Payment Method</label>
                         <div class="flex flex-wrap gap-4">
@@ -238,12 +220,10 @@
                             </label>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4">
                         <button type="button" id="btnScanTerjual" class="spectre-btn">Scan Camera</button>
                         <button type="button" id="btnStopTerjual" class="spectre-btn spectre-cta--danger">Stop</button>
                     </div>
-
                     <div id="scanTerjualStatus" class="p-4 border border-dashed rounded-lg text-xs text-muted">
                         <strong class="block mb-1">Scan Status: Ready</strong>
                         <span>Point camera at product QR/barcode</span>
@@ -252,11 +232,9 @@
                         <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
                         <canvas id="scanTerjualCanvas" class="hidden"></canvas>
                     </div>
-
                     <button type="submit" id="btnProses" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Process Sale</button>
                 </form>
             </div>
-
             <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
                 <div class="space-y-4">
                     <h3 class="text-sm font-semibold uppercase tracking-wide">Live Transaction Summary</h3>
@@ -267,7 +245,6 @@
             </div>
         </div>
     </div>
-
     <!-- Mobile Bottom Navigation -->
     <nav class="spectre-bottomnav" aria-label="Mobile navigation">
         <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
@@ -276,9 +253,7 @@
         <a href="barang.html" class="spectre-bottomnav__item">Products</a>
         <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
     </nav>
-
     <script src="scan-helper.js"></script>
-
     <script src="scan-terjual.js"></script>
     <script src="candle-manager.js"></script>
     <script src="penjualan.js"></script>

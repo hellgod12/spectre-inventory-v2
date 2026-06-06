@@ -557,6 +557,18 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   grid-template-columns:repeat(4, 1fr);
   gap:16px;
 }
+
+/* Mobile responsive - inventory overview grid */
+@media(max-width:900px){
+  .spectre-inventory-overview-grid{
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+}
+@media(max-width:480px){
+  .spectre-inventory-overview-grid{
+    grid-template-columns: 1fr !important;
+  }
+}
 .spectre-inventory-overview-card{
   display:flex;
   flex-direction:column;
@@ -1170,11 +1182,10 @@ html {
 .spectre-hero__bottom{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap;}
 .spectre-hero__bottom > .ghost-panel{flex:1 1 280px;min-width:260px;}
 
-/* KPI grids responsive requirements */
-/* Mobile first: default to 2 columns */
+/* KPI grids - desktop layout as source of truth */
 .spectre-kpi-grid{
   display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
+  grid-template-columns: repeat(4, minmax(0,1fr));
   gap:16px;
   margin-top:20px;
 }
@@ -1182,40 +1193,53 @@ html {
 /* This dashboard uses spectre-kpi-grid2 for 4 metrics */
 .spectre-kpi-grid2{
   display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
+  grid-template-columns: repeat(4, minmax(0,1fr));
   gap:16px;
   margin-top:20px;
+}
+
+/* Mobile responsive - 2 columns for tablets and large phones */
+@media(max-width:900px){
+  .spectre-kpi-grid,
+  .spectre-kpi-grid2,
+  .spectre-inventory-overview-grid,
+  .member-kpi-grid,
+  .sales-kpi-grid,
+  .expense-kpi-grid,
+  .inventory-kpi-grid{
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+}
+
+/* Small mobile - 1 column for phones */
+@media(max-width:480px){
+  .spectre-kpi-grid,
+  .spectre-kpi-grid2,
+  .spectre-inventory-overview-grid,
+  .member-kpi-grid,
+  .sales-kpi-grid,
+  .expense-kpi-grid,
+  .inventory-kpi-grid{
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* Premium lift: KPI right after header */
 .spectre-kpi-grid--top{margin-top:0;}
 
-/* Tablet: KPI cards become 3 columns */
-@media (min-width: 640px){
-  .spectre-kpi-grid,
-  .spectre-kpi-grid2{
-    grid-template-columns: repeat(3, minmax(0,1fr));
-  }
-}
-
-/* Desktop: 4 columns */
-@media (min-width: 1024px){
-  .spectre-kpi-grid,
-  .spectre-kpi-grid2{
-    grid-template-columns: repeat(4, minmax(0,1fr));
-  }
-}
-
-/* Widgets section: keep 2-up on desktop, 1-up on mobile */
+/* Widgets section */
 .spectre-widgets{
   display:grid;
-  grid-template-columns: repeat(1, minmax(0,1fr));
+  grid-template-columns: repeat(2, minmax(0,1fr));
   gap:20px;
   margin-top:28px;
 }
 
-@media (min-width: 900px){
-  .spectre-widgets{grid-template-columns: repeat(2, minmax(0,1fr));}
+/* Mobile responsive - widgets */
+@media(max-width:900px){
+  .spectre-widgets{
+    grid-template-columns: 1fr !important;
+  }
 }
 
 /* CTA group buttons (Stripe/Linear inspired) */
@@ -1412,24 +1436,12 @@ html, body{
   .spectre-shell{display:block;}
   .spectre-sidebar{display:none;}
   .spectre-bottomnav{display:flex;}
-  .spectre-charts-section{grid-template-columns: 1fr;}
-}
-
-@media(max-width:420px){
-  .spectre-widgets{grid-template-columns: 1fr;}
-  .spectre-chart-placeholder{height:150px;}
 }
 
 
-@media(max-width:600px){
-  .spectre-widgets{grid-template-columns: 1fr;}
-  .spectre-charts-section{grid-template-columns: 1fr;}
-}
 
 
-@media(min-width: 601px) and (max-width: 900px){
-  .spectre-charts-section{grid-template-columns: repeat(2, minmax(0,1fr));}
-}
+
 
 
 
@@ -1522,9 +1534,13 @@ p{font-size:15px; line-height:1.7; color: var(--text-secondary); margin-bottom:1
   margin-top:28px;
 }
 
-@media (min-width: 1200px){
-  .spectre-charts-section{grid-template-columns: repeat(3, minmax(0,1fr));}
+/* Mobile responsive - charts */
+@media(max-width:900px){
+  .spectre-charts-section{
+    grid-template-columns: 1fr !important;
+  }
 }
+
 
 .spectre-chart-card{
   background: var(--surface);

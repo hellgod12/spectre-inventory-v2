@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPECTRE // Expenses</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -45,19 +45,15 @@
             font-weight: 700;
             line-height: 1.1;
         }
-        @media (max-width: 900px) {
-            .expense-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .expense-kpi-grid { grid-template-columns: 1fr; }
+        
+        /* KPI grid - horizontal scroll for desktop layout on mobile */
+        .expense-kpi-grid {
         }
     </style>
 </head>
 <body class="spectre-body">
-
     <div class="spectre-content">
         <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
-
         <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
                 <div>
@@ -66,7 +62,6 @@
                 </div>
             </div>
         </div>
-
         <div class="expense-kpi-grid">
             <div class="expense-kpi-card">
                 <div class="expense-kpi-label">Total Expenses</div>
@@ -85,18 +80,15 @@
                 <div class="expense-kpi-value" id="expenseLargest">Rp 0</div>
             </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="ghost-panel p-6 md:col-span-2">
                 <h2 class="text-2xl font-bold mb-1">Record Expense</h2>
                 <p class="text-muted text-sm mb-6">Enter expense details below</p>
-
                 <form id="expenseForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Description</label>
                         <input type="text" id="keterangan" class="uppercase" placeholder="e.g. Packaging, Electricity" required>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Category</label>
                         <select id="kategori" required>
@@ -110,31 +102,25 @@
                             <option value="Lainnya">Other</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Amount</label>
                         <input type="number" id="nominal" placeholder="Amount in IDR" required>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Date</label>
                         <input type="date" id="tanggal" required>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Notes (optional)</label>
                         <textarea id="catatan" placeholder="Additional notes or description" rows="3"></textarea>
                     </div>
-
                     <button type="submit" id="btnTambah" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Record Expense</button>
-
                     <div id="expenseStatus" class="mt-4 p-4 border border-dashed rounded-lg text-xs text-muted">
                         <strong class="block mb-2">Status: Waiting for expense data</strong>
                         <span>Enter expense details to track cash outflow</span>
                     </div>
                 </form>
             </div>
-
             <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
                 <div class="space-y-4">
                     <h3 class="text-sm font-semibold uppercase tracking-wide">Expense Summary</h3>
@@ -144,7 +130,6 @@
                 </div>
             </div>
         </div>
-
         <div class="ghost-panel p-4 md:p-6 mt-6">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
                 <h2 class="text-xl font-bold">Recent Expenses</h2>
@@ -154,7 +139,6 @@
             </div>
         </div>
     </div>
-
     <!-- Mobile Bottom Navigation -->
     <nav class="spectre-bottomnav" aria-label="Mobile navigation">
         <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
@@ -163,9 +147,7 @@
         <a href="barang.html" class="spectre-bottomnav__item">Products</a>
         <a href="pengeluaran.html" class="spectre-bottomnav__item is-active">Expenses</a>
     </nav>
-
     <script src="pengeluaran.js"></script>
-
     <script>
         // Service Worker Registration
         if ('serviceWorker' in navigator) {

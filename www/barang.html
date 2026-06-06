@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPECTRE // Inventory Control</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
@@ -45,19 +45,15 @@
             font-weight: 700;
             line-height: 1.1;
         }
-        @media (max-width: 900px) {
-            .inventory-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 600px) {
-            .inventory-kpi-grid { grid-template-columns: 1fr; }
+        
+        /* KPI grid - horizontal scroll for desktop layout on mobile */
+        .inventory-kpi-grid {
         }
     </style>
 </head>
 <body class="spectre-body">
-
     <div class="spectre-content">
         <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
-
         <div class="ghost-panel p-6 mb-6">
             <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
                 <div>
@@ -66,7 +62,6 @@
                 </div>
             </div>
         </div>
-
         <div class="inventory-kpi-grid">
             <div class="inventory-kpi-card">
                 <div class="inventory-kpi-label">Total Products</div>
@@ -85,23 +80,19 @@
                 <div class="inventory-kpi-value" id="inventoryLowStock">0</div>
             </div>
         </div>
-
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="ghost-panel p-6 md:col-span-2">
                 <h2 class="text-2xl font-bold mb-1">Add New Product</h2>
                 <p class="text-muted text-sm mb-6">Enter product information below</p>
-
                 <form id="productForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium mb-2">Product Name</label>
                         <input type="text" id="nama_barang" class="uppercase" placeholder="e.g. SPECTRE SLICK DECK" required>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">SKU</label>
                         <input type="text" id="sku" placeholder="" required readonly>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Category</label>
                         <select id="kategori" required>
@@ -111,19 +102,16 @@
                             <option value="Perlengkapan">Hardware (Bearings, Griptapes)</option>
                         </select>
                     </div>
-
                     <div id="sizeContainer" class="hidden">
                         <label class="block text-sm font-medium mb-2">Size</label>
                         <select id="ukuran">
                             <option value="">-- Select Size --</option>
                         </select>
                     </div>
-
                     <div>
                         <label class="block text-sm font-medium mb-2">Stock Quantity</label>
                         <input type="number" id="stok" placeholder="0" required>
                     </div>
-
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium mb-2">Base Cost</label>
@@ -138,12 +126,10 @@
                             <input type="number" id="harga_member" placeholder="Rp" required>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-2 gap-4">
                         <button type="button" id="btnScanMasuk" class="spectre-btn">Scan Camera</button>
                         <button type="button" id="btnStopMasuk" class="spectre-btn spectre-cta--danger">Stop</button>
                     </div>
-
                     <div id="scanMasukStatus" class="p-4 border border-dashed rounded-lg text-xs text-muted">
                         <strong class="block mb-1">Scan Status: Ready</strong>
                         <span>Point camera at QR/barcode to detect</span>
@@ -152,7 +138,6 @@
                         <video id="scanMasukVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
                         <canvas id="scanMasukCanvas" class="hidden"></canvas>
                     </div>
-
                     <button type="submit" id="btnSimpan" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Add Product</button>
                     <div id="stockEntryStatus" class="mt-4 p-4 border border-dashed rounded-lg text-xs text-muted">
                         <strong class="block mb-2">Status: Waiting for product data</strong>
@@ -160,7 +145,6 @@
                     </div>
                 </form>
             </div>
-
             <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
                 <div class="space-y-4">
                     <h3 class="text-sm font-semibold uppercase tracking-wide">Live Preview</h3>
@@ -171,7 +155,6 @@
             </div>
         </div>
     </div>
-
     <!-- Mobile Bottom Navigation -->
     <nav class="spectre-bottomnav" aria-label="Mobile navigation">
         <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
@@ -180,22 +163,17 @@
         <a href="barang.html" class="spectre-bottomnav__item is-active">Products</a>
         <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
     </nav>
-
     <script>
         const sizeApparel = ['XS','S','M','L','XL','XXL','XXXL'];
-
         const sizeSkateboard = ['7.5"','7.75"','8.0"','8.25"','8.5"','8.75"','9.0"'];
-
         const kategoriEl = document.getElementById('kategori');
         const sizeContainer = document.getElementById('sizeContainer');
         const ukuranEl = document.getElementById('ukuran');
-
         function updateSizeOptions() {
             const val = kategoriEl.value;
             sizeContainer.classList.add('hidden');
             ukuranEl.innerHTML = '<option value="">-- PILIH UKURAN --</option>';
             ukuranEl.required = false;
-
             if (val === 'Apparel') {
                 sizeApparel.forEach(s => ukuranEl.innerHTML += `<option value="${s}">${s}</option>`);
                 sizeContainer.classList.remove('hidden');
@@ -206,7 +184,6 @@
                 ukuranEl.required = true;
             }
         }
-
         kategoriEl.addEventListener('change', updateSizeOptions);
         updateSizeOptions();
     </script>
