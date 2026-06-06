@@ -1,7 +1,5 @@
-const selectProduct = document.getElementById('selectProduct');
-const selectUkuran = document.getElementById('selectUkuran');
-const boxUkuranSelect = document.getElementById('boxUkuranSelect');
-const inputJumlah = document.getElementById('inputJumlah');
+// Variables declared in penjualan.js to avoid redeclaration
+// selectProduct, selectUkuran, boxUkuranSelect, inputJumlah
 
 // scan-helper.js attaches setupCameraScan to window
 
