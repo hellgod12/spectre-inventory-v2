@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package com.spectre.inventory;
 
 import static org.junit.Assert.*;
 
