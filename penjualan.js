@@ -113,23 +113,30 @@ function showSaleSuccess(message) {
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
 async function initTerminalData() {
+    console.log('initTerminalData started');
     // Marker untuk memastikan penjualan.js dieksekusi (debug UI)
     if (selectProduct) {
         selectProduct.innerHTML = '<option value="">>> PENJUALAN.JS LOAD OK</option>';
     }
 
     // Ambil Produk
+    console.log('loadProducts started');
     try {
         const { data: prods, error: prodErr } = await supabaseClient
             .from('products')
             .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
             .order('nama_barang');
 
+        console.log('Products result:', prods);
+        console.log('Products error:', prodErr);
+
         if (prodErr) {
             console.error('Gagal memuat products:', prodErr);
             selectProduct.innerHTML = `<option value="">>> GAGAL MEMUAT PRODUK: ${String(prodErr.message || prodErr).slice(0, 80)}</option>`;
             allProducts = [];
         } else if (prods && prods.length > 0) {
+            console.log("Products loaded:", prods);
+            console.log("Product count:", prods?.length);
             allProducts = prods;
             selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
             prods.forEach(p => {
@@ -138,6 +145,7 @@ async function initTerminalData() {
             });
         } else {
             // sukses tapi kosong
+            console.log("Products loaded: empty array");
             allProducts = [];
             selectProduct.innerHTML = '<option value="">>> PRODUK KOSONG</option>';
         }

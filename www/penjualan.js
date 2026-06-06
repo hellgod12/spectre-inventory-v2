@@ -113,17 +113,22 @@ function showSaleSuccess(message) {
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
 async function initTerminalData() {
+    console.log('initTerminalData started');
     // Marker untuk memastikan penjualan.js dieksekusi (debug UI)
     if (selectProduct) {
         selectProduct.innerHTML = '<option value="">>> PENJUALAN.JS LOAD OK</option>';
     }
 
     // Ambil Produk
+    console.log('loadProducts started');
     try {
         const { data: prods, error: prodErr } = await supabaseClient
             .from('products')
             .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
             .order('nama_barang');
+
+        console.log('Products result:', prods);
+        console.log('Products error:', prodErr);
 
         if (prodErr) {
             console.error('Supabase product error:', prodErr);
