@@ -126,10 +126,12 @@ async function initTerminalData() {
             .order('nama_barang');
 
         if (prodErr) {
-            console.error('Gagal memuat products:', prodErr);
+            console.error('Supabase product error:', prodErr);
             selectProduct.innerHTML = `<option value="">>> GAGAL MEMUAT PRODUK: ${String(prodErr.message || prodErr).slice(0, 80)}</option>`;
             allProducts = [];
         } else if (prods && prods.length > 0) {
+            console.log("Products loaded:", prods);
+            console.log("Product count:", prods?.length);
             allProducts = prods;
             selectProduct.innerHTML = '<option value="">-- KUNCI ID PRODUK --</option>';
             prods.forEach(p => {
@@ -138,6 +140,7 @@ async function initTerminalData() {
             });
         } else {
             // sukses tapi kosong
+            console.log("Products loaded: empty array");
             allProducts = [];
             selectProduct.innerHTML = '<option value="">>> PRODUK KOSONG</option>';
         }
