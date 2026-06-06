@@ -752,16 +752,17 @@ async function loadDashboard() {
         totalExpenses = expenses.reduce((sum, e) => sum + (parseFloat(e.nominal || 0)), 0);
     }
 
-    // Calculate revenue from payments table (only paid invoices)
-    // Revenue = SUM(paid_amount) dari transaksi PAID yang masih ada
+    // Calculate revenue from payments table (paid and partial invoices)
+    // Revenue = SUM(paid_amount) dari transaksi PAID dan PARTIAL yang masih ada
     const { data: payments } = await supabaseClient.from('payments').select('*');
     omsetAsli = 0;
     pendingRevenue = 0;
     if (payments) {
         payments.forEach(payment => {
-            if (payment.status === 'paid') {
+            if (payment.status === 'paid' || payment.status === 'partial') {
                 omsetAsli += parseFloat(payment.paid_amount || 0);
-            } else if (payment.status === 'pending' || payment.status === 'partial') {
+            }
+            if (payment.status === 'pending' || payment.status === 'partial') {
                 pendingRevenue += parseFloat(payment.remaining_amount || 0);
             }
         });
@@ -785,6 +786,12 @@ async function loadDashboard() {
     document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
     document.getElementById('totalProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
+    
+    // Display Outstanding Payment (Piutang)
+    const outstandingPaymentEl = document.getElementById('outstandingPayment');
+    if (outstandingPaymentEl) {
+        outstandingPaymentEl.innerText = 'Rp ' + pendingRevenue.toLocaleString('id-ID');
+    }
 
     // Hide loading skeleton after data is loaded
     hideLoadingSkeleton();
@@ -817,6 +824,7 @@ async function loadDashboard() {
     const profitTrendEl = document.getElementById('profitTrend');
     const expensesTrendEl = document.getElementById('expensesTrend');
     const balanceTrendEl = document.getElementById('balanceTrend');
+    const outstandingTrendEl = document.getElementById('outstandingTrend');
     const salesTrendEl = document.getElementById('salesTrend');
     const membersTrendEl = document.getElementById('membersTrend');
     const productsTrendEl = document.getElementById('productsTrend');
@@ -826,6 +834,7 @@ async function loadDashboard() {
     if (profitTrendEl) profitTrendEl.innerText = '↑ 0%';
     if (expensesTrendEl) expensesTrendEl.innerText = '↓ 0%';
     if (balanceTrendEl) balanceTrendEl.innerText = '↑ 0%';
+    if (outstandingTrendEl) outstandingTrendEl.innerText = '↓ 0%';
     if (salesTrendEl) salesTrendEl.innerText = '↑ 0%';
     if (membersTrendEl) membersTrendEl.innerText = '↑ 0%';
     if (productsTrendEl) productsTrendEl.innerText = '↑ 0%';
