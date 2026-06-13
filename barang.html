@@ -4,16 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPECTRE // Inventory Control</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0f1f">
+    <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SPECTRE">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <style>
-        /* iPhone Safe Area Support */
         @supports (padding: env(safe-area-inset-top)) {
             body {
                 padding-top: env(safe-area-inset-top);
@@ -22,7 +24,6 @@
                 padding-right: env(safe-area-inset-right);
             }
         }
-        
         .inventory-kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -30,154 +31,235 @@
             margin-bottom: 24px;
         }
         .inventory-kpi-card {
-            background: var(--surface);
+            background: var(--glass);
             border: 1px solid var(--stroke);
-            padding: 20px;
+            padding: 24px;
             border-radius: var(--radius-lg);
-            transition: all .2s ease;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
         .inventory-kpi-card:hover {
             border-color: var(--stroke-accent);
             box-shadow: var(--shadow-glow);
-            transform: translateY(-2px);
+            transform: translateY(-4px);
         }
         .inventory-kpi-label {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: 500;
         }
         .inventory-kpi-value {
-            font-size: 28px;
+            font-size: 32px;
             color: var(--text);
             font-weight: 700;
             line-height: 1.1;
+            font-family: var(--font-display);
         }
-        
-        /* KPI grid - horizontal scroll for desktop layout on mobile */
-        .inventory-kpi-grid {
+        @media(max-width:900px){
+            .inventory-kpi-grid{
+                grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+            }
+        }
+        @media(max-width:480px){
+            .inventory-kpi-grid{
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
 <body class="spectre-body">
-
-    <div class="spectre-content">
-        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
-
-        <div class="ghost-panel p-6 mb-6">
-            <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
-                <div>
-                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">Inventory Control</h1>
-                    <p class="text-muted text-lg mt-1">Manage inventory and add new products</p>
+    <div class="spectre-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="spectre-sidebar" aria-label="Primary">
+            <div class="spectre-sidebar__brand">
+                <div class="spectre-brand-logo">
+                    <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
+                </div>
+                <div class="spectre-brand-text">
+                    <h1 class="spectre-brand-title">SPECTRE</h1>
+                    <p class="spectre-brand-subtitle">CONTROL CENTER</p>
+                    <p class="spectre-brand-slogan">Built Different</p>
                 </div>
             </div>
-        </div>
-
-        <div class="inventory-kpi-grid">
-            <div class="inventory-kpi-card">
-                <div class="inventory-kpi-label">Total Products</div>
-                <div class="inventory-kpi-value" id="inventoryTotalProducts">0</div>
-            </div>
-            <div class="inventory-kpi-card">
-                <div class="inventory-kpi-label">Total Stock</div>
-                <div class="inventory-kpi-value" id="inventoryTotalStock">0</div>
-            </div>
-            <div class="inventory-kpi-card">
-                <div class="inventory-kpi-label">Inventory Value</div>
-                <div class="inventory-kpi-value" id="inventoryTotalValue">Rp 0</div>
-            </div>
-            <div class="inventory-kpi-card">
-                <div class="inventory-kpi-label">Low Stock Items</div>
-                <div class="inventory-kpi-value" id="inventoryLowStock">0</div>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="ghost-panel p-6 md:col-span-2">
-                <h2 class="text-2xl font-bold mb-1">Add New Product</h2>
-                <p class="text-muted text-sm mb-6">Enter product information below</p>
-
-                <form id="productForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Product Name</label>
-                        <input type="text" id="nama_barang" class="uppercase" placeholder="e.g. SPECTRE SLICK DECK" required>
+            <nav class="spectre-sidebar__nav">
+                <ul>
+                    <li><a href="index.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Dashboard</a></li>
+                    <li><a href="member.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Members</a></li>
+                    <li><a href="penjualan.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sales</a></li>
+                    <li class="active"><a href="barang.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Products</a></li>
+                    <li><a href="pengeluaran.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Expenses</a></li>
+                </ul>
+            </nav>
+            <div class="spectre-sidebar__footer">
+                <div class="spectre-user-profile">
+                    <div class="spectre-user-avatar" id="userAvatar">A</div>
+                    <div class="spectre-user-info">
+                        <div class="spectre-user-name" id="userName">Admin</div>
+                        <div class="spectre-user-role" id="userRole">Administrator</div>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-2">SKU</label>
-                        <input type="text" id="sku" placeholder="" required readonly>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Category</label>
-                        <select id="kategori" required>
-                            <option value="">-- Select Category --</option>
-                            <option value="Clothing">Clothing (T-Shirts, Hoodies)</option>
-                            <option value="Skateboard">Skateboard (Decks, Trucks, Fullset)</option>
-                            <option value="Perlengkapan">Hardware (Bearings, Griptapes)</option>
-                        </select>
-                    </div>
-
-                    <div id="sizeContainer" class="hidden">
-                        <label class="block text-sm font-medium mb-2">Size</label>
-                        <select id="ukuran">
-                            <option value="">-- Select Size --</option>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Stock Quantity</label>
-                        <input type="number" id="stok" placeholder="0" required>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Base Cost</label>
-                            <input type="number" id="harga_modal" placeholder="Rp" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Public Price</label>
-                            <input type="number" id="harga_jual" placeholder="Rp" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Member Price</label>
-                            <input type="number" id="harga_member" placeholder="Rp" required>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4">
-                        <button type="button" id="btnScanMasuk" class="spectre-btn">Scan Camera</button>
-                        <button type="button" id="btnStopMasuk" class="spectre-btn spectre-cta--danger">Stop</button>
-                    </div>
-
-                    <div id="scanMasukStatus" class="p-4 border border-dashed rounded-lg text-xs text-muted">
-                        <strong class="block mb-1">Scan Status: Ready</strong>
-                        <span>Point camera at QR/barcode to detect</span>
-                    </div>
-                    <div class="mt-3">
-                        <video id="scanMasukVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
-                        <canvas id="scanMasukCanvas" class="hidden"></canvas>
-                    </div>
-
-                    <button type="submit" id="btnSimpan" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Add Product</button>
-                    <div id="stockEntryStatus" class="mt-4 p-4 border border-dashed rounded-lg text-xs text-muted">
-                        <strong class="block mb-2">Status: Waiting for product data</strong>
-                        <span>Enter product details to add to inventory</span>
-                    </div>
-                </form>
-            </div>
-
-            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
-                <div class="space-y-4">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide">Live Preview</h3>
-                    <div id="productPreview" class="space-y-3 text-sm text-muted">
-                        <p class="animate-pulse">Waiting for product data...</p>
+                    <div class="spectre-user-actions">
+                        <button class="spectre-logout-btn" onclick="logout()">Logout</button>
                     </div>
                 </div>
             </div>
-        </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="spectre-content" role="main">
+            <!-- Topbar -->
+            <header class="spectre-topbar">
+                <div class="spectre-topbar__left">
+                    <div class="spectre-breadcrumb">
+                        <a href="index.html" class="spectre-breadcrumb__item">Dashboard</a>
+                        <span class="spectre-breadcrumb__separator">/</span>
+                        <span class="spectre-breadcrumb__item spectre-breadcrumb__item--active">Products</span>
+                    </div>
+                </div>
+                <div class="spectre-topbar__right">
+                    <div class="spectre-search">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search products..." class="spectre-search__input">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Welcome Section -->
+            <section class="spectre-welcome">
+                <div class="spectre-welcome__content">
+                    <h1 class="spectre-welcome__title">Inventory Control</h1>
+                    <p class="spectre-welcome__subtitle">Manage your product inventory and add new items</p>
+                </div>
+                <div class="spectre-welcome__actions">
+                    <button class="spectre-btn spectre-btn--primary" onclick="location.href='index.html'">Back to Dashboard</button>
+                </div>
+            </section>
+
+            <!-- KPI Cards -->
+            <div class="inventory-kpi-grid">
+                <div class="inventory-kpi-card">
+                    <div class="inventory-kpi-label">Total Products</div>
+                    <div class="inventory-kpi-value" id="inventoryTotalProducts">0</div>
+                </div>
+                <div class="inventory-kpi-card">
+                    <div class="inventory-kpi-label">Total Stock</div>
+                    <div class="inventory-kpi-value" id="inventoryTotalStock">0</div>
+                </div>
+                <div class="inventory-kpi-card">
+                    <div class="inventory-kpi-label">Inventory Value</div>
+                    <div class="inventory-kpi-value" id="inventoryTotalValue">Rp 0</div>
+                </div>
+                <div class="inventory-kpi-card">
+                    <div class="inventory-kpi-label">Low Stock Items</div>
+                    <div class="inventory-kpi-value" id="inventoryLowStock">0</div>
+                </div>
+            </div>
+
+            <!-- Two Column Layout -->
+            <section class="spectre-layout-grid">
+                <!-- Left: Add Product Form -->
+                <div class="spectre-card spectre-card--form">
+                    <div class="spectre-card__header">
+                        <h2>Add New Product</h2>
+                        <span class="text-xs text-muted">Enter product information</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <form id="productForm" class="space-y-4">
+                            <div class="form-group">
+                                <label class="form-label">Product Name</label>
+                                <input type="text" id="nama_barang" class="form-input uppercase" placeholder="e.g. SPECTRE SLICK DECK" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">SKU</label>
+                                <input type="text" id="sku" class="form-input" placeholder="" required readonly>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select id="kategori" class="form-input" required>
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Clothing">Clothing (T-Shirts, Hoodies)</option>
+                                    <option value="Skateboard">Skateboard (Decks, Trucks, Fullset)</option>
+                                    <option value="Perlengkapan">Hardware (Bearings, Griptapes)</option>
+                                </select>
+                            </div>
+
+                            <div id="sizeContainer" class="form-group hidden">
+                                <label class="form-label">Size</label>
+                                <select id="ukuran" class="form-input">
+                                    <option value="">-- Select Size --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Stock Quantity</label>
+                                <input type="number" id="stok" class="form-input" placeholder="0" required>
+                            </div>
+
+                            <div class="form-group-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Base Cost</label>
+                                    <input type="number" id="harga_modal" class="form-input" placeholder="Rp" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Public Price</label>
+                                    <input type="number" id="harga_jual" class="form-input" placeholder="Rp" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Member Price</label>
+                                    <input type="number" id="harga_member" class="form-input" placeholder="Rp" required>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" id="btnScanMasuk" class="spectre-btn">Scan Camera</button>
+                                <button type="button" id="btnStopMasuk" class="spectre-btn spectre-btn--danger">Stop</button>
+                            </div>
+
+                            <div id="scanMasukStatus" class="scan-status">
+                                <strong class="scan-status__title">Scan Status: Ready</strong>
+                                <span class="scan-status__text">Point camera at QR/barcode to detect</span>
+                            </div>
+                            <div class="scan-video">
+                                <video id="scanMasukVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
+                                <canvas id="scanMasukCanvas" class="hidden"></canvas>
+                            </div>
+
+                            <button type="submit" id="btnSimpan" class="spectre-btn spectre-btn--primary spectre-btn--full">Add Product</button>
+                            <div id="stockEntryStatus" class="scan-status">
+                                <strong class="scan-status__title">Status: Waiting for product data</strong>
+                                <span class="scan-status__text">Enter product details to add to inventory</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Live Preview -->
+                <div class="spectre-card spectre-card--preview">
+                    <div class="spectre-card__header">
+                        <h2>Live Preview</h2>
+                        <span class="text-xs text-muted">Real-time</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div id="productPreview" class="preview-content">
+                            <p class="preview-placeholder">Waiting for product data...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mobile Bottom Navigation -->
+            <nav class="spectre-bottomnav" aria-label="Mobile navigation">
+                <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
+                <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
+                <a href="barang.html" class="spectre-bottomnav__item is-active">Products</a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
+            </nav>
+        </main>
     </div>
 
     <script>
@@ -213,36 +295,25 @@
     <script src="candle-manager.js"></script>
     <script src="barang.js"></script>
     <script>
-        // Service Worker Registration + iOS update flow
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
                 try {
-                    console.log('[PWA] registering service-worker.js');
                     const registration = await navigator.serviceWorker.register('./service-worker.js');
-                    console.log('[PWA] SW registered. scope=', registration.scope);
-
                     if (registration.waiting) {
-                        console.log('[PWA] found waiting SW -> skipWaiting');
                         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
                     }
-
                     registration.addEventListener?.('updatefound', () => {
-                        console.log('[PWA] updatefound');
                         const installing = registration.installing;
                         if (!installing) return;
                         installing.addEventListener('statechange', () => {
-                            console.log('[PWA] installing state:', installing.state);
                             if (installing.state === 'installed') {
-                                console.log('[PWA] new SW installed -> skipWaiting');
                                 installing.postMessage({ type: 'SKIP_WAITING' });
                             }
                         });
                     });
-
                     navigator.serviceWorker.addEventListener('message', (event) => {
                         const msg = event.data || {};
                         if (msg.type === 'SW_VERSION') {
-                            console.log('[PWA] SW_VERSION message:', msg);
                             location.reload();
                         }
                     });
@@ -252,14 +323,5 @@
             });
         }
     </script>
-
-    
-    <!-- Mobile Bottom Navigation -->
-    <nav class="spectre-bottomnav" aria-label="Mobile navigation">
-        <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
-        <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
-        <a href="barang.html" class="spectre-bottomnav__item is-active">Products</a>
-        <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
-    </nav>
 </body>
 </html>

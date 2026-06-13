@@ -3,17 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPECTRE // Sales</title>
+    <title>SPECTRE // Sales Terminal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="status.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0f1f">
+    <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SPECTRE">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <style>
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
         .sales-kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -21,253 +32,369 @@
             margin-bottom: 24px;
         }
         .sales-kpi-card {
-            background: var(--surface);
+            background: var(--glass);
             border: 1px solid var(--stroke);
-            padding: 20px;
+            padding: 24px;
             border-radius: var(--radius-lg);
-            transition: all .2s ease;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
         .sales-kpi-card:hover {
             border-color: var(--stroke-accent);
             box-shadow: var(--shadow-glow);
-            transform: translateY(-2px);
+            transform: translateY(-4px);
         }
         .sales-kpi-label {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: 500;
         }
         .sales-kpi-value {
-            font-size: 28px;
+            font-size: 32px;
             color: var(--text);
             font-weight: 700;
             line-height: 1.1;
+            font-family: var(--font-display);
         }
         .sales-kpi-trend {
             font-size: 12px;
-            margin-top: 4px;
+            margin-top: 8px;
             color: var(--success);
         }
-        
-        /* KPI grid - horizontal scroll for desktop layout on mobile */
-        .sales-kpi-grid {
+        @media(max-width:900px){
+            .sales-kpi-grid{
+                grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+            }
+        }
+        @media(max-width:480px){
+            .sales-kpi-grid{
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
 <body class="spectre-body">
-    <div class="spectre-content">
-        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
-        <div class="ghost-panel p-6 mb-6">
-            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-6">
-                <div>
-                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">Sales Terminal</h1>
-                    <p class="text-muted text-lg mt-1">Process sales transactions and manage inventory</p>
+    <div class="spectre-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="spectre-sidebar" aria-label="Primary">
+            <div class="spectre-sidebar__brand">
+                <div class="spectre-brand-logo">
+                    <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
+                </div>
+                <div class="spectre-brand-text">
+                    <h1 class="spectre-brand-title">SPECTRE</h1>
+                    <p class="spectre-brand-subtitle">CONTROL CENTER</p>
+                    <p class="spectre-brand-slogan">Built Different</p>
                 </div>
             </div>
-        </div>
-        <div class="sales-kpi-grid">
-            <div class="sales-kpi-card">
-                <div class="sales-kpi-label">Revenue Today</div>
-                <div class="sales-kpi-value" id="salesRevenueToday">Rp 0</div>
-                <div class="sales-kpi-trend">↑ Live</div>
-            </div>
-            <div class="sales-kpi-card">
-                <div class="sales-kpi-label">Transactions Today</div>
-                <div class="sales-kpi-value" id="salesTransactionsToday">0</div>
-                <div class="sales-kpi-trend">↑ Live</div>
-            </div>
-            <div class="sales-kpi-card">
-                <div class="sales-kpi-label">Items Sold Today</div>
-                <div class="sales-kpi-value" id="salesItemsToday">0</div>
-                <div class="sales-kpi-trend">↑ Live</div>
-            </div>
-            <div class="sales-kpi-card">
-                <div class="sales-kpi-label">Profit Today</div>
-                <div class="sales-kpi-value" id="salesProfitToday">Rp 0</div>
-                <div class="sales-kpi-trend">↑ Live</div>
-            </div>
-        </div>
-        <div class="ghost-panel p-5 mb-6">
-            <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-                <div>
-                    <h3 class="text-sm font-semibold uppercase tracking-wide">Sales Summary</h3>
-                    <p class="text-muted text-sm mt-2">Overview of recent transactions</p>
+            <nav class="spectre-sidebar__nav">
+                <ul>
+                    <li><a href="index.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Dashboard</a></li>
+                    <li><a href="member.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Members</a></li>
+                    <li class="active"><a href="penjualan.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sales</a></li>
+                    <li><a href="barang.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Products</a></li>
+                    <li><a href="pengeluaran.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Expenses</a></li>
+                </ul>
+            </nav>
+            <div class="spectre-sidebar__footer">
+                <div class="spectre-user-profile">
+                    <div class="spectre-user-avatar" id="userAvatar">A</div>
+                    <div class="spectre-user-info">
+                        <div class="spectre-user-name" id="userName">Admin</div>
+                        <div class="spectre-user-role" id="userRole">Administrator</div>
+                    </div>
+                    <div class="spectre-user-actions">
+                        <button class="spectre-logout-btn" onclick="logout()">Logout</button>
+                    </div>
                 </div>
             </div>
-            <div class="sales-kpi-grid" style="margin-top: 16px; margin-bottom: 0;">
+        </aside>
+
+        <!-- Main content -->
+        <main class="spectre-content" role="main">
+            <!-- Topbar -->
+            <header class="spectre-topbar">
+                <div class="spectre-topbar__left">
+                    <div class="spectre-breadcrumb">
+                        <a href="index.html" class="spectre-breadcrumb__item">Dashboard</a>
+                        <span class="spectre-breadcrumb__separator">/</span>
+                        <span class="spectre-breadcrumb__item spectre-breadcrumb__item--active">Sales</span>
+                    </div>
+                </div>
+                <div class="spectre-topbar__right">
+                    <div class="spectre-search">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search sales..." class="spectre-search__input">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Welcome Section -->
+            <section class="spectre-welcome">
+                <div class="spectre-welcome__content">
+                    <h1 class="spectre-welcome__title">Sales Terminal</h1>
+                    <p class="spectre-welcome__subtitle">Process sales transactions and manage inventory</p>
+                </div>
+                <div class="spectre-welcome__actions">
+                    <button class="spectre-btn spectre-btn--primary" onclick="location.href='index.html'">Back to Dashboard</button>
+                </div>
+            </section>
+
+            <!-- KPI Cards -->
+            <div class="sales-kpi-grid">
                 <div class="sales-kpi-card">
-                    <div class="sales-kpi-label">Confirmed Transactions</div>
-                    <div class="sales-kpi-value" id="ledgerSalesCount">0</div>
+                    <div class="sales-kpi-label">Revenue Today</div>
+                    <div class="sales-kpi-value" id="salesRevenueToday">Rp 0</div>
+                    <div class="sales-kpi-trend">↑ Live</div>
                 </div>
                 <div class="sales-kpi-card">
-                    <div class="sales-kpi-label">Payments Received</div>
-                    <div class="sales-kpi-value" id="ledgerPaidCount">0</div>
+                    <div class="sales-kpi-label">Transactions Today</div>
+                    <div class="sales-kpi-value" id="salesTransactionsToday">0</div>
+                    <div class="sales-kpi-trend">↑ Live</div>
                 </div>
                 <div class="sales-kpi-card">
-                    <div class="sales-kpi-label">Pending Payments</div>
-                    <div class="sales-kpi-value" id="ledgerUnpaidCount">0</div>
+                    <div class="sales-kpi-label">Items Sold Today</div>
+                    <div class="sales-kpi-value" id="salesItemsToday">0</div>
+                    <div class="sales-kpi-trend">↑ Live</div>
+                </div>
+                <div class="sales-kpi-card">
+                    <div class="sales-kpi-label">Profit Today</div>
+                    <div class="sales-kpi-value" id="salesProfitToday">Rp 0</div>
+                    <div class="sales-kpi-trend">↑ Live</div>
                 </div>
             </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div id="salesPanel" class="ghost-panel p-6 md:col-span-2">
-                <h2 class="text-2xl font-bold mb-1">New Sale</h2>
-                <p class="text-muted text-sm mb-6">Process a new sales transaction</p>
-                <form id="salesForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Select Product</label>
-                        <select id="selectProduct" required>
-                            <option value="">-- Loading products... --</option>
-                        </select>
-                    </div>
-                    <div id="boxUkuranSelect" class="hidden">
-                        <label class="block text-sm font-medium mb-2">Size</label>
-                        <select id="selectUkuran">
-                            <option value="">-- Select Size --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Customer Type</label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum"> Regular Customer
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember"> Member
-                            </label>
+
+            <!-- Sales Summary -->
+            <div class="spectre-card spectre-card--summary">
+                <div class="spectre-card__header">
+                    <h2>Sales Summary</h2>
+                    <span class="text-xs text-muted">Overview of recent transactions</span>
+                </div>
+                <div class="spectre-card__body">
+                    <div class="sales-kpi-grid" style="margin-top: 0; margin-bottom: 0;">
+                        <div class="sales-kpi-card">
+                            <div class="sales-kpi-label">Confirmed Transactions</div>
+                            <div class="sales-kpi-value" id="ledgerSalesCount">0</div>
                         </div>
-                    </div>
-                    <div id="boxMemberSelect" class="hidden">
-                        <label class="block text-sm font-medium mb-2">Select Member</label>
-                        <select id="selectMember">
-                            <option value="">-- Select Member Phone --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Quantity</label>
-                        <input type="number" id="inputJumlah" min="1" value="1" required>
-                    </div>
-                    <div class="bg-surface p-4 border border-dashed rounded-lg space-y-2">
-                        <div class="flex justify-between text-sm">
-                            <span class="text-muted">Unit Price:</span>
-                            <span id="previewHargaSatuan" class="font-semibold">Rp 0</span>
+                        <div class="sales-kpi-card">
+                            <div class="sales-kpi-label">Payments Received</div>
+                            <div class="sales-kpi-value" id="ledgerPaidCount">0</div>
                         </div>
-                        <div class="flex justify-between font-semibold pt-2 border-t">
-                            <span>Total:</span>
-                            <span id="previewTotal" class="text-lg">Rp 0</span>
+                        <div class="sales-kpi-card">
+                            <div class="sales-kpi-label">Pending Payments</div>
+                            <div class="sales-kpi-value" id="ledgerUnpaidCount">0</div>
                         </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Price Information</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <span class="text-xs text-muted block mb-1">Regular Price</span>
-                                <span id="hargaUmumDefault" class="font-semibold">—</span>
-                            </div>
-                            <div>
-                                <span class="text-xs text-muted block mb-1">Member Price</span>
-                                <span id="hargaMemberDefault" class="font-semibold">—</span>
-                            </div>
-                        </div>
-                        <div class="mt-4">
-                            <label class="block text-sm font-medium mb-2">Price Override (optional)</label>
-                            <input type="number" id="harga_override" min="0" step="1" placeholder="Empty = use default price">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Payment Status</label>
-                        <div class="flex flex-wrap gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="payment_status" value="paid_full" checked id="payFull"> Paid Full
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="payment_status" value="partial" id="payPartial"> Partial Payment
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="payment_status" value="pay_later" id="payLater"> Pay Later
-                            </label>
-                        </div>
-                    </div>
-                    <div id="partialPaymentSection" class="hidden">
-                        <label class="block text-sm font-medium mb-2">Amount Paid</label>
-                        <input type="number" id="amountPaid" min="0" step="1" placeholder="Enter payment amount">
-                        <div class="mt-2 p-3 bg-black/50 border border-stone-800 rounded text-xs space-y-1">
-                            <div class="flex justify-between">
-                                <span class="text-muted">Total:</span>
-                                <span id="partialTotal" class="font-semibold">Rp 0</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-muted">Paid:</span>
-                                <span id="partialPaid" class="font-semibold text-green-400">Rp 0</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-muted">Remaining:</span>
-                                <span id="partialRemaining" class="font-semibold text-yellow-400">Rp 0</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Payment Method</label>
-                        <div class="flex flex-wrap gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash"> Cash
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer"> Transfer
-                            </label>
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <button type="button" id="btnScanTerjual" class="spectre-btn">Scan Camera</button>
-                        <button type="button" id="btnStopTerjual" class="spectre-btn spectre-cta--danger">Stop</button>
-                    </div>
-                    <div id="scanTerjualStatus" class="p-4 border border-dashed rounded-lg text-xs text-muted">
-                        <strong class="block mb-1">Scan Status: Ready</strong>
-                        <span>Point camera at product QR/barcode</span>
-                    </div>
-                    <div class="mt-3">
-                        <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
-                        <canvas id="scanTerjualCanvas" class="hidden"></canvas>
-                    </div>
-                    <button type="submit" id="btnProses" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Process Sale</button>
-                </form>
-            </div>
-            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
-                <div class="space-y-4">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide">Live Transaction Summary</h3>
-                    <div id="productDetail" class="space-y-3 text-sm text-muted">
-                        <p class="animate-pulse">Waiting for product selection...</p>
                     </div>
                 </div>
             </div>
-        </div>
+
+            <!-- Two Column Layout -->
+            <section class="spectre-layout-grid">
+                <!-- Left: Sales Form -->
+                <div class="spectre-card spectre-card--form">
+                    <div class="spectre-card__header">
+                        <h2>New Sale</h2>
+                        <span class="text-xs text-muted">Process a new sales transaction</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <form id="salesForm" class="space-y-4">
+                            <div class="form-group">
+                                <label class="form-label">Select Product</label>
+                                <select id="selectProduct" class="form-input" required>
+                                    <option value="">-- Loading products... --</option>
+                                </select>
+                            </div>
+
+                            <div id="boxUkuranSelect" class="form-group hidden">
+                                <label class="form-label">Size</label>
+                                <select id="selectUkuran" class="form-input">
+                                    <option value="">-- Select Size --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Customer Type</label>
+                                <div class="form-radio-group">
+                                    <label class="form-radio">
+                                        <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum">
+                                        <span>Regular Customer</span>
+                                    </label>
+                                    <label class="form-radio">
+                                        <input type="radio" name="tipe_pembeli" value="Member" id="typeMember">
+                                        <span>Member</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="boxMemberSelect" class="form-group hidden">
+                                <label class="form-label">Select Member</label>
+                                <select id="selectMember" class="form-input">
+                                    <option value="">-- Select Member Phone --</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Quantity</label>
+                                <input type="number" id="inputJumlah" class="form-input" min="1" value="1" required>
+                            </div>
+
+                            <div class="price-summary">
+                                <div class="price-summary__row">
+                                    <span class="price-summary__label">Unit Price:</span>
+                                    <span id="previewHargaSatuan" class="price-summary__value">Rp 0</span>
+                                </div>
+                                <div class="price-summary__row price-summary__row--total">
+                                    <span class="price-summary__label">Total:</span>
+                                    <span id="previewTotal" class="price-summary__value price-summary__value--total">Rp 0</span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Price Information</label>
+                                <div class="price-info-grid">
+                                    <div>
+                                        <span class="price-info-label">Regular Price</span>
+                                        <span id="hargaUmumDefault" class="price-info-value">—</span>
+                                    </div>
+                                    <div>
+                                        <span class="price-info-label">Member Price</span>
+                                        <span id="hargaMemberDefault" class="price-info-value">—</span>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="margin-top: 16px;">
+                                    <label class="form-label">Price Override (optional)</label>
+                                    <input type="number" id="harga_override" class="form-input" min="0" step="1" placeholder="Empty = use default price">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Payment Status</label>
+                                <div class="form-radio-group">
+                                    <label class="form-radio">
+                                        <input type="radio" name="payment_status" value="paid_full" checked id="payFull">
+                                        <span>Paid Full</span>
+                                    </label>
+                                    <label class="form-radio">
+                                        <input type="radio" name="payment_status" value="partial" id="payPartial">
+                                        <span>Partial Payment</span>
+                                    </label>
+                                    <label class="form-radio">
+                                        <input type="radio" name="payment_status" value="pay_later" id="payLater">
+                                        <span>Pay Later</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div id="partialPaymentSection" class="form-group hidden">
+                                <label class="form-label">Amount Paid</label>
+                                <input type="number" id="amountPaid" class="form-input" min="0" step="1" placeholder="Enter payment amount">
+                                <div class="partial-payment-summary">
+                                    <div class="partial-payment-summary__row">
+                                        <span class="partial-payment-summary__label">Total:</span>
+                                        <span id="partialTotal" class="partial-payment-summary__value">Rp 0</span>
+                                    </div>
+                                    <div class="partial-payment-summary__row">
+                                        <span class="partial-payment-summary__label">Paid:</span>
+                                        <span id="partialPaid" class="partial-payment-summary__value partial-payment-summary__value--success">Rp 0</span>
+                                    </div>
+                                    <div class="partial-payment-summary__row">
+                                        <span class="partial-payment-summary__label">Remaining:</span>
+                                        <span id="partialRemaining" class="partial-payment-summary__value partial-payment-summary__value--warning">Rp 0</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Payment Method</label>
+                                <div class="form-radio-group">
+                                    <label class="form-radio">
+                                        <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash">
+                                        <span>Cash</span>
+                                    </label>
+                                    <label class="form-radio">
+                                        <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer">
+                                        <span>Transfer</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" id="btnScanTerjual" class="spectre-btn">Scan Camera</button>
+                                <button type="button" id="btnStopTerjual" class="spectre-btn spectre-btn--danger">Stop</button>
+                            </div>
+
+                            <div id="scanTerjualStatus" class="scan-status">
+                                <strong class="scan-status__title">Scan Status: Ready</strong>
+                                <span class="scan-status__text">Point camera at product QR/barcode</span>
+                            </div>
+                            <div class="scan-video">
+                                <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
+                                <canvas id="scanTerjualCanvas" class="hidden"></canvas>
+                            </div>
+
+                            <button type="submit" id="btnProses" class="spectre-btn spectre-btn--primary spectre-btn--full">Process Sale</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Live Transaction Summary -->
+                <div class="spectre-card spectre-card--preview">
+                    <div class="spectre-card__header">
+                        <h2>Live Transaction Summary</h2>
+                        <span class="text-xs text-muted">Real-time</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div id="productDetail" class="preview-content">
+                            <p class="preview-placeholder">Waiting for product selection...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Mobile Bottom Navigation -->
+            <nav class="spectre-bottomnav" aria-label="Mobile navigation">
+                <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
+                <a href="penjualan.html" class="spectre-bottomnav__item is-active">Sales</a>
+                <a href="barang.html" class="spectre-bottomnav__item">Products</a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
+            </nav>
+        </main>
     </div>
-    <!-- Mobile Bottom Navigation -->
-    <nav class="spectre-bottomnav" aria-label="Mobile navigation">
-        <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
-        <a href="member.html" class="spectre-bottomnav__item">Members</a>
-        <a href="penjualan.html" class="spectre-bottomnav__item is-active">Sales</a>
-        <a href="barang.html" class="spectre-bottomnav__item">Products</a>
-        <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
-    </nav>
+
     <script src="scan-helper.js"></script>
     <script src="scan-terjual.js"></script>
     <script src="candle-manager.js"></script>
     <script src="penjualan.js"></script>
     <script>
-        // Service Worker Registration
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(registration => {
-                        console.log('[PWA] Service Worker registered with scope:', registration.scope);
-                    })
-                    .catch(error => {
-                        console.error('[PWA] Service Worker registration failed:', error);
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('./service-worker.js');
+                    if (registration.waiting) {
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    registration.addEventListener?.('updatefound', () => {
+                        const installing = registration.installing;
+                        if (!installing) return;
+                        installing.addEventListener('statechange', () => {
+                            if (installing.state === 'installed') {
+                                installing.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        });
                     });
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        const msg = event.data || {};
+                        if (msg.type === 'SW_VERSION') {
+                            location.reload();
+                        }
+                    });
+                } catch (error) {
+                    console.error('[PWA] Service Worker registration failed:', error);
+                }
             });
         }
     </script>

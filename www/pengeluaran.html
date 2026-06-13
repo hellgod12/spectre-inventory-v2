@@ -3,16 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SPECTRE // Expenses</title>
+    <title>SPECTRE // Expense Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#0a0f1f">
+    <meta name="theme-color" content="#050505">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="SPECTRE">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <style>
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
         .expense-kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -20,145 +31,251 @@
             margin-bottom: 24px;
         }
         .expense-kpi-card {
-            background: var(--surface);
+            background: var(--glass);
             border: 1px solid var(--stroke);
-            padding: 20px;
+            padding: 24px;
             border-radius: var(--radius-lg);
-            transition: all .2s ease;
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
         .expense-kpi-card:hover {
             border-color: var(--stroke-accent);
             box-shadow: var(--shadow-glow);
-            transform: translateY(-2px);
+            transform: translateY(-4px);
         }
         .expense-kpi-label {
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.05em;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 12px;
             font-weight: 500;
         }
         .expense-kpi-value {
-            font-size: 28px;
+            font-size: 32px;
             color: var(--text);
             font-weight: 700;
             line-height: 1.1;
+            font-family: var(--font-display);
         }
-        
-        /* KPI grid - horizontal scroll for desktop layout on mobile */
-        .expense-kpi-grid {
+        @media(max-width:900px){
+            .expense-kpi-grid{
+                grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+            }
+        }
+        @media(max-width:480px){
+            .expense-kpi-grid{
+                grid-template-columns: 1fr !important;
+            }
         }
     </style>
 </head>
 <body class="spectre-body">
-    <div class="spectre-content">
-        <a href="index.html" class="spectre-btn mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg> Back to Dashboard</a>
-        <div class="ghost-panel p-6 mb-6">
-            <div class="flex flex-col lg:flex-row lg:justify-between gap-6">
-                <div>
-                    <h1 class="text-4xl font-bold tracking-tight mb-2" style="background: var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; filter: drop-shadow(0 0 30px rgba(124,92,255,0.3)); letter-spacing: -0.02em;">Expense Management</h1>
-                    <p class="text-muted text-lg mt-1">Track and manage business expenses</p>
+    <div class="spectre-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="spectre-sidebar" aria-label="Primary">
+            <div class="spectre-sidebar__brand">
+                <div class="spectre-brand-logo">
+                    <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
+                </div>
+                <div class="spectre-brand-text">
+                    <h1 class="spectre-brand-title">SPECTRE</h1>
+                    <p class="spectre-brand-subtitle">CONTROL CENTER</p>
+                    <p class="spectre-brand-slogan">Built Different</p>
                 </div>
             </div>
-        </div>
-        <div class="expense-kpi-grid">
-            <div class="expense-kpi-card">
-                <div class="expense-kpi-label">Total Expenses</div>
-                <div class="expense-kpi-value" id="expenseTotal">Rp 0</div>
-            </div>
-            <div class="expense-kpi-card">
-                <div class="expense-kpi-label">Monthly Expenses</div>
-                <div class="expense-kpi-value" id="expenseMonthly">Rp 0</div>
-            </div>
-            <div class="expense-kpi-card">
-                <div class="expense-kpi-label">Average Expense</div>
-                <div class="expense-kpi-value" id="expenseAverage">Rp 0</div>
-            </div>
-            <div class="expense-kpi-card">
-                <div class="expense-kpi-label">Largest Expense</div>
-                <div class="expense-kpi-value" id="expenseLargest">Rp 0</div>
-            </div>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="ghost-panel p-6 md:col-span-2">
-                <h2 class="text-2xl font-bold mb-1">Record Expense</h2>
-                <p class="text-muted text-sm mb-6">Enter expense details below</p>
-                <form id="expenseForm" class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Description</label>
-                        <input type="text" id="keterangan" class="uppercase" placeholder="e.g. Packaging, Electricity" required>
+            <nav class="spectre-sidebar__nav">
+                <ul>
+                    <li><a href="index.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Dashboard</a></li>
+                    <li><a href="member.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Members</a></li>
+                    <li><a href="penjualan.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sales</a></li>
+                    <li><a href="barang.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Products</a></li>
+                    <li class="active"><a href="pengeluaran.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Expenses</a></li>
+                </ul>
+            </nav>
+            <div class="spectre-sidebar__footer">
+                <div class="spectre-user-profile">
+                    <div class="spectre-user-avatar" id="userAvatar">A</div>
+                    <div class="spectre-user-info">
+                        <div class="spectre-user-name" id="userName">Admin</div>
+                        <div class="spectre-user-role" id="userRole">Administrator</div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Category</label>
-                        <select id="kategori" required>
-                            <option value="">-- Select Category --</option>
-                            <option value="Operasional">Operations</option>
-                            <option value="Pembelian Stok">Stock Purchase</option>
-                            <option value="Listrik">Utilities</option>
-                            <option value="Transport">Transport</option>
-                            <option value="Maintenance">Maintenance</option>
-                            <option value="Gaji">Salaries</option>
-                            <option value="Lainnya">Other</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Amount</label>
-                        <input type="number" id="nominal" placeholder="Amount in IDR" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Date</label>
-                        <input type="date" id="tanggal" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Notes (optional)</label>
-                        <textarea id="catatan" placeholder="Additional notes or description" rows="3"></textarea>
-                    </div>
-                    <button type="submit" id="btnTambah" class="spectre-btn spectre-cta--primary w-full text-lg py-4">Record Expense</button>
-                    <div id="expenseStatus" class="mt-4 p-4 border border-dashed rounded-lg text-xs text-muted">
-                        <strong class="block mb-2">Status: Waiting for expense data</strong>
-                        <span>Enter expense details to track cash outflow</span>
-                    </div>
-                </form>
-            </div>
-            <div class="ghost-panel p-5 flex flex-col justify-between bg-surface">
-                <div class="space-y-4">
-                    <h3 class="text-sm font-semibold uppercase tracking-wide">Expense Summary</h3>
-                    <div id="expenseSummary" class="space-y-3 text-sm text-muted">
-                        <p class="animate-pulse">Waiting for expense data...</p>
+                    <div class="spectre-user-actions">
+                        <button class="spectre-logout-btn" onclick="logout()">Logout</button>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="ghost-panel p-4 md:p-6 mt-6">
-            <div class="flex justify-between items-center mb-4 border-b pb-3">
-                <h2 class="text-xl font-bold">Recent Expenses</h2>
+        </aside>
+
+        <!-- Main content -->
+        <main class="spectre-content" role="main">
+            <!-- Topbar -->
+            <header class="spectre-topbar">
+                <div class="spectre-topbar__left">
+                    <div class="spectre-breadcrumb">
+                        <a href="index.html" class="spectre-breadcrumb__item">Dashboard</a>
+                        <span class="spectre-breadcrumb__separator">/</span>
+                        <span class="spectre-breadcrumb__item spectre-breadcrumb__item--active">Expenses</span>
+                    </div>
+                </div>
+                <div class="spectre-topbar__right">
+                    <div class="spectre-search">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        <input type="text" placeholder="Search expenses..." class="spectre-search__input">
+                    </div>
+                </div>
+            </header>
+
+            <!-- Welcome Section -->
+            <section class="spectre-welcome">
+                <div class="spectre-welcome__content">
+                    <h1 class="spectre-welcome__title">Expense Management</h1>
+                    <p class="spectre-welcome__subtitle">Track and manage business expenses</p>
+                </div>
+                <div class="spectre-welcome__actions">
+                    <button class="spectre-btn spectre-btn--primary" onclick="location.href='index.html'">Back to Dashboard</button>
+                </div>
+            </section>
+
+            <!-- KPI Cards -->
+            <div class="expense-kpi-grid">
+                <div class="expense-kpi-card">
+                    <div class="expense-kpi-label">Total Expenses</div>
+                    <div class="expense-kpi-value" id="expenseTotal">Rp 0</div>
+                </div>
+                <div class="expense-kpi-card">
+                    <div class="expense-kpi-label">Monthly Expenses</div>
+                    <div class="expense-kpi-value" id="expenseMonthly">Rp 0</div>
+                </div>
+                <div class="expense-kpi-card">
+                    <div class="expense-kpi-label">Average Expense</div>
+                    <div class="expense-kpi-value" id="expenseAverage">Rp 0</div>
+                </div>
+                <div class="expense-kpi-card">
+                    <div class="expense-kpi-label">Largest Expense</div>
+                    <div class="expense-kpi-value" id="expenseLargest">Rp 0</div>
+                </div>
             </div>
-            <div id="expenseContainer" class="overflow-x-auto">
-                <div class="p-8 text-center text-muted text-xs">Loading expense data...</div>
+
+            <!-- Two Column Layout -->
+            <section class="spectre-layout-grid">
+                <!-- Left: Expense Form -->
+                <div class="spectre-card spectre-card--form">
+                    <div class="spectre-card__header">
+                        <h2>Record Expense</h2>
+                        <span class="text-xs text-muted">Enter expense details</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <form id="expenseForm" class="space-y-4">
+                            <div class="form-group">
+                                <label class="form-label">Description</label>
+                                <input type="text" id="keterangan" class="form-input uppercase" placeholder="e.g. Packaging, Electricity" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <select id="kategori" class="form-input" required>
+                                    <option value="">-- Select Category --</option>
+                                    <option value="Operasional">Operations</option>
+                                    <option value="Pembelian Stok">Stock Purchase</option>
+                                    <option value="Listrik">Utilities</option>
+                                    <option value="Transport">Transport</option>
+                                    <option value="Maintenance">Maintenance</option>
+                                    <option value="Gaji">Salaries</option>
+                                    <option value="Lainnya">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Amount</label>
+                                <input type="number" id="nominal" class="form-input" placeholder="Amount in IDR" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" id="tanggal" class="form-input" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">Notes (optional)</label>
+                                <textarea id="catatan" class="form-input" placeholder="Additional notes or description" rows="3"></textarea>
+                            </div>
+
+                            <button type="submit" id="btnTambah" class="spectre-btn spectre-btn--primary spectre-btn--full">Record Expense</button>
+
+                            <div id="expenseStatus" class="scan-status">
+                                <strong class="scan-status__title">Status: Waiting for expense data</strong>
+                                <span class="scan-status__text">Enter expense details to track cash outflow</span>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Right: Expense Summary -->
+                <div class="spectre-card spectre-card--preview">
+                    <div class="spectre-card__header">
+                        <h2>Expense Summary</h2>
+                        <span class="text-xs text-muted">Real-time</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div id="expenseSummary" class="preview-content">
+                            <p class="preview-placeholder">Waiting for expense data...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Expenses -->
+            <div class="spectre-card">
+                <div class="spectre-card__header">
+                    <h2>Recent Expenses</h2>
+                    <span class="text-xs text-muted">Latest transactions</span>
+                </div>
+                <div class="spectre-card__body">
+                    <div id="expenseContainer" class="overflow-x-auto">
+                        <div class="p-8 text-center text-muted text-xs">Loading expense data...</div>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- Mobile Bottom Navigation -->
+            <nav class="spectre-bottomnav" aria-label="Mobile navigation">
+                <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
+                <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
+                <a href="barang.html" class="spectre-bottomnav__item">Products</a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item is-active">Expenses</a>
+            </nav>
+        </main>
     </div>
-    <!-- Mobile Bottom Navigation -->
-    <nav class="spectre-bottomnav" aria-label="Mobile navigation">
-        <a href="index.html" class="spectre-bottomnav__item">Dashboard</a>
-        <a href="member.html" class="spectre-bottomnav__item">Members</a>
-        <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
-        <a href="barang.html" class="spectre-bottomnav__item">Products</a>
-        <a href="pengeluaran.html" class="spectre-bottomnav__item is-active">Expenses</a>
-    </nav>
+
     <script src="pengeluaran.js"></script>
     <script>
-        // Service Worker Registration
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./service-worker.js')
-                    .then(registration => {
-                        // Service Worker registered
-                    })
-                    .catch(error => {
-                        console.error('[PWA] Service Worker registration failed:', error);
+            window.addEventListener('load', async () => {
+                try {
+                    const registration = await navigator.serviceWorker.register('./service-worker.js');
+                    if (registration.waiting) {
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+                    registration.addEventListener?.('updatefound', () => {
+                        const installing = registration.installing;
+                        if (!installing) return;
+                        installing.addEventListener('statechange', () => {
+                            if (installing.state === 'installed') {
+                                installing.postMessage({ type: 'SKIP_WAITING' });
+                            }
+                        });
                     });
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        const msg = event.data || {};
+                        if (msg.type === 'SW_VERSION') {
+                            location.reload();
+                        }
+                    });
+                } catch (error) {
+                    console.error('[PWA] Service Worker registration failed:', error);
+                }
             });
         }
     </script>
