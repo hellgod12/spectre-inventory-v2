@@ -1,5 +1,6 @@
 {
   "appId": "com.spectre.inventory",
   "appName": "SPECTRE Inventory",
-  "webDir": "www"
+  "webDir": "www",
+  "icon": "assets/logos/logo-spectre-icon.png"
 }

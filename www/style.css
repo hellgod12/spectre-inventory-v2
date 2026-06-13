@@ -5,59 +5,59 @@
   box-sizing:border-box;
 }
 :root{
-  --bg0:#03050a;
-  --bg1:#0a0f1e;
-  --surface:#0B1020;
-  --surface2: rgba(11,16,32,.85);
-  --surface3: rgba(11,16,32,.95);
+  --bg0:#000000;
+  --bg1:#080808;
+  --surface:#111111;
+  --surface2: rgba(17,17,17,.85);
+  --surface3: rgba(17,17,17,.95);
   --text:#FFFFFF;
   --text-secondary:rgba(255,255,255,0.70);
   --text-tertiary:rgba(255,255,255,0.50);
-  --accent:#7C5CFF;
-  --accent2:#A78BFA;
-  --accent3:#C4B5FD;
+  --accent:#1a1a1a;
+  --accent2:#2a2a2a;
+  --accent3:#3a3a3a;
   --success:#10b981;
   --warning:#f59e0b;
-  --danger:#ef4444;
-  --radius-sm:8px;
-  --radius:12px;
-  --radius-lg:16px;
-  --radius-xl:20px;
-  --stroke: rgba(255,255,255,0.08);
-  --stroke-hover: rgba(255,255,255,0.12);
-  --stroke-accent: rgba(124,92,255,.3);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
-  --shadow: 0 4px 12px rgba(0,0,0,.5);
-  --shadow-lg: 0 8px 24px rgba(0,0,0,.6);
-  --shadow-xl: 0 16px 48px rgba(0,0,0,.7);
-  --shadow-glow: 0 0 40px rgba(124,92,255,.15);
-  --shadow-glow-strong: 0 0 60px rgba(124,92,255,.25);
-  --glass: rgba(11,16,32,.72);
-  --glass-strong: rgba(11,16,32,.88);
-  --focus: 0 0 0 3px rgba(124,92,255,.2), 0 0 0 1px rgba(124,92,255,.4);
-  --font-sans: "Inter", "Plus Jakarta Sans", "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --gradient-primary: linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%);
-  --gradient-primary-hover: linear-gradient(135deg, #8B6BFF 0%, #B69BFF 100%);
-  --gradient-surface: linear-gradient(180deg, rgba(11,16,32,.88) 0%, rgba(11,16,32,.72) 100%);
-  --gradient-glow: radial-gradient(ellipse at center, rgba(124,92,255,0.15) 0%, transparent 70%);
+  --danger:#8B0000;
+  --radius-sm:4px;
+  --radius:8px;
+  --radius-lg:12px;
+  --radius-xl:16px;
+  --stroke: rgba(255,255,255,0.06);
+  --stroke-hover: rgba(255,255,255,0.10);
+  --stroke-accent: rgba(139,0,0,.2);
+  --gradient-primary: linear-gradient(135deg, #8B0000 0%, #C41E3A 50%, #8B0000 100%);
+  --gradient-secondary: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  --shadow: 0 4px 12px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  --shadow-glow: 0 8px 24px rgba(139,0,0,0.2);
+  --shadow-glow-strong: 0 12px 32px rgba(139,0,0,0.3);
+  --glass: rgba(17,17,17,0.6);
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
-html{scroll-behavior:smooth;}
-body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
-/* Ensure Tailwind overflow helpers don’t break layout */
-.overflow-x-auto{max-width:100%;}
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce){
-  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important; scroll-behavior:auto !important;}
+body{
+  background: var(--bg0);
+  background-image: 
+    radial-gradient(ellipse at top, rgba(139,0,0,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(139,0,0,0.05) 0%, transparent 50%),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.03'/%3E%3C/svg%3E");
+  background-attachment: fixed;
+  background-size: cover, cover, 200px 200px;
+  background-repeat: no-repeat, no-repeat, repeat;
+  color: var(--text);
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  min-height: 100vh;
+}
 }
 /* Base typography */
 .spectre-body{
   font-family: var(--font-sans);
   background: var(--bg0);
   background-image: 
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(124,92,255,.12), transparent),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(167,139,250,.08), transparent),
-    radial-gradient(ellipse 40% 30% at 0% 50%, rgba(124,92,255,.06), transparent);
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139,0,0,.03), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(26,26,26,.02), transparent),
+    radial-gradient(ellipse 40% 30% at 0% 50%, rgba(42,42,42,.01), transparent);
   color:var(--text);
   display:flex;
   min-height:100vh;
@@ -158,41 +158,66 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   display:flex;
   flex-direction:column;
 }
-.spectre-sidebar__brand{margin-bottom:32px;}
+.spectre-sidebar__brand{margin-bottom:40px; padding: 24px 0; border-bottom: 1px solid var(--stroke); display: flex; flex-direction: column; align-items: center; text-align: center;}
 .spectre-logo-mark{
-  width:40px;
-  height:40px;
+  width:48px;
+  height:48px;
   border-radius: var(--radius);
   margin-bottom:16px;
   box-shadow: var(--shadow-glow);
   object-fit: contain;
 }
-.spectre-logo-text{display:flex;flex-direction:column;}
-.spectre-logo-text h1{
-  font-size:20px;
-  font-weight:800;
-  letter-spacing:-.03em;
-  background: var(--gradient-primary);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  background-clip:text;
-  text-shadow: 0 0 30px rgba(124,92,255,0.3);
-  filter: drop-shadow(0 0 20px rgba(124,92,255,0.2));
+.spectre-brand-logo{
+  margin-bottom: 20px;
 }
-.spectre-sidebar__warn{
-  margin-top:4px;
-  font-size:11px;
-  color: var(--text-tertiary);
-  text-transform:uppercase;
-  letter-spacing:.1em;
+.spectre-brand-logo img{
+  width: 84px;
+  height: 84px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px rgba(139,0,0,0.15));
 }
-.spectre-sidebar__nav ul{
-  list-style:none;
-  margin:0;
-  padding:0;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
+.spectre-brand-text{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.spectre-brand-title{
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+.spectre-brand-subtitle{
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.spectre-brand-slogan{
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8B0000;
+  margin: 0;
+}
+@media(max-width:900px){
+  .spectre-brand-logo img{
+    width: 72px;
+    height: 72px;
+  }
+  .spectre-brand-title{
+    font-size: 24px;
+  }
+  .spectre-sidebar__brand{
+    margin-bottom: 24px;
+    padding: 16px 0;
+  }
 }
 .spectre-navlink{
   display:flex;
@@ -810,7 +835,8 @@ html {
   background: var(--surface);
   border:1px solid var(--stroke);
   border-radius: var(--radius-lg);
-  padding:24px;
+  padding:32px;
+  min-height:180px;
   display:flex;
   align-items:flex-start;
   gap:16px;
@@ -818,7 +844,6 @@ html {
   cursor:default;
   position: relative;
   overflow: hidden;
-}
 .spectre-kpi-card::before{
   content: '';
   position: absolute;
@@ -831,9 +856,9 @@ html {
   transition: opacity .3s ease;
 }
 .spectre-kpi-card:hover{
-  transform:translateY(-4px);
+  transform:translateY(-6px);
   border-color: var(--stroke-accent);
-  box-shadow: var(--shadow-glow-strong);
+  box-shadow: var(--shadow-glow-strong), 0 0 40px rgba(139,0,0,0.1);
 }
 .spectre-kpi-card:hover::before{
   opacity: 1;
@@ -867,10 +892,11 @@ html {
 }
 .spectre-kpi-label{
   font-size:13px;
-  font-weight:500;
+  font-weight:600;
   color: var(--text-secondary);
-  text-transform:uppercase;
-  letter-spacing:.05em;
+  margin-bottom:16px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 .spectre-kpi-trend{
   font-size:12px;
@@ -891,12 +917,12 @@ html {
   color: var(--text-secondary);
 }
 .spectre-kpi-value{
-  font-size:42px;
-  font-weight:800;
+  font-size:64px;
+  font-weight:900;
   color: var(--text);
-  margin-bottom:6px;
-  line-height:1.1;
-  letter-spacing:-0.03em;
+  margin-bottom:12px;
+  line-height:1;
+  letter-spacing: -0.02em;
   background: linear-gradient(135deg, #FFFFFF 0%, rgba(255,255,255,0.8) 100%);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
@@ -950,91 +976,92 @@ html {
 /* Dashboard Hero Section */
 .spectre-dashboard-hero{
   margin-bottom: 24px;
-  padding: 24px;
+  padding: 32px;
   background: var(--glass);
-  border: 1px solid var(--stroke);
+  border:1px solid var(--stroke);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow), 0 0 60px rgba(139,0,0,0.15);
   transition: all .3s ease;
+  position: relative;
 }
-.spectre-dashboard-hero:hover{
-  border-color: var(--stroke-accent);
-  box-shadow: var(--shadow-glow);
+.spectre-dashboard-hero::before{
+  content: ''
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  background: radial-gradient(circle at center, rgba(139,0,0,0.1) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
 }
-.spectre-dashboard-hero__greeting{
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.spectre-dashboard-hero:hover::before{
+  opacity: 1;
 }
-.spectre-dashboard-hero__welcome{
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  letter-spacing: -0.01em;
-  margin: 0;
-}
-.spectre-dashboard-hero__username{
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.03em;
-  margin: 0;
-  background: var(--gradient-primary);
-  -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
   background-clip:text;
-  filter: drop-shadow(0 0 20px rgba(124,92,255,0.3));
 }
-.spectre-dashboard-hero__meta{
+.spectre-command-slogan{
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: #8B0000;
+  margin: 0;
+}
+.spectre-operational-overview{
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.spectre-overview-title{
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+.spectre-quick-actions{
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+.spectre-action-btn{
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-top: 4px;
-}
-.spectre-dashboard-hero__role{
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent2);
-  text-transform: uppercase;
-  letter-spacing: .08em;
-  padding: 4px 12px;
-  background: rgba(124,92,255,0.1);
-  border-radius: var(--radius-sm);
-  border: 1px solid rgba(124,92,255,0.2);
-}
-.spectre-dashboard-hero__date{
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-tertiary);
-  letter-spacing: -0.01em;
-}
-/* Top header glass */
-.spectre-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  padding:20px 24px;
-  margin-bottom:24px;
-  background: var(--glass-strong);
+  gap: 8px;
+  padding: 10px 20px;
+  background: var(--surface);
   border: 1px solid var(--stroke);
-  border-radius: var(--radius-lg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: var(--shadow);
-  transition: all .3s ease;
+  border-radius: var(--radius);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.spectre-header:hover{
+.spectre-action-btn:hover{
+  background: var(--accent2);
   border-color: var(--stroke-accent);
-  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139,0,0,0.15);
 }
-.spectre-header__left{display:flex;align-items:center;gap:16px;min-width:0;}
-.spectre-header h1{
-  font-size:28px;
-  font-weight:800;
-  letter-spacing:-0.03em;
+.spectre-action-btn svg{
+  transition: transform 0.3s ease;
+}
+.spectre-action-btn:hover svg{
+  transform: scale(1.1);
+}
+  font-weight:900;
+  letter-spacing:-0.04em;
+  text-transform: uppercase;
   background: var(--gradient-primary);
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
@@ -1265,8 +1292,8 @@ html, body{
 /* Mobile bottom navigation */
 .spectre-bottomnav{display:none; position:fixed; left:16px; right:16px; bottom:16px; height:64px; background:var(--glass-strong); border:1px solid var(--stroke); border-radius: var(--radius-lg); backdrop-filter: blur(24px); z-index:50; padding:8px; box-shadow: var(--shadow-glow);}
 .spectre-bottomnav__item{flex:1; display:flex; align-items:center; justify-content:center; text-decoration:none; color:var(--text-secondary); font-weight:500; font-size:12px; border-radius:var(--radius-sm); transition:all .25s cubic-bezier(0.4, 0, 0.2, 1);}
-.spectre-bottomnav__item:hover{color:var(--text); background:rgba(124,92,255,0.08);}
-.spectre-bottomnav__item.is-active{color:#fff; background:var(--gradient-primary); box-shadow: 0 0 20px rgba(124,92,255,0.3); transform: translateY(-2px);}
+.spectre-bottomnav__item:hover{color:var(--text); background:rgba(139,0,0,0.08);}
+.spectre-bottomnav__item.is-active{color:#fff; background:var(--gradient-primary); box-shadow: 0 0 20px rgba(139,0,0,0.2); transform: translateY(-2px);}
 @media(max-width:900px){
   .spectre-shell{display:block;}
   .spectre-sidebar{display:none;}
@@ -1277,6 +1304,7 @@ html, body{
 /* Ensure no horizontal scrolling inside panels */
 .ghost-panel table,
 .ghost-panel > div{max-width:100%;}
+/* End of SPECTRE Design System */
 /* Provide sane defaults for dynamically injected content */
 #productContainer div,
 #soldContainer div,
@@ -1338,7 +1366,7 @@ tr:last-child td{
   border-bottom:none;
 }
 /* Typography scale */
-h1{font-size:28px; font-weight:800; letter-spacing:-.03em; margin-bottom:16px;}
+h1{font-size:32px; font-weight:900; letter-spacing:-.04em; margin-bottom:16px; text-transform: uppercase;}
 h2{font-size:22px; font-weight:700; letter-spacing:-.02em; margin-bottom:12px;}
 h3{font-size:18px; font-weight:600; letter-spacing:-.01em; margin-bottom:10px;}
 p{font-size:15px; line-height:1.7; color: var(--text-secondary); margin-bottom:12px; letter-spacing: -0.01em;}
@@ -1355,6 +1383,7 @@ p{font-size:15px; line-height:1.7; color: var(--text-secondary); margin-bottom:1
   .spectre-charts-section{
     grid-template-columns: 1fr;
   }
+}
 }
 .spectre-chart-card{
   background: var(--surface);
@@ -1458,3 +1487,4 @@ p{font-size:15px; line-height:1.7; color: var(--text-secondary); margin-bottom:1
   letter-spacing: -0.03em;
   filter: drop-shadow(0 0 20px rgba(124,92,255,0.3));
 }
+/* End of SPECTRE Design System */

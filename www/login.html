@@ -20,13 +20,23 @@
             background: linear-gradient(135deg, #0a0a0f 0%, #1a1a2e 100%);
         }
         .login-card {
-            background: var(--surface);
-            border: 1px solid var(--stroke);
+        .login-logo { display: flex; justify-content: center; margin-bottom: 24px; }
+        .login-logo img { width: 120px; height: auto; object-fit: contain; }
             border-radius: var(--radius-lg);
             padding: 40px;
             width: 100%;
             max-width: 400px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        .login-logo {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+        .login-logo img {
+            width: 120px;
+            height: auto;
+            object-fit: contain;
         }
         .login-title {
             font-size: 32px;
@@ -110,7 +120,7 @@
 <body>
     <div class="login-container">
         <div class="login-card">
-            <h1 class="login-title">SPECTRE</h1>
+            <div class="login-logo"><img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo"></div><h1 class="login-title">SPECTRE</h1>
             <p class="login-subtitle">Inventory Management System</p>
             
             <div id="errorMessage" class="error-message" style="display: none;"></div>
