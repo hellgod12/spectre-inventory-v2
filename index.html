@@ -120,10 +120,13 @@
         <!-- Sidebar Navigation (permanent) -->
         <aside class="spectre-sidebar" aria-label="Primary">
             <div class="spectre-sidebar__brand">
-                <img src="spectrelogo.png" alt="SPECTRE Logo" class="spectre-logo-mark">
-                <div class="spectre-logo-text">
-                    <h1>SPECTRE</h1>
-                    <p class="spectre-sidebar__warn">Inventory Management System</p>
+                <div class="spectre-brand-logo">
+                    <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
+                </div>
+                <div class="spectre-brand-text">
+                    <h1 class="spectre-brand-title">SPECTRE</h1>
+                    <p class="spectre-brand-subtitle">CONTROL CENTER</p>
+                    <p class="spectre-brand-slogan">Built Different</p>
                 </div>
             </div>
 
@@ -158,19 +161,40 @@
 <section class="spectre-hero">
                     <!-- Dashboard Hero Section -->
                     <div class="spectre-dashboard-hero">
-                        <div class="spectre-dashboard-hero__greeting">
-                            <p class="spectre-dashboard-hero__welcome">Welcome Back</p>
-                            <h2 class="spectre-dashboard-hero__username" id="dashboardUsername">Admin</h2>
-                            <div class="spectre-dashboard-hero__meta">
-                                <span class="spectre-dashboard-hero__role" id="dashboardRole">Administrator</span>
-                                <span class="spectre-dashboard-hero__date" id="dashboardDate"></span>
+                        <div class="spectre-command-center">
+                            <h1 class="spectre-command-title">SPECTRE CONTROL CENTER</h1>
+                            <p class="spectre-command-slogan">Built Different</p>
+                        </div>
+                        <div class="spectre-operational-overview">
+                            <h2 class="spectre-overview-title">Operational Overview</h2>
+                            <div class="spectre-dashboard-hero__greeting">
+                                <p class="spectre-dashboard-hero__welcome">Welcome Back</p>
+                                <h2 class="spectre-dashboard-hero__username" id="dashboardUsername">Admin</h2>
+                                <div class="spectre-dashboard-hero__meta">
+                                    <span class="spectre-dashboard-hero__role" id="dashboardRole">Administrator</span>
+                                    <span class="spectre-dashboard-hero__date" id="dashboardDate"></span>
+                                </div>
+                            </div>
+                            <div class="spectre-quick-actions">
+                                <button class="spectre-action-btn" onclick="location.href='barang.html'">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                                    Inventory
+                                </button>
+                                <button class="spectre-action-btn" onclick="location.href='penjualan.html'">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                    Sales
+                                </button>
+                                <button class="spectre-action-btn" onclick="location.href='member.html'">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                    Members
+                                </button>
                             </div>
                         </div>
                     </div>
 
                     <header class="spectre-header" role="banner">
                         <div class="spectre-header__left">
-                            <h1>Dashboard</h1>
+<img src="assets/logos/logo-spectre-assets/logos/favicon.png" alt="SPECTRE" class="spectre-logo-icon" style="margin-right:12px;"><h1>Dashboard</h1>
                         </div>
                         <div class="spectre-header__right">
                             <button class="spectre-btn" type="button" id="spectreTopRefreshPayments" style="display:none;">Refresh</button>
