@@ -1,6 +1,12 @@
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
 
+// Sidebar Toggle Functionality
+function toggleSidebar() {
+    const sidebar = document.querySelector('.spectre-sidebar');
+    sidebar.classList.toggle('spectre-sidebar--collapsed');
+}
+
 function formatCurrency(value) {
     return 'Rp ' + Number(value).toLocaleString('id-ID');
 }

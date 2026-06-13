@@ -113,6 +113,9 @@
     <div class="spectre-shell">
         <!-- Sidebar Navigation -->
         <aside class="spectre-sidebar" aria-label="Primary">
+            <button class="spectre-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
             <div class="spectre-sidebar__brand">
                 <div class="spectre-brand-logo">
                     <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
@@ -435,10 +438,22 @@
 
             <!-- Mobile Bottom Navigation -->
             <nav class="spectre-bottomnav" aria-label="Mobile navigation">
-                <a href="index.html" class="spectre-bottomnav__item is-active">Dashboard</a>
-                <a href="penjualan.html" class="spectre-bottomnav__item">Sales</a>
-                <a href="barang.html" class="spectre-bottomnav__item">Products</a>
-                <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
+                <a href="index.html" class="spectre-bottomnav__item is-active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="penjualan.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Sales</span>
+                </a>
+                <a href="barang.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Products</span>
+                </a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Expenses</span>
+                </a>
             </nav>
         </main>
     </div>
