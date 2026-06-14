@@ -1,6 +1,9 @@
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
 
+// Load marketplace reporting for combined POS + Marketplace analytics
+// This ensures marketplace data is included in dashboard metrics
+
 // Sidebar Toggle Functionality
 function toggleSidebar() {
     const sidebar = document.querySelector('.spectre-sidebar');
@@ -390,7 +393,7 @@ async function confirmPayment(id) {
 }
 
 
-function renderCandlestickChartFromSalesHistory(salesHistory = []) {
+async function renderCandlestickChartFromSalesHistory(salesHistory = []) {
     const canvas = document.getElementById('candlestickChart');
     if (!canvas) return;
 
@@ -447,12 +450,40 @@ function renderCandlestickChartFromSalesHistory(salesHistory = []) {
         return null;
     };
 
-    const items = (salesHistory || [])
+    // Combine POS sales_history with marketplace orders
+    let items = (salesHistory || [])
         .map(s => ({
+            type: 'POS',
             t: parseDate(s.created_at),
             v: Number(s.total_harga || 0)
         }))
         .filter(x => x.t && Number.isFinite(x.v));
+
+    // Add marketplace orders to chart data
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const { data: onlineOrders } = await supabaseClient
+            .from('online_orders')
+            .select('created_at, gross_sales')
+            .gte('created_at', thirtyDaysAgo.toISOString())
+            .order('created_at', { ascending: false });
+        
+        if (onlineOrders) {
+            const marketplaceItems = onlineOrders
+                .map(o => ({
+                    type: 'MARKETPLACE',
+                    t: parseDate(o.created_at),
+                    v: Number(o.gross_sales || 0)
+                }))
+                .filter(x => x.t && Number.isFinite(x.v));
+            
+            items = items.concat(marketplaceItems);
+        }
+    } catch (error) {
+        console.error('Error loading marketplace orders for chart:', error);
+    }
 
     // Generate professional placeholder chart if insufficient data
     if (items.length < 2) {
@@ -704,6 +735,34 @@ async function loadDashboard() {
     let totalTerjualCount = 0;
     let pendingRevenue = 0;
 
+    // Load combined POS + Marketplace data for dashboard
+    let combinedRevenue = 0;
+    let combinedProfit = 0;
+    let combinedOrders = 0;
+    let marketplaceRevenue = 0;
+    let marketplaceProfit = 0;
+    let marketplaceOrders = 0;
+
+    try {
+        // Get combined revenue report (POS + Marketplace) for last 30 days
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const revenueReport = await getCombinedRevenueReport(thirtyDaysAgo, new Date());
+        const profitReport = await getCombinedProfitReport(thirtyDaysAgo, new Date());
+        const orderStats = await getCombinedOrderStatistics(thirtyDaysAgo, new Date());
+        
+        combinedRevenue = revenueReport.combined.total_gross_sales;
+        combinedProfit = profitReport.combined.total_profit;
+        combinedOrders = orderStats.combined.total_orders;
+        marketplaceRevenue = revenueReport.marketplace.gross_sales;
+        marketplaceProfit = profitReport.marketplace.total_profit;
+        marketplaceOrders = orderStats.marketplace.total_orders;
+    } catch (error) {
+        console.error('Error loading combined marketplace data:', error);
+        // Fallback to POS-only data if marketplace data fails to load
+    }
+
     // Profit per produk (modal vs revenue terjual)
     // profitProduk[p.nama_barang] = { nama_barang, kategori, ukuran, profit, revenue, modalTotal, qty }
     const profitProduk = new Map();
@@ -787,10 +846,16 @@ async function loadDashboard() {
 
     const profitBersih = profitAsli - totalExpenses;
 
+    // Use combined data for dashboard KPIs (POS + Marketplace)
+    // If combined data is available, use it; otherwise fallback to POS-only data
+    const displayRevenue = combinedRevenue > 0 ? combinedRevenue : omsetAsli;
+    const displayProfit = combinedProfit > 0 ? combinedProfit : profitBersih;
+    const displayOrders = combinedOrders > 0 ? combinedOrders : totalTerjualCount;
+
     document.getElementById('totalStock').innerText = totalStock;
-    document.getElementById('totalOmset').innerText = 'Rp ' + omsetAsli.toLocaleString('id-ID');
-    document.getElementById('totalProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
-    document.getElementById('totalSalesCount').innerText = totalTerjualCount + " Barang";
+    document.getElementById('totalOmset').innerText = 'Rp ' + displayRevenue.toLocaleString('id-ID');
+    document.getElementById('totalProfit').innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
+    document.getElementById('totalSalesCount').innerText = displayOrders + " Barang";
 
     // Hide loading skeleton after data is loaded
     hideLoadingSkeleton();
@@ -801,10 +866,10 @@ async function loadDashboard() {
     const totalStockEl = document.getElementById('totalStock');
     
     if (totalOmsetEl) {
-        animateCounter(totalOmsetEl, omsetAsli, 1200);
+        animateCounter(totalOmsetEl, displayRevenue, 1200);
     }
     if (totalProfitEl) {
-        animateCounter(totalProfitEl, profitBersih, 1200);
+        animateCounter(totalProfitEl, displayProfit, 1200);
     }
     if (totalStockEl) {
         animateCounter(totalStockEl, totalStock, 800);
@@ -816,7 +881,7 @@ async function loadDashboard() {
     if (kpiTotalItemsEl) kpiTotalItemsEl.innerText = products.length;
     if (kpiTotalStockEl) kpiTotalStockEl.innerText = totalStock;
     document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
-    document.getElementById('netProfit').innerText = 'Rp ' + profitBersih.toLocaleString('id-ID');
+    document.getElementById('netProfit').innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
 
     // Update trend indicators - set to 0% since we don't have historical data
     const revenueTrendEl = document.getElementById('revenueTrend');
@@ -828,11 +893,29 @@ async function loadDashboard() {
     const productsTrendEl = document.getElementById('productsTrend');
     const stockTrendEl = document.getElementById('stockTrend');
 
-    if (revenueTrendEl) revenueTrendEl.innerText = '↑ 0%';
+    // Calculate marketplace contribution for trend indicators
+    const marketplaceRevenuePercent = displayRevenue > 0 ? (marketplaceRevenue / displayRevenue * 100).toFixed(0) : 0;
+    const marketplaceOrdersPercent = displayOrders > 0 ? (marketplaceOrders / displayOrders * 100).toFixed(0) : 0;
+
+    if (revenueTrendEl) {
+        if (marketplaceRevenue > 0) {
+            revenueTrendEl.innerText = `↑ ${marketplaceRevenuePercent}% Marketplace`;
+            revenueTrendEl.classList.add('spectre-kpi-trend--up');
+        } else {
+            revenueTrendEl.innerText = '↑ 0%';
+        }
+    }
     if (profitTrendEl) profitTrendEl.innerText = '↑ 0%';
     if (expensesTrendEl) expensesTrendEl.innerText = '↓ 0%';
     if (balanceTrendEl) balanceTrendEl.innerText = '↑ 0%';
-    if (salesTrendEl) salesTrendEl.innerText = '↑ 0%';
+    if (salesTrendEl) {
+        if (marketplaceOrders > 0) {
+            salesTrendEl.innerText = `↑ ${marketplaceOrdersPercent}% Marketplace`;
+            salesTrendEl.classList.add('spectre-kpi-trend--up');
+        } else {
+            salesTrendEl.innerText = '↑ 0%';
+        }
+    }
     if (membersTrendEl) membersTrendEl.innerText = '↑ 0%';
     if (productsTrendEl) productsTrendEl.innerText = '↑ 0%';
     if (stockTrendEl) stockTrendEl.innerText = '↑ 0%';
@@ -875,58 +958,138 @@ async function loadDashboard() {
     if (lowStockItemsEl) lowStockItemsEl.innerText = lowStockItems;
     if (totalModalBarangEl) totalModalBarangEl.innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
 
-    // Render invoices in Invoice Management section
+    // Render invoices in Invoice Management section (POS + Marketplace)
     const invoiceContainer = document.getElementById('invoiceContainer');
-    if (invoiceContainer && payments) {
-        const sortedPayments = payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (invoiceContainer) {
+        let combinedTransactions = [];
+        
+        // Add POS payments
+        if (payments) {
+            payments.forEach(payment => {
+                combinedTransactions.push({
+                    type: 'POS',
+                    id: payment.id,
+                    invoice_number: payment.invoice_number || 'POS-' + payment.id.substring(0, 8),
+                    product: payment.product || 'Unknown',
+                    quantity: payment.jumlah || 0,
+                    total: payment.total_harga || 0,
+                    paid: payment.paid_amount || 0,
+                    remaining: payment.remaining_amount || 0,
+                    status: payment.status || 'pending',
+                    created_at: payment.created_at,
+                    buyer: payment.buyer || 'Walk-in'
+                });
+            });
+        }
+        
+        // Add marketplace orders
+        if (marketplaceOrders > 0) {
+            try {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                const { data: onlineOrders } = await supabaseClient
+                    .from('online_orders')
+                    .select(`
+                        *,
+                        marketplace_accounts (
+                            platform,
+                            shop_name
+                        ),
+                        items (
+                            product_name,
+                            quantity,
+                            unit_price
+                        )
+                    `)
+                    .gte('created_at', thirtyDaysAgo.toISOString())
+                    .order('created_at', { ascending: false })
+                    .limit(10);
+                
+                if (onlineOrders) {
+                    onlineOrders.forEach(order => {
+                        const firstItem = order.items && order.items[0] ? order.items[0] : {};
+                        combinedTransactions.push({
+                            type: 'MARKETPLACE',
+                            id: order.id,
+                            invoice_number: order.order_number || order.platform_order_id || 'MKT-' + order.id.substring(0, 8),
+                            product: firstItem.product_name || 'Unknown',
+                            quantity: firstItem.quantity || 0,
+                            total: order.gross_sales || 0,
+                            paid: order.net_revenue || 0,
+                            remaining: 0,
+                            status: order.settlement_status === 'SETTLED' ? 'paid' : 'pending',
+                            created_at: order.created_at,
+                            buyer: order.customer_name || 'Online Customer',
+                            platform: order.marketplace_accounts?.platform || 'Unknown'
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading marketplace orders for invoice container:', error);
+            }
+        }
+        
+        // Sort by date
+        combinedTransactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-        if (sortedPayments.length === 0) {
-            invoiceContainer.innerHTML = '<div class="p-8 text-center text-muted text-xs">No invoices found</div>';
+        if (combinedTransactions.length === 0) {
+            invoiceContainer.innerHTML = '<div class="p-8 text-center text-muted text-xs">No transactions found</div>';
         } else {
             let invoiceHtml = '<div class="space-y-3">';
-            sortedPayments.forEach(payment => {
+            combinedTransactions.forEach(transaction => {
                 const statusColors = {
                     'pending': 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
                     'partial': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
                     'paid': 'bg-green-500/20 text-green-400 border-green-500/30',
                     'cancelled': 'bg-red-500/20 text-red-400 border-red-500/30'
                 };
-                const statusColor = statusColors[payment.status] || statusColors['pending'];
+                const statusColor = statusColors[transaction.status] || statusColors['pending'];
+                const typeBadge = transaction.type === 'POS' 
+                    ? '<span class="px-2 py-1 text-xs font-semibold rounded bg-purple-500/20 text-purple-400 border-purple-500/30">POS</span>'
+                    : `<span class="px-2 py-1 text-xs font-semibold rounded bg-orange-500/20 text-orange-400 border-orange-500/30">${transaction.platform || 'MKT'}</span>`;
 
                 invoiceHtml += `
                     <div class="p-4 bg-black/50 border border-stone-800 rounded-lg">
                         <div class="flex justify-between items-start mb-3">
                             <div>
-                                <div class="text-xs text-muted mb-1">${payment.invoice_number || 'N/A'}</div>
-                                <div class="font-semibold text-white">${payment.product || 'Unknown'}</div>
-                                <div class="text-xs text-muted">Qty: ${payment.jumlah || 0}</div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    ${typeBadge}
+                                    <div class="text-xs text-muted">${transaction.invoice_number}</div>
+                                </div>
+                                <div class="font-semibold text-white">${transaction.product}</div>
+                                <div class="text-xs text-muted">Qty: ${transaction.quantity} • ${transaction.buyer}</div>
                             </div>
-                            <span class="px-2 py-1 text-xs font-semibold rounded border ${statusColor}">${payment.status?.toUpperCase() || 'PENDING'}</span>
+                            <span class="px-2 py-1 text-xs font-semibold rounded border ${statusColor}">${transaction.status?.toUpperCase() || 'PENDING'}</span>
                         </div>
                         <div class="grid grid-cols-3 gap-2 text-xs mb-3">
                             <div>
                                 <div class="text-muted">Total</div>
-                                <div class="font-semibold">Rp ${(payment.total_harga || 0).toLocaleString('id-ID')}</div>
+                                <div class="font-semibold">Rp ${transaction.total.toLocaleString('id-ID')}</div>
                             </div>
                             <div>
                                 <div class="text-muted">Paid</div>
-                                <div class="font-semibold text-green-400">Rp ${(payment.paid_amount || 0).toLocaleString('id-ID')}</div>
+                                <div class="font-semibold text-green-400">Rp ${transaction.paid.toLocaleString('id-ID')}</div>
                             </div>
                             <div>
                                 <div class="text-muted">Remaining</div>
-                                <div class="font-semibold text-yellow-400">Rp ${(payment.remaining_amount || 0).toLocaleString('id-ID')}</div>
+                                <div class="font-semibold text-yellow-400">Rp ${transaction.remaining.toLocaleString('id-ID')}</div>
                             </div>
                         </div>
-                        ${payment.status !== 'paid' && payment.status !== 'cancelled' ? `
+                        ${transaction.type === 'POS' && transaction.status !== 'paid' && transaction.status !== 'cancelled' ? `
                             <div class="flex gap-2">
-                                <button onclick="window.addPartialPayment('${payment.id}', ${payment.remaining_amount})" class="flex-1 px-3 py-2 text-xs bg-purple-600 hover:bg-purple-500 text-white rounded transition">Add Payment</button>
-                                ${payment.status === 'partial' ? `
-                                    <button onclick="window.markAsPaid('${payment.id}')" class="flex-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-500 text-white rounded transition">Mark Paid</button>
+                                <button onclick="window.addPartialPayment('${transaction.id}', ${transaction.remaining})" class="flex-1 px-3 py-2 text-xs bg-purple-600 hover:bg-purple-500 text-white rounded transition">Add Payment</button>
+                                ${transaction.status === 'partial' ? `
+                                    <button onclick="window.markAsPaid('${transaction.id}')" class="flex-1 px-3 py-2 text-xs bg-green-600 hover:bg-green-500 text-white rounded transition">Mark Paid</button>
                                 ` : ''}
-                                <button onclick="window.cancelInvoice('${payment.id}')" data-role="admin-only" class="flex-1 px-3 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded transition">Cancel</button>
+                                <button onclick="window.cancelInvoice('${transaction.id}')" data-role="admin-only" class="flex-1 px-3 py-2 text-xs bg-red-600 hover:bg-red-500 text-white rounded transition">Cancel</button>
                             </div>
                         ` : ''}
-                        <button onclick="window.deleteTransaction('${payment.id}')" data-role="admin-only" class="w-full mt-2 px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition">Delete Permanently</button>
+                        ${transaction.type === 'POS' ? `
+                            <button onclick="window.deleteTransaction('${transaction.id}')" data-role="admin-only" class="w-full mt-2 px-3 py-2 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded transition">Delete Permanently</button>
+                        ` : `
+                            <a href="marketplace.html" class="w-full mt-2 px-3 py-2 text-xs bg-blue-600 hover:bg-blue-500 text-white rounded transition block text-center">View in Marketplace</a>
+                        `}
                     </div>
                 `;
             });
@@ -1499,8 +1662,8 @@ async function loadDashboard() {
     await loadPayments();
     await loadExpenses();
 
-    // Render area chart with sales history data
-    renderCandlestickChartFromSalesHistory(salesHistory);
+    // Render area chart with sales history data (now includes marketplace)
+    await renderCandlestickChartFromSalesHistory(salesHistory);
 }
 
 
