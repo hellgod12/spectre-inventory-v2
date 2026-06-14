@@ -1597,6 +1597,8 @@ html {
   letter-spacing: -0.01em;
   position: relative;
   overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .spectre-btn::before{
@@ -1609,18 +1611,17 @@ html {
 }
 
 .spectre-btn:hover{
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(220,20,60,0.3);
-  transform: translateY(-2px) scale(1.02);
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(220,20,60,0.4), 0 0 40px rgba(220,20,60,0.2);
 }
 
 .spectre-btn:hover::before{
-  opacity: 0.1;
+  opacity: 0.15;
 }
 
 .spectre-btn:active{
-  transform: translateY(0) scale(0.98);
-  box-shadow: 0 0 20px rgba(124,92,255,0.4);
+  transform: translateY(0) scale(0.95);
+  box-shadow: 0 0 20px rgba(220,20,60,0.5);
 }
 
 .spectre-btn:focus{outline:none; box-shadow: var(--focus);}
@@ -1629,7 +1630,7 @@ html {
 .ripple{
   position: absolute;
   border-radius: 50%;
-  background: rgba(124,92,255,0.3);
+  background: rgba(220,20,60,0.4);
   transform: scale(0);
   animation: rippleEffect 0.6s linear;
   pointer-events: none;
@@ -1639,6 +1640,262 @@ html {
   to{
     transform: scale(4);
     opacity: 0;
+  }
+}
+
+/* Modern Button Animations */
+.spectre-btn::after{
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255,255,255,0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.spectre-btn:hover::after{
+  left: 100%;
+}
+
+/* Pulse Animation for Important Buttons */
+.spectre-btn--pulse{
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse{
+  0%, 100%{
+    box-shadow: 0 0 0 0 rgba(220,20,60,0.4);
+  }
+  50%{
+    box-shadow: 0 0 0 10px rgba(220,20,60,0);
+  }
+}
+
+/* Shine Effect */
+.spectre-btn--shine{
+  position: relative;
+  overflow: hidden;
+}
+
+.spectre-btn--shine::before{
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0.1) 50%,
+    rgba(255,255,255,0) 100%
+  );
+  transform: rotate(45deg);
+  animation: shine 3s infinite;
+}
+
+@keyframes shine{
+  0%{
+    transform: translateX(-100%) rotate(45deg);
+  }
+  100%{
+    transform: translateX(100%) rotate(45deg);
+  }
+}
+
+/* Bounce Animation */
+.spectre-btn--bounce:hover{
+  animation: bounce 0.5s ease;
+}
+
+@keyframes bounce{
+  0%, 100%{
+    transform: translateY(-2px) scale(1.05);
+  }
+  50%{
+    transform: translateY(-4px) scale(1.08);
+  }
+}
+
+/* Glow Animation */
+.spectre-btn--glow{
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes glow{
+  from{
+    box-shadow: 0 0 5px rgba(220,20,60,0.2);
+  }
+  to{
+    box-shadow: 0 0 20px rgba(220,20,60,0.6), 0 0 30px rgba(220,20,60,0.4);
+  }
+}
+
+/* Slide Animation */
+.spectre-btn--slide{
+  position: relative;
+  overflow: hidden;
+}
+
+.spectre-btn--slide::before{
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-primary);
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.spectre-btn--slide:hover::before{
+  transform: translateY(0);
+}
+
+.spectre-btn--slide span{
+  position: relative;
+  z-index: 1;
+}
+
+/* Icon Button Animations */
+.spectre-btn--icon{
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spectre-btn--icon:hover{
+  transform: rotate(360deg) scale(1.1);
+}
+
+.spectre-btn--icon svg{
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+/* Success Button */
+.spectre-btn--success{
+  background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+  color: #fff;
+}
+
+.spectre-btn--success:hover{
+  background: linear-gradient(135deg, #00E676 0%, #00C853 100%);
+  box-shadow: 0 8px 24px rgba(0,230,118,0.4);
+}
+
+/* Danger Button */
+.spectre-btn--danger{
+  background: linear-gradient(135deg, #DC143C 0%, #B71C1C 100%);
+  color: #fff;
+}
+
+.spectre-btn--danger:hover{
+  background: linear-gradient(135deg, #DC143C 0%, #B71C1C 100%);
+  box-shadow: 0 8px 24px rgba(220,20,60,0.4);
+}
+
+/* Warning Button */
+.spectre-btn--warning{
+  background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+  color: #000;
+}
+
+.spectre-btn--warning:hover{
+  background: linear-gradient(135deg, #FFC107 0%, #FF9800 100%);
+  box-shadow: 0 8px 24px rgba(255,193,7,0.4);
+}
+
+/* Large Button */
+.spectre-btn--large{
+  padding: 16px 32px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Small Button */
+.spectre-btn--small{
+  padding: 8px 16px;
+  font-size: 12px;
+}
+
+/* Full Width Button */
+.spectre-btn--full{
+  width: 100%;
+  justify-content: center;
+}
+
+/* Floating Action Button */
+.spectre-fab{
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(220,20,60,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+}
+
+.spectre-fab:hover{
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 8px 24px rgba(220,20,60,0.6);
+}
+
+.spectre-fab:active{
+  transform: scale(0.95);
+}
+
+.spectre-fab svg{
+  width: 24px;
+  height: 24px;
+}
+
+/* Loading State */
+.spectre-btn--loading{
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.spectre-btn--loading::after{
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spin{
+  to{
+    transform: translate(-50%, -50%) rotate(360deg);
   }
 }
 
