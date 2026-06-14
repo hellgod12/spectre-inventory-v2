@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // Marketplace Orders</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="status.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="button-animations.js"></script>
+    <script src="marketplace-repository.js"></script>
+    <script src="marketplace-service.js"></script>
+    <script src="marketplace-utils.js"></script>
+    <style>
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        .marketplace-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .marketplace-kpi-card {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .marketplace-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+        .marketplace-kpi-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+        .marketplace-kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .marketplace-kpi-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .orders-table th {
+            text-align: left;
+            padding: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .orders-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .orders-table tr:hover {
+            background: var(--glass);
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-pending { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+        .status-processing { background: rgba(59, 130, 246, 0.2); color: #3b82f6; }
+        .status-shipped { background: rgba(147, 51, 234, 0.2); color: #9333ea; }
+        .status-delivered { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .status-cancelled { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+        .status-returned { background: rgba(107, 114, 128, 0.2); color: #6b7280; }
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .platform-shopee { background: rgba(238, 77, 45, 0.2); color: #ee4d2d; }
+        .platform-tiktok { background: rgba(0, 0, 0, 0.2); color: #ffffff; }
+        .platform-tokopedia { background: rgba(66, 181, 73, 0.2); color: #42b549; }
+        .platform-lazada { background: rgba(15, 20, 109, 0.2); color: #0f146d; }
+        .filter-section {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-input {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all .3s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s ease;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: var(--shadow-glow);
+        }
+        .btn-secondary {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            color: var(--text-primary);
+        }
+        .btn-secondary:hover {
+            border-color: var(--stroke-accent);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .order-details {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .detail-label {
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+        .detail-value {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .order-items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .order-item {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 16px;
+            border-radius: var(--radius-md);
+        }
+        .order-item-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .order-item-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            color: var(--text-muted);
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .empty-state-sub {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <div class="min-h-screen p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2" style="font-family: 'Space Grotesk', sans-serif;">Marketplace Orders</h1>
+                <p class="text-gray-400">Manage online orders from Shopee, TikTok, Tokopedia, and Lazada</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="window.location.href='index.html'" class="btn btn-secondary">Back to Dashboard</button>
+                <button onclick="openImportModal()" class="btn btn-primary">Import Order</button>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="marketplace-kpi-grid">
+            <div class="marketplace-kpi-card">
+                <div class="marketplace-kpi-label">Total Orders</div>
+                <div class="marketplace-kpi-value" id="totalOrders">0</div>
+                <div class="marketplace-kpi-sub">All platforms</div>
+            </div>
+            <div class="marketplace-kpi-card">
+                <div class="marketplace-kpi-label">Pending Orders</div>
+                <div class="marketplace-kpi-value" id="pendingOrders">0</div>
+                <div class="marketplace-kpi-sub">Awaiting processing</div>
+            </div>
+            <div class="marketplace-kpi-card">
+                <div class="marketplace-kpi-label">Total Revenue</div>
+                <div class="marketplace-kpi-value" id="totalRevenue">Rp 0</div>
+                <div class="marketplace-kpi-sub">Gross sales</div>
+            </div>
+            <div class="marketplace-kpi-card">
+                <div class="marketplace-kpi-label">Unsettled</div>
+                <div class="marketplace-kpi-value" id="unsettledRevenue">Rp 0</div>
+                <div class="marketplace-kpi-sub">Awaiting settlement</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label class="form-label">Platform</label>
+                    <select id="filterPlatform" class="form-input" onchange="applyFilters()">
+                        <option value="">All Platforms</option>
+                        <option value="SHOPEE">Shopee</option>
+                        <option value="TIKTOK">TikTok Shop</option>
+                        <option value="TOKOPEDIA">Tokopedia</option>
+                        <option value="LAZADA">Lazada</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Order Status</label>
+                    <select id="filterStatus" class="form-input" onchange="applyFilters()">
+                        <option value="">All Status</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="PROCESSING">Processing</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="DELIVERED">Delivered</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="RETURNED">Returned</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Settlement Status</label>
+                    <select id="filterSettlement" class="form-input" onchange="applyFilters()">
+                        <option value="">All Settlement</option>
+                        <option value="UNSETTLED">Unsettled</option>
+                        <option value="PARTIALLY_SETTLED">Partially Settled</option>
+                        <option value="SETTLED">Settled</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date Range</label>
+                    <select id="filterDateRange" class="form-input" onchange="applyFilters()">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
+                        <option value="all">All Time</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="bg-glass border border-stroke rounded-lg overflow-hidden">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order Number</th>
+                        <th>Platform</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Settlement</th>
+                        <th>Amount</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody">
+                    <!-- Orders will be loaded here -->
+                </tbody>
+            </table>
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">📦</div>
+                <div class="empty-state-text">No orders found</div>
+                <div class="empty-state-sub">Import your first order to get started</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Order Details</h2>
+                <button class="modal-close" onclick="closeOrderModal()">&times;</button>
+            </div>
+            <div id="orderModalContent" class="order-details">
+                <!-- Order details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Order Modal -->
+    <div id="importModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Import Order</h2>
+                <button class="modal-close" onclick="closeImportModal()">&times;</button>
+            </div>
+            <form id="importOrderForm" class="order-details">
+                <div class="form-group">
+                    <label class="form-label">Marketplace Account</label>
+                    <select id="importAccount" class="form-input" required>
+                        <option value="">Select Account</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Order Number</label>
+                    <input type="text" id="importOrderNumber" class="form-input" required placeholder="e.g., SHOPEE-001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Customer Name</label>
+                    <input type="text" id="importCustomerName" class="form-input" placeholder="Customer name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Customer Phone</label>
+                    <input type="text" id="importCustomerPhone" class="form-input" placeholder="08xxxxxxxxxx">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Shipping Address</label>
+                    <textarea id="importShippingAddress" class="form-input" rows="3" placeholder="Full shipping address"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Order Status</label>
+                    <select id="importOrderStatus" class="form-input">
+                        <option value="PENDING">Pending</option>
+                        <option value="PROCESSING">Processing</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="DELIVERED">Delivered</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Product Name</label>
+                    <input type="text" id="importProductName" class="form-input" required placeholder="Product name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">SKU (Optional)</label>
+                    <input type="text" id="importSKU" class="form-input" placeholder="Product SKU">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" id="importQuantity" class="form-input" required min="1" value="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Unit Price</label>
+                    <input type="number" id="importUnitPrice" class="form-input" required min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Platform Fee</label>
+                    <input type="number" id="importPlatformFee" class="form-input" min="0" placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Shipping Fee</label>
+                    <input type="number" id="importShippingFee" class="form-input" min="0" placeholder="0">
+                </div>
+                <button type="submit" class="btn btn-primary">Import Order</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="marketplace.js"></script>
+</body>
+</html>

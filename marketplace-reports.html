@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // Marketplace Reports</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="status.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="button-animations.js"></script>
+    <script src="marketplace-repository.js"></script>
+    <script src="marketplace-service.js"></script>
+    <script src="marketplace-utils.js"></script>
+    <script src="marketplace-reporting.js"></script>
+    <style>
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .report-card {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .report-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+        .report-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .report-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'Space Grotesk', sans-serif;
+            margin-bottom: 8px;
+        }
+        .report-sub {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .report-change {
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        .report-change.positive {
+            color: #22c55e;
+        }
+        .report-change.negative {
+            color: #ef4444;
+        }
+        .channel-comparison {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+        .channel-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .channel-row:last-child {
+            border-bottom: none;
+        }
+        .channel-name {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .channel-metrics {
+            display: flex;
+            gap: 24px;
+            text-align: right;
+        }
+        .channel-metric {
+            display: flex;
+            flex-direction: column;
+        }
+        .channel-metric-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .channel-metric-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .filter-section {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 20px;
+            border-radius: var(--radius-lg);
+            margin-bottom: 24px;
+        }
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .form-input {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 12px;
+            border-radius: var(--radius-md);
+            color: var(--text-primary);
+            font-size: 14px;
+            transition: all .3s ease;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .3s ease;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            box-shadow: var(--shadow-glow);
+        }
+        .platform-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .platform-pos { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+        .platform-shopee { background: rgba(238, 77, 45, 0.2); color: #ee4d2d; }
+        .platform-tiktok { background: rgba(0, 0, 0, 0.2); color: #ffffff; }
+        .platform-tokopedia { background: rgba(66, 181, 73, 0.2); color: #42b549; }
+        .platform-lazada { background: rgba(15, 20, 109, 0.2); color: #0f146d; }
+        .empty-state {
+            text-align: center;
+            padding: 64px 32px;
+            color: var(--text-muted);
+        }
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .empty-state-sub {
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body class="bg-black text-white">
+    <div class="min-h-screen p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-2" style="font-family: 'Space Grotesk', sans-serif;">Marketplace Reports</h1>
+                <p class="text-gray-400">Combined POS + Marketplace analytics and performance metrics</p>
+            </div>
+            <div class="flex gap-4">
+                <button onclick="window.location.href='index.html'" class="btn btn-secondary">Back to Dashboard</button>
+                <button onclick="window.location.href='marketplace.html'" class="btn btn-secondary">Orders</button>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filter-section">
+            <div class="filter-grid">
+                <div class="form-group">
+                    <label class="form-label">Report Period</label>
+                    <select id="reportPeriod" class="form-input" onchange="loadReports()">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last Year</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" id="startDate" class="form-input" onchange="loadReports()">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" id="endDate" class="form-input" onchange="loadReports()">
+                </div>
+            </div>
+        </div>
+
+        <!-- Revenue Report -->
+        <div class="reports-grid">
+            <div class="report-card">
+                <div class="report-title">Total Revenue</div>
+                <div class="report-value" id="totalRevenue">Rp 0</div>
+                <div class="report-sub">Combined POS + Marketplace</div>
+                <div class="report-change" id="revenueChange">-</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Total Profit</div>
+                <div class="report-value" id="totalProfit">Rp 0</div>
+                <div class="report-sub">Net profit after costs</div>
+                <div class="report-change" id="profitChange">-</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Total Orders</div>
+                <div class="report-value" id="totalOrders">0</div>
+                <div class="report-sub">All channels combined</div>
+                <div class="report-change" id="ordersChange">-</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Profit Margin</div>
+                <div class="report-value" id="profitMargin">0%</div>
+                <div class="report-sub">Overall profitability</div>
+                <div class="report-change" id="marginChange">-</div>
+            </div>
+        </div>
+
+        <!-- Channel Comparison -->
+        <div class="channel-comparison">
+            <h2 class="text-xl font-bold text-white mb-6" style="font-family: 'Space Grotesk', sans-serif;">Channel Performance</h2>
+            <div id="channelComparison">
+                <!-- Channel comparison will be loaded here -->
+            </div>
+        </div>
+
+        <!-- POS vs Marketplace Breakdown -->
+        <div class="reports-grid">
+            <div class="report-card">
+                <div class="report-title">POS Revenue</div>
+                <div class="report-value" id="posRevenue">Rp 0</div>
+                <div class="report-sub" id="posRevenuePercent">0% of total</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Marketplace Revenue</div>
+                <div class="report-value" id="marketplaceRevenue">Rp 0</div>
+                <div class="report-sub" id="marketplaceRevenuePercent">0% of total</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">POS Orders</div>
+                <div class="report-value" id="posOrders">0</div>
+                <div class="report-sub" id="posOrdersPercent">0% of total</div>
+            </div>
+            <div class="report-card">
+                <div class="report-title">Marketplace Orders</div>
+                <div class="report-value" id="marketplaceOrders">0</div>
+                <div class="report-sub" id="marketplaceOrdersPercent">0% of total</div>
+            </div>
+        </div>
+
+        <!-- Platform Breakdown -->
+        <div class="channel-comparison">
+            <h2 class="text-xl font-bold text-white mb-6" style="font-family: 'Space Grotesk', sans-serif;">Marketplace Platform Breakdown</h2>
+            <div id="platformBreakdown">
+                <!-- Platform breakdown will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="marketplace-reports.js"></script>
+</body>
+</html>
