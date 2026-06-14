@@ -222,10 +222,10 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
 }
 
 /* Navigation layout */
-.spectre-shell{display:flex; min-height:100vh; width:100%;}
+.spectre-shell{display:flex; min-height:100vh; width:100%; overflow-x:hidden;}
 .spectre-sidebar{
-  width:280px;
-  padding:24px;
+  width:220px;
+  padding:14px;
   border-right: 1px solid var(--stroke-soft);
   position:sticky;
   top:0;
@@ -233,15 +233,18 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   -webkit-backdrop-filter: blur(24px);
   background: var(--glass-premium);
   overflow-y:auto;
+  overflow-x:hidden;
   display:flex;
   flex-direction:column;
   transition: width var(--transition-slow) cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 100;
+  flex-shrink:0;
+  max-width:220px;
 }
 
 .spectre-sidebar--collapsed{
-  width:80px;
-  padding:24px 16px;
+  width:60px;
+  padding:16px 10px;
 }
 
 .spectre-sidebar--collapsed .spectre-brand-text,
@@ -265,21 +268,21 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   margin: 0;
 }
 
-.spectre-sidebar__brand{margin-bottom:40px; padding: 24px 0; border-bottom: 1px solid var(--stroke); display: flex; flex-direction: column; align-items: center; text-align: center;}
+.spectre-sidebar__brand{margin-bottom:24px; padding: 16px 0; border-bottom: 1px solid var(--stroke); display: flex; flex-direction: column; align-items: center; text-align: center;}
 .spectre-logo-mark{
-  width:48px;
-  height:48px;
+  width:40px;
+  height:40px;
   border-radius: var(--radius);
-  margin-bottom:16px;
+  margin-bottom:12px;
   box-shadow: var(--shadow-glow);
   object-fit: contain;
 }
 .spectre-brand-logo{
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 .spectre-brand-logo img{
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
   filter: drop-shadow(0 0 40px rgba(220,20,60,0.2));
 }
@@ -289,25 +292,25 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   align-items: center;
 }
 .spectre-brand-title{
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.03em;
   text-transform: uppercase;
   color: var(--text);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   line-height: 1;
   font-family: var(--font-display);
 }
 .spectre-brand-subtitle{
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .spectre-brand-slogan{
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.15em;
   text-transform: uppercase;
@@ -331,19 +334,20 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
 .spectre-navlink{
   display: flex;
   align-items: center;
-  padding:12px 16px;
+  padding:10px 12px;
   border-radius: var(--radius);
   border:1px solid transparent;
   background: transparent;
   color: var(--text-secondary);
   font-weight:500;
   text-decoration:none;
-  font-size:13px;
+  font-size:12px;
   transition: all var(--transition-base) cubic-bezier(0.4, 0, 0.2, 1);
-  gap:12px;
+  gap:10px;
   letter-spacing: -0.01em;
   position: relative;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .spectre-navlink::before{
@@ -370,6 +374,9 @@ body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-fon
   transition: all var(--transition-base) ease;
   position: relative;
   z-index: 1;
+  flex-shrink:0;
+  width:16px;
+  height:16px;
 }
 
 .spectre-navlink:hover svg{
@@ -1746,6 +1753,152 @@ html, body{
   filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
 }
 
+@media(max-width:1200px){
+  .spectre-sidebar{
+    width:160px;
+    padding:12px;
+    max-width:160px;
+  }
+  
+  .spectre-sidebar__brand{
+    margin-bottom:16px;
+    padding: 8px 0;
+  }
+  
+  .spectre-brand-logo img{
+    width: 48px;
+    height: 48px;
+  }
+  
+  .spectre-brand-title{
+    font-size: 16px;
+  }
+  
+  .spectre-brand-subtitle{
+    font-size: 9px;
+  }
+  
+  .spectre-brand-slogan{
+    font-size: 9px;
+  }
+  
+  .spectre-navlink{
+    padding:6px 8px;
+    font-size:10px;
+    gap:6px;
+  }
+  
+  .spectre-navlink svg{
+    width:14px;
+    height:14px;
+  }
+  
+  .spectre-sidebar__footer{
+    padding-top:16px;
+  }
+  
+  .spectre-user-profile{
+    padding:12px;
+    gap:8px;
+  }
+  
+  .spectre-user-avatar{
+    width:32px;
+    height:32px;
+    font-size:12px;
+  }
+  
+  .spectre-user-name{
+    font-size:12px;
+  }
+  
+  .spectre-user-role{
+    font-size:9px;
+  }
+  
+  .spectre-logout-btn{
+    padding:6px 12px;
+    font-size:10px;
+  }
+}
+
+@media(max-width:1024px){
+  .spectre-shell{display:block;}
+  .spectre-sidebar{display:none;}
+  .spectre-bottomnav{display:flex;}
+  
+  .spectre-content{
+    padding:16px;
+    padding-bottom:100px;
+  }
+  
+  .spectre-kpi-grid,
+  .spectre-kpi-grid2,
+  .spectre-inventory-overview-grid{
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap:12px;
+  }
+  
+  .spectre-widgets{
+    grid-template-columns: 1fr !important;
+    gap:16px;
+  }
+  
+  /* Reduce KPI card padding for tablets */
+  .spectre-kpi-card{
+    padding:16px !important;
+    min-height:100px !important;
+  }
+  
+  /* Reduce KPI icon size for tablets */
+  .spectre-kpi-icon{
+    width:36px !important;
+    height:36px !important;
+  }
+  
+  /* Reduce KPI value font size for tablets */
+  .spectre-kpi-value{
+    font-size:28px !important;
+  }
+  
+  /* Reduce inventory overview card padding */
+  .spectre-inventory-overview-card{
+    padding:14px 10px !important;
+  }
+  
+  /* Reduce widget padding */
+  .spectre-widget{
+    padding:16px !important;
+  }
+  
+  /* Reduce card padding */
+  .spectre-card--chart,
+  .spectre-card--activity{
+    padding:20px !important;
+  }
+  
+  /* Reduce chart height */
+  .relative{
+    height:300px !important;
+  }
+  
+  /* Reduce gap between sections */
+  .spectre-kpi-grid,
+  .spectre-kpi-grid2{
+    margin-top:16px !important;
+  }
+  
+  .spectre-layout-grid{
+    margin-top:20px !important;
+    gap:16px !important;
+  }
+  
+  .spectre-widgets{
+    margin-top:20px !important;
+    gap:16px !important;
+  }
+}
+
 @media(max-width:900px){
   .spectre-shell{display:block;}
   .spectre-sidebar{display:none;}
@@ -1821,6 +1974,12 @@ html, body{
     margin-top:20px !important;
     gap:16px !important;
   }
+}
+
+@media(max-width:768px){
+  .spectre-shell{display:block;}
+  .spectre-sidebar{display:none;}
+  .spectre-bottomnav{display:flex;}
 }
 
 @media(max-width:480px){
