@@ -1479,7 +1479,7 @@ html {
   }
 }
 
-/* Small mobile - 1 column for phones */
+/* Small mobile - 2 columns for phones */
 @media(max-width:480px){
   .spectre-kpi-grid,
   .spectre-kpi-grid2,
@@ -1488,7 +1488,7 @@ html {
   .sales-kpi-grid,
   .expense-kpi-grid,
   .inventory-kpi-grid{
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
   }
 }
 
