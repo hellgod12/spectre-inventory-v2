@@ -3,7 +3,7 @@
 
 // NOTE: This version string must be UNIQUE per deploy.
 // Replace below on each deployment.
-const SW_VERSION = '20260616-2';
+const SW_VERSION = '20260616-3';
 const CACHE_NAME = `spectre-inventory-cache-${SW_VERSION}`;
 
 const urlsToCache = [
@@ -15,11 +15,6 @@ const urlsToCache = [
     './pengeluaran.html',
     './member-payments.html',
     './login.html',
-    './style.css',
-    './status.css',
-    './script.js',
-    './penjualan.js',
-    './auth.js',
     './manifest.json',
     './spectrelogo.png',
     'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
