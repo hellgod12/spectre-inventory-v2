@@ -13,10 +13,9 @@ function setInputsFromBarcode(raw) {
   if (!cleaned) return false;
 
   // Target: kalau yang discan adalah ITEM_IDENTIFIER saja,
-  // SKU tetap ditampilkan otomatis dengan pola turunan.
-  // Pola: ambil huruf/angka dari item_identifier, lalu format jadi:
-  //   SKU-<2 huruf pertama dari kata pertama><2 huruf pertama kata terakhir><angka hash 3 digit>
-  // Contoh: "SPECTRE SLICK DECK" => SKU-SPDE-123
+  // SKU akan di-generate otomatis berdasarkan kategori yang dipilih
+  // (menggunakan sistem yang sama dengan barang.js)
+  // Scan hanya mengisi nama barang, SKU akan di-generate saat user memilih kategori
 
   let itemIdentifier = cleaned;
 
@@ -26,27 +25,9 @@ function setInputsFromBarcode(raw) {
 
   if (productInput) productInput.value = itemIdentifier.toUpperCase();
 
-  if (skuInput) {
-    const words = String(itemIdentifier)
-      .toUpperCase()
-      .replace(/[^A-Z0-9\s]/g, ' ')
-      .split(/\s+/)
-      .filter(Boolean);
-
-    const first = words[0] || '';
-    const last = words[words.length - 1] || first;
-
-    const a = (first.match(/[A-Z0-9]/g) || []).slice(0, 2).join('');
-    const b = (last.match(/[A-Z0-9]/g) || []).slice(0, 2).join('');
-
-    // hash sederhana agar tetap stabil untuk itemIdentifier
-    let hash = 0;
-    const str = String(itemIdentifier).toUpperCase();
-    for (let i = 0; i < str.length; i++) hash = (hash * 31 + str.charCodeAt(i)) % 1000;
-
-    const sku = `SKU-${a}${b}-${String(hash).padStart(3, '0')}`;
-    skuInput.value = sku;
-  }
+  // SKU tidak di-generate di sini, akan di-generate otomatis saat user memilih kategori
+  // di barang.js menggunakan fungsi autoGenerateSku()
+  if (skuInput) skuInput.value = '';
 
   return true;
 }

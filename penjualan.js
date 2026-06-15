@@ -36,6 +36,8 @@ let selectedProduct = null;
 async function updateLedgerBookkeeping() {
     // Calculate directly from Supabase (no localStorage)
     let allPayments = [];
+    let products = [];
+    
     try {
         const { data: remotePayments, error } = await supabaseClient.from('payments').select('*');
         if (error) {
@@ -46,6 +48,22 @@ async function updateLedgerBookkeeping() {
     } catch (err) {
         console.error('Error loading payments:', err);
     }
+
+    // Load products for profit calculation
+    try {
+        const { data: prods } = await supabaseClient.from('products').select('nama_barang, harga_modal');
+        if (prods) {
+            products = prods;
+        }
+    } catch (err) {
+        console.error('Error loading products for profit calculation:', err);
+    }
+
+    // Create product modal map for quick lookup
+    const modalMap = new Map();
+    products.forEach(p => {
+        modalMap.set(String(p.nama_barang || '').toUpperCase(), parseFloat(p.harga_modal || 0));
+    });
 
     // Calculate statistics using new status values
     const confirmedCount = allPayments.filter(p => p.status === 'paid').length;
@@ -85,8 +103,17 @@ async function updateLedgerBookkeeping() {
     // Pending Payments Today = count of today's pending/partial transactions
     const pendingToday = todayPayments.filter(p => p.status === 'pending' || p.status === 'partial').length;
 
-    // Calculate profit today (estimated as 30% of revenue)
-    const profitToday = revenueToday * 0.3;
+    // Calculate profit today based on actual modal cost
+    // Profit = (harga_jual - harga_modal) * jumlah for each transaction
+    let profitToday = 0;
+    todayPayments.forEach(payment => {
+        const productName = String(payment.product || '').toUpperCase();
+        const modalSatuan = modalMap.get(productName) || 0;
+        const qty = parseInt(payment.jumlah || 0);
+        const revenue = parseFloat(payment.total_harga || 0);
+        const totalModal = modalSatuan * qty;
+        profitToday += (revenue - totalModal);
+    });
 
     const salesRevenueTodayEl = document.getElementById('salesRevenueToday');
     const salesTransactionsTodayEl = document.getElementById('salesTransactionsToday');

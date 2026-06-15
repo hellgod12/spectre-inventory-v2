@@ -229,7 +229,7 @@
       // Update progress berdasarkan estimasi total dari DOM
       const currentTotal = getStockTotalFromDOMFallback();
       const nextTotal = Math.max(0, currentTotal + delta);
-      updateStockProgressByTotal(nextTotal);
+      updateStockCandleByTotal(nextTotal);
 
       // Broadcast ke tab lain agar ikut animasi
       try {

@@ -2,6 +2,25 @@
 // Use global supabaseClient from auth.js
 
 const productForm = document.getElementById('productForm');
+
+// Activity Logging Function
+async function logActivity(action, entityType, entityId, details = null) {
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+        
+        await supabaseClient.rpc('log_activity', {
+            p_user_id: user.id,
+            p_action: action,
+            p_entity_type: entityType,
+            p_entity_id: entityId,
+            p_details: details
+        });
+    } catch (error) {
+        console.error('Error logging activity:', error);
+        // Don't throw error, activity logging should not block main functionality
+    }
+}
 const btnSimpan = document.getElementById('btnSimpan');
 const stockProgressFill = document.getElementById('stockProgressFill');
 const stockCapacityText = document.getElementById('stockCapacityText');
@@ -104,7 +123,7 @@ async function refreshStockProgress() {
             totalProducts = products.length;
             totalStock = products.reduce((sum, item) => sum + (parseInt(item.stok || 0)), 0);
             inventoryValue = products.reduce((sum, item) => sum + (parseInt(item.stok || 0) * parseFloat(item.harga_modal || 0)), 0);
-            lowStockItems = products.filter(item => parseInt(item.stok || 0) <= 5).length;
+            lowStockItems = products.filter(item => parseInt(item.stok || 0) <= (item.low_stock_threshold || 5)).length;
         }
     } catch (error) {
         console.warn('Tidak bisa memuat data inventory:', error?.message || error);
@@ -146,11 +165,13 @@ productForm.addEventListener('submit', async (e) => {
     const harga_modal = parseFloat(document.getElementById('harga_modal').value);
     const harga_jual = parseFloat(document.getElementById('harga_jual').value);
     const harga_member = parseFloat(document.getElementById('harga_member').value);
+    const low_stock_threshold = parseInt(document.getElementById('low_stock_threshold').value) || 5;
+    const image_url = document.getElementById('image_url').value || null;
 
     // Mengirimkan semua data termasuk variabel 'kategori' ke tabel Supabase
     const { data, error } = await supabaseClient
         .from('products')
-        .insert([{ nama_barang, sku, kategori, ukuran, stok, harga_modal, harga_jual, harga_member }]);
+        .insert([{ nama_barang, sku, kategori, ukuran, stok, harga_modal, harga_jual, harga_member, low_stock_threshold, image_url }]);
 
 
     const statusPanel = document.getElementById('stockEntryStatus');
@@ -173,6 +194,18 @@ productForm.addEventListener('submit', async (e) => {
                 <span>${stok} unit ${nama_barang.toUpperCase()} berhasil disuntik ke gudang.</span>
             `;
         }
+        
+        // Log activity
+        if (data && data[0]) {
+            await logActivity('product_created', 'product', data[0].id, {
+                nama_barang,
+                sku,
+                kategori,
+                stok,
+                harga_jual
+            });
+        }
+        
         await refreshStockProgress();
 
         // Animasi candel stok: masuk (+stok)
@@ -252,5 +285,94 @@ document.addEventListener('DOMContentLoaded', () => {
         autoGenerateSku();
         updateSizeOptions();
     }
+
+    // Load products for stock adjustment modal
+    loadProductsForStockAdjustment();
+
+    // Setup stock adjustment form
+    document.getElementById('stockAdjustmentForm').addEventListener('submit', handleStockAdjustment);
 });
+
+// Stock Adjustment Functions
+async function loadProductsForStockAdjustment() {
+    try {
+        const { data: products } = await supabaseClient
+            .from('products')
+            .select('id, nama_barang, sku, stok')
+            .order('nama_barang');
+        
+        const select = document.getElementById('adjustmentProduct');
+        select.innerHTML = '<option value="">Select Product</option>';
+        
+        if (products) {
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.nama_barang} (${product.sku}) - Stock: ${product.stok}`;
+                select.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading products for stock adjustment:', error);
+    }
+}
+
+function openStockAdjustmentModal() {
+    document.getElementById('stockAdjustmentModal').style.display = 'flex';
+    loadProductsForStockAdjustment();
+}
+
+function closeStockAdjustmentModal() {
+    document.getElementById('stockAdjustmentModal').style.display = 'none';
+    document.getElementById('stockAdjustmentForm').reset();
+}
+
+async function handleStockAdjustment(e) {
+    e.preventDefault();
+    
+    try {
+        const productId = parseInt(document.getElementById('adjustmentProduct').value);
+        const adjustmentType = document.getElementById('adjustmentType').value;
+        const quantity = parseInt(document.getElementById('adjustmentQuantity').value);
+        const reason = document.getElementById('adjustmentReason').value;
+        
+        if (!productId) {
+            alert('Please select a product');
+            return;
+        }
+        
+        if (!quantity || quantity === 0) {
+            alert('Please enter a quantity (use negative for stock reduction)');
+            return;
+        }
+        
+        // Create stock adjustment record
+        const { error: adjustmentError } = await supabaseClient
+            .from('stock_adjustments')
+            .insert({
+                product_id: productId,
+                adjustment_type: adjustmentType,
+                quantity: quantity,
+                reason: reason,
+                adjusted_by: 'admin' // You can get this from auth
+            });
+        
+        if (adjustmentError) throw adjustmentError;
+        
+        alert('Stock adjustment saved successfully!');
+        closeStockAdjustmentModal();
+        await refreshStockProgress();
+        
+        // Log activity
+        await logActivity('stock_adjustment', 'product', productId, {
+            adjustment_type: adjustmentType,
+            quantity,
+            reason
+        });
+        
+    } catch (error) {
+        console.error('Error handling stock adjustment:', error);
+        alert('Failed to save stock adjustment: ' + error.message);
+    }
+}
 

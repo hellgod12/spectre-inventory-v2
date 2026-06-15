@@ -37,9 +37,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const parts = text.split('|').map(s => String(s).trim()).filter(Boolean);
     if (parts.length === 0) return null;
 
-    // Format target SKU|qty|harga_modal|harga_jual|harga_member|kategori
-    // Jadi parts[0] = SKU, parts[1] = qty
-    const sku = parts[0];
+    // Format target: NAMA_BARANG|qty|harga_modal|harga_jual|harga_member|kategori
+    // Jadi parts[0] = nama, parts[1] = qty, ...
     const nama = parts[0];
     const qty = parts[1] != null ? Number(parts[1]) : null;
 
@@ -58,34 +57,17 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  function makeSkuFromNamaBarang(nama) {
-    const txt = String(nama || '').trim().toUpperCase();
-    if (!txt) return '';
-    // Replace any non-alphanumeric with '-'
-    const normalized = txt
-      .replace(/[^A-Z0-9]+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-    return normalized;
-  }
-
   const applyRawToForm = (raw) => {
     const payload = parseScanPayload(raw);
     if (!payload) return false;
 
-    // payload untuk scan masuk format: SKU|qty|harga_modal|harga_jual|harga_member|kategori
-    // Jadi: parts[0]=SKU, parts[1]=qty, ...
+    // payload untuk scan masuk format: NAMA_BARANG|qty|harga_modal|harga_jual|harga_member|kategori
     const namaUpper = String(payload.nama || '').toUpperCase();
     namaBarangInput.value = namaUpper;
 
-    // Prioritas: SKU dari scan ikut masuk kalau ada.
-    // Kalau kosong/undefined, generate dari nama_barang (format UPPERCASE + minus).
-    const rawSku = String(payload.sku ?? '').trim();
-    const skuFinal = rawSku
-      ? rawSku.toUpperCase()
-      : makeSkuFromNamaBarang(namaUpper);
-
-    if (skuInput) skuInput.value = skuFinal;
+    // SKU tidak di-generate di sini, akan di-generate otomatis saat user memilih kategori
+    // di barang.js menggunakan fungsi autoGenerateSku()
+    if (skuInput) skuInput.value = '';
 
     if (payload.qty != null && stokInput) stokInput.value = payload.qty;
     if (payload.hargaModal != null && hargaModalInput) hargaModalInput.value = payload.hargaModal;
@@ -104,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (Array.from(kategoriSelect.options || []).some(o => o.value === normalized)) {
         kategoriSelect.value = normalized;
       }
-      // trigger change for size options
+      // trigger change for size options dan auto-generate SKU
       kategoriSelect.dispatchEvent(new Event('change', { bubbles: true }));
     }
 

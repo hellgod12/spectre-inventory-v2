@@ -1,14 +1,18 @@
-// Marketplace Orders Page Logic
-// Connects to marketplace-repository.js and marketplace-service.js
+// Marketplace Orders Page Logic (Manual Entry System)
+// Direct Supabase queries for manual entry
 
 let allOrders = [];
 let filteredOrders = [];
+let products = [];
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadMarketplaceAccounts();
+    await loadProducts();
     await loadOrders();
     setupEventListeners();
+    
+    // Set default date to today
+    document.getElementById('importOrderDate').value = new Date().toISOString().split('T')[0];
 });
 
 // Setup event listeners
@@ -16,21 +20,30 @@ function setupEventListeners() {
     document.getElementById('importOrderForm').addEventListener('submit', handleImportOrder);
 }
 
-// Load marketplace accounts for dropdown
-async function loadMarketplaceAccounts() {
+// Load products for dropdown
+async function loadProducts() {
     try {
-        const accounts = await getActiveMarketplaceAccounts();
-        const select = document.getElementById('importAccount');
-        select.innerHTML = '<option value="">Select Account</option>';
+        const { data, error } = await supabaseClient
+            .from('products')
+            .select('id, nama_barang, sku, harga_jual')
+            .order('nama_barang');
         
-        accounts.forEach(account => {
+        if (error) throw error;
+        products = data || [];
+        
+        const select = document.getElementById('importProduct');
+        select.innerHTML = '<option value="">Select Product</option>';
+        
+        products.forEach(product => {
             const option = document.createElement('option');
-            option.value = account.id;
-            option.textContent = `${account.platform} - ${account.shop_name}`;
+            option.value = product.id;
+            option.dataset.price = product.harga_jual;
+            option.dataset.sku = product.sku;
+            option.textContent = `${product.nama_barang} (${product.sku})`;
             select.appendChild(option);
         });
     } catch (error) {
-        console.error('Error loading marketplace accounts:', error);
+        console.error('Error loading products:', error);
     }
 }
 
@@ -38,7 +51,40 @@ async function loadMarketplaceAccounts() {
 async function loadOrders() {
     try {
         const filters = buildFilters();
-        allOrders = await getOnlineOrders(filters);
+        
+        let query = supabaseClient
+            .from('online_orders')
+            .select(`
+                *,
+                marketplace_accounts (
+                    platform,
+                    shop_name
+                ),
+                order_items (
+                    product_name,
+                    sku,
+                    quantity,
+                    unit_price
+                )
+            `);
+        
+        if (filters.start_date && filters.end_date) {
+            query = query.gte('created_at', filters.start_date).lte('created_at', filters.end_date);
+        }
+        
+        if (filters.platform) {
+            query = query.eq('marketplace_accounts.platform', filters.platform);
+        }
+        
+        if (filters.order_status) {
+            query = query.eq('order_status', filters.order_status);
+        }
+        
+        const { data, error } = await query.order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        allOrders = data || [];
         filteredOrders = [...allOrders];
         
         updateKPIs();
@@ -53,14 +99,12 @@ async function loadOrders() {
 function buildFilters() {
     const platform = document.getElementById('filterPlatform').value;
     const orderStatus = document.getElementById('filterStatus').value;
-    const settlementStatus = document.getElementById('filterSettlement').value;
     const dateRange = document.getElementById('filterDateRange').value;
     
     const filters = {};
     
-    if (platform) filters.marketplace_account_id = platform;
+    if (platform) filters.platform = platform;
     if (orderStatus) filters.order_status = orderStatus;
-    if (settlementStatus) filters.settlement_status = settlementStatus;
     
     if (dateRange !== 'all') {
         const days = parseInt(dateRange);
@@ -80,12 +124,11 @@ function applyFilters() {
     const filters = buildFilters();
     
     filteredOrders = allOrders.filter(order => {
-        if (filters.marketplace_account_id && order.marketplace_account_id !== filters.marketplace_account_id) return false;
+        if (filters.platform && order.marketplace_accounts?.platform !== filters.platform) return false;
         if (filters.order_status && order.order_status !== filters.order_status) return false;
-        if (filters.settlement_status && order.settlement_status !== filters.settlement_status) return false;
         
         if (filters.start_date && filters.end_date) {
-            const orderDate = new Date(order.order_date);
+            const orderDate = new Date(order.created_at);
             const startDate = new Date(filters.start_date);
             const endDate = new Date(filters.end_date);
             if (orderDate < startDate || orderDate > endDate) return false;
@@ -102,14 +145,12 @@ function updateKPIs() {
     const totalOrders = allOrders.length;
     const pendingOrders = allOrders.filter(o => o.order_status === 'PENDING').length;
     const totalRevenue = allOrders.reduce((sum, o) => sum + parseFloat(o.gross_sales || 0), 0);
-    const unsettledRevenue = allOrders
-        .filter(o => o.settlement_status === 'UNSETTLED')
-        .reduce((sum, o) => sum + parseFloat(o.net_revenue || 0), 0);
+    const netRevenue = allOrders.reduce((sum, o) => sum + parseFloat(o.net_revenue || 0), 0);
     
     document.getElementById('totalOrders').textContent = totalOrders;
     document.getElementById('pendingOrders').textContent = pendingOrders;
     document.getElementById('totalRevenue').textContent = formatCurrency(totalRevenue);
-    document.getElementById('unsettledRevenue').textContent = formatCurrency(unsettledRevenue);
+    document.getElementById('netRevenue').textContent = formatCurrency(netRevenue);
 }
 
 // Render orders table
@@ -129,7 +170,6 @@ function renderOrders() {
         <tr>
             <td>
                 <div class="font-semibold">${order.order_number}</div>
-                <div class="text-xs text-gray-400">${order.platform_order_id || '-'}</div>
             </td>
             <td>
                 <span class="platform-badge platform-${order.marketplace_accounts?.platform?.toLowerCase()}">
@@ -142,11 +182,6 @@ function renderOrders() {
             <td>
                 <span class="status-badge status-${order.order_status?.toLowerCase()}">
                     ${formatOrderStatus(order.order_status)}
-                </span>
-            </td>
-            <td>
-                <span class="status-badge status-${order.settlement_status?.toLowerCase().replace('_', '-') || 'pending'}">
-                    ${formatSettlementStatus(order.settlement_status)}
                 </span>
             </td>
             <td class="font-semibold">${formatCurrency(order.gross_sales)}</td>
@@ -168,8 +203,26 @@ function showEmptyState() {
 // View order details
 async function viewOrder(orderId) {
     try {
-        const order = await getOnlineOrderById(orderId);
-        showOrderModal(order);
+        const { data, error } = await supabaseClient
+            .from('online_orders')
+            .select(`
+                *,
+                marketplace_accounts (
+                    platform,
+                    shop_name
+                ),
+                order_items (
+                    product_name,
+                    sku,
+                    quantity,
+                    unit_price
+                )
+            `)
+            .eq('id', orderId)
+            .single();
+        
+        if (error) throw error;
+        showOrderModal(data);
     } catch (error) {
         console.error('Error loading order details:', error);
         alert('Failed to load order details');
@@ -216,20 +269,8 @@ function showOrderModal(order) {
             </span>
         </div>
         <div class="detail-row">
-            <span class="detail-label">Settlement Status</span>
-            <span class="detail-value">
-                <span class="status-badge status-${order.settlement_status?.toLowerCase().replace('_', '-') || 'pending'}">
-                    ${formatSettlementStatus(order.settlement_status)}
-                </span>
-            </span>
-        </div>
-        <div class="detail-row">
             <span class="detail-label">Gross Sales</span>
             <span class="detail-value">${formatCurrency(order.gross_sales)}</span>
-        </div>
-        <div class="detail-row">
-            <span class="detail-label">Voucher Discount</span>
-            <span class="detail-value">${formatCurrency(order.voucher_discount)}</span>
         </div>
         <div class="detail-row">
             <span class="detail-label">Platform Fee</span>
@@ -246,7 +287,7 @@ function showOrderModal(order) {
         
         <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600;">Order Items</h3>
         <div class="order-items-list">
-            ${order.items.map(item => `
+            ${order.order_items.map(item => `
                 <div class="order-item">
                     <div class="order-item-name">${item.product_name}</div>
                     <div class="order-item-details">
@@ -259,19 +300,10 @@ function showOrderModal(order) {
             `).join('')}
         </div>
         
-        ${order.fees && order.fees.length > 0 ? `
-            <h3 style="margin-top: 24px; margin-bottom: 16px; font-size: 16px; font-weight: 600;">Fees Breakdown</h3>
-            <div class="order-items-list">
-                ${order.fees.map(fee => `
-                    <div class="order-item">
-                        <div class="order-item-name">${fee.fee_name || fee.fee_type}</div>
-                        <div class="order-item-details">
-                            <span>Type: ${fee.fee_type}</span>
-                            <span>${fee.fee_percentage ? fee.fee_percentage + '%' : ''}</span>
-                            <span>Amount: ${formatCurrency(fee.fee_amount)}</span>
-                        </div>
-                    </div>
-                `).join('')}
+        ${order.notes ? `
+            <div class="detail-row" style="margin-top: 24px;">
+                <span class="detail-label">Notes</span>
+                <span class="detail-value">${order.notes}</span>
             </div>
         ` : ''}
         
@@ -306,58 +338,104 @@ async function handleImportOrder(e) {
     e.preventDefault();
     
     try {
-        const accountId = document.getElementById('importAccount').value;
+        const platform = document.getElementById('importPlatform').value;
         const orderNumber = document.getElementById('importOrderNumber').value;
         const customerName = document.getElementById('importCustomerName').value;
         const customerPhone = document.getElementById('importCustomerPhone').value;
-        const shippingAddress = document.getElementById('importShippingAddress').value;
+        const orderDate = document.getElementById('importOrderDate').value;
         const orderStatus = document.getElementById('importOrderStatus').value;
-        const productName = document.getElementById('importProductName').value;
-        const sku = document.getElementById('importSKU').value;
+        const productId = document.getElementById('importProduct').value;
         const quantity = parseInt(document.getElementById('importQuantity').value);
         const unitPrice = parseFloat(document.getElementById('importUnitPrice').value);
         const platformFee = parseFloat(document.getElementById('importPlatformFee').value) || 0;
         const shippingFee = parseFloat(document.getElementById('importShippingFee').value) || 0;
+        const notes = document.getElementById('importNotes').value;
+        
+        // Get product details
+        const product = products.find(p => p.id === productId);
+        if (!product) {
+            alert('Please select a product');
+            return;
+        }
         
         const grossSales = quantity * unitPrice;
+        const netRevenue = grossSales - platformFee;
         
-        const orderData = {
-            marketplace_account_id: accountId,
-            order_number: orderNumber,
-            customer_name: customerName || null,
-            customer_phone: customerPhone || null,
-            shipping_address: shippingAddress || null,
-            order_status: orderStatus,
-            gross_sales: grossSales,
-            platform_fee: platformFee,
-            shipping_fee: shippingFee,
-            items: [{
-                product_name: productName,
-                sku: sku || null,
+        // Get or create marketplace account
+        let marketplaceAccountId;
+        const { data: existingAccounts } = await supabaseClient
+            .from('marketplace_accounts')
+            .select('id')
+            .eq('platform', platform)
+            .eq('shop_name', platform)
+            .single();
+        
+        if (existingAccounts) {
+            marketplaceAccountId = existingAccounts.id;
+        } else {
+            const { data: newAccount } = await supabaseClient
+                .from('marketplace_accounts')
+                .insert({
+                    platform: platform,
+                    shop_name: platform
+                })
+                .select()
+                .single();
+            marketplaceAccountId = newAccount.id;
+        }
+        
+        // Create online order
+        const { data: order, error: orderError } = await supabaseClient
+            .from('online_orders')
+            .insert({
+                marketplace_account_id: marketplaceAccountId,
+                order_number: orderNumber,
+                customer_name: customerName,
+                customer_phone: customerPhone,
+                order_date: orderDate,
+                order_status: orderStatus,
+                gross_sales: grossSales,
+                shipping_fee: shippingFee,
+                platform_fee: platformFee,
+                net_revenue: netRevenue,
+                notes: notes
+            })
+            .select()
+            .single();
+        
+        if (orderError) throw orderError;
+        
+        // Create order item
+        await supabaseClient
+            .from('order_items')
+            .insert({
+                online_order_id: order.id,
+                product_id: productId,
+                product_name: product.nama_barang,
+                sku: product.sku,
                 quantity: quantity,
                 unit_price: unitPrice
-            }]
-        };
+            });
         
-        const result = await processOrderImport(orderData, accountId);
-        
-        if (result.success) {
-            alert('Order imported successfully!');
-            closeImportModal();
-            await loadOrders();
-        } else {
-            alert('Failed to import order: ' + (result.error || 'Unknown error'));
-        }
+        alert('Order added successfully!');
+        closeImportModal();
+        await loadOrders();
     } catch (error) {
         console.error('Error importing order:', error);
-        alert('Failed to import order: ' + error.message);
+        alert('Failed to add order: ' + error.message);
     }
 }
 
 // Update order status action
 async function updateOrderStatusAction(orderId, status) {
     try {
-        await updateOrderStatus(orderId, status);
+        const { error } = await supabaseClient
+            .from('online_orders')
+            .update({ order_status: status })
+            .eq('id', orderId);
+        
+        if (error) throw error;
+        
         alert(`Order marked as ${status}`);
         closeOrderModal();
         await loadOrders();
@@ -406,19 +484,9 @@ function formatOrderStatus(status) {
         PROCESSING: 'Processing',
         SHIPPED: 'Shipped',
         DELIVERED: 'Delivered',
+        COMPLETED: 'Completed',
         CANCELLED: 'Cancelled',
         RETURNED: 'Returned'
-    };
-
-    return statusNames[status] || status;
-}
-
-// Format settlement status
-function formatSettlementStatus(status) {
-    const statusNames = {
-        UNSETTLED: 'Unsettled',
-        PARTIALLY_SETTLED: 'Partially Settled',
-        SETTLED: 'Settled'
     };
 
     return statusNames[status] || status;

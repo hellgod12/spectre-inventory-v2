@@ -70,6 +70,56 @@
                 grid-template-columns: 1fr !important;
             }
         }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        .order-details {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
     </style>
 </head>
 <body class="spectre-body">
@@ -136,6 +186,7 @@
                 </div>
                 <div class="spectre-welcome__actions">
                     <button class="spectre-btn spectre-btn--primary" onclick="location.href='index.html'">Back to Dashboard</button>
+                    <button class="spectre-btn" onclick="openStockAdjustmentModal()">Stock Adjustment</button>
                 </div>
             </section>
 
@@ -216,6 +267,17 @@
                                 </div>
                             </div>
 
+                            <div class="form-group-grid">
+                                <div class="form-group">
+                                    <label class="form-label">Low Stock Threshold</label>
+                                    <input type="number" id="low_stock_threshold" class="form-input" placeholder="5" value="5">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Product Image URL</label>
+                                    <input type="text" id="image_url" class="form-input" placeholder="https://...">
+                                </div>
+                            </div>
+
                             <div class="form-actions">
                                 <button type="button" id="btnScanMasuk" class="spectre-btn">Scan Camera</button>
                                 <button type="button" id="btnStopMasuk" class="spectre-btn spectre-btn--danger">Stop</button>
@@ -261,6 +323,43 @@
                 <a href="pengeluaran.html" class="spectre-bottomnav__item">Expenses</a>
             </nav>
         </main>
+
+        <!-- Stock Adjustment Modal -->
+        <div id="stockAdjustmentModal" class="modal" style="display: none;">
+            <div class="modal-content" style="max-width: 500px;">
+                <div class="modal-header">
+                    <h2 class="modal-title">Stock Adjustment</h2>
+                    <button class="modal-close" onclick="closeStockAdjustmentModal()">&times;</button>
+                </div>
+                <form id="stockAdjustmentForm" class="order-details">
+                    <div class="form-group">
+                        <label class="form-label">Product</label>
+                        <select id="adjustmentProduct" class="form-input" required>
+                            <option value="">Select Product</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Adjustment Type</label>
+                        <select id="adjustmentType" class="form-input" required>
+                            <option value="damage">Damage</option>
+                            <option value="loss">Loss</option>
+                            <option value="expired">Expired</option>
+                            <option value="found">Found</option>
+                            <option value="correction">Correction</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" id="adjustmentQuantity" class="form-input" required placeholder="Use negative for stock reduction">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Reason</label>
+                        <textarea id="adjustmentReason" class="form-input" rows="3" placeholder="Explain the adjustment..."></textarea>
+                    </div>
+                    <button type="submit" class="spectre-btn spectre-btn--primary">Save Adjustment</button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>

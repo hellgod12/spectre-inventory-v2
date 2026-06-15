@@ -17,9 +17,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
     <script src="button-animations.js"></script>
-    <script src="marketplace-repository.js"></script>
-    <script src="marketplace-service.js"></script>
-    <script src="marketplace-utils.js"></script>
     <style>
         @supports (padding: env(safe-area-inset-top)) {
             body {
@@ -313,9 +310,9 @@
                 <div class="marketplace-kpi-sub">Gross sales</div>
             </div>
             <div class="marketplace-kpi-card">
-                <div class="marketplace-kpi-label">Unsettled</div>
-                <div class="marketplace-kpi-value" id="unsettledRevenue">Rp 0</div>
-                <div class="marketplace-kpi-sub">Awaiting settlement</div>
+                <div class="marketplace-kpi-label">Net Revenue</div>
+                <div class="marketplace-kpi-value" id="netRevenue">Rp 0</div>
+                <div class="marketplace-kpi-sub">After platform fees</div>
             </div>
         </div>
 
@@ -345,15 +342,6 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Settlement Status</label>
-                    <select id="filterSettlement" class="form-input" onchange="applyFilters()">
-                        <option value="">All Settlement</option>
-                        <option value="UNSETTLED">Unsettled</option>
-                        <option value="PARTIALLY_SETTLED">Partially Settled</option>
-                        <option value="SETTLED">Settled</option>
-                    </select>
-                </div>
-                <div class="form-group">
                     <label class="form-label">Date Range</label>
                     <select id="filterDateRange" class="form-input" onchange="applyFilters()">
                         <option value="7">Last 7 Days</option>
@@ -376,7 +364,6 @@
                         <th>Customer</th>
                         <th>Date</th>
                         <th>Status</th>
-                        <th>Settlement</th>
                         <th>Amount</th>
                         <th>Actions</th>
                     </tr>
@@ -415,9 +402,14 @@
             </div>
             <form id="importOrderForm" class="order-details">
                 <div class="form-group">
-                    <label class="form-label">Marketplace Account</label>
-                    <select id="importAccount" class="form-input" required>
-                        <option value="">Select Account</option>
+                    <label class="form-label">Platform</label>
+                    <select id="importPlatform" class="form-input" required>
+                        <option value="">Select Platform</option>
+                        <option value="SHOPEE">Shopee</option>
+                        <option value="TIKTOK">TikTok</option>
+                        <option value="TOKOPEDIA">Tokopedia</option>
+                        <option value="LAZADA">Lazada</option>
+                        <option value="OTHER">Other</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -433,25 +425,26 @@
                     <input type="text" id="importCustomerPhone" class="form-input" placeholder="08xxxxxxxxxx">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Shipping Address</label>
-                    <textarea id="importShippingAddress" class="form-input" rows="3" placeholder="Full shipping address"></textarea>
+                    <label class="form-label">Order Date</label>
+                    <input type="date" id="importOrderDate" class="form-input" required>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Order Status</label>
-                    <select id="importOrderStatus" class="form-input">
-                        <option value="PENDING">Pending</option>
-                        <option value="PROCESSING">Processing</option>
-                        <option value="SHIPPED">Shipped</option>
+                    <select id="importOrderStatus" class="form-input" required>
+                        <option value="COMPLETED">Completed</option>
                         <option value="DELIVERED">Delivered</option>
+                        <option value="SHIPPED">Shipped</option>
+                        <option value="PROCESSING">Processing</option>
+                        <option value="PENDING">Pending</option>
+                        <option value="CANCELLED">Cancelled</option>
+                        <option value="RETURNED">Returned</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Product Name</label>
-                    <input type="text" id="importProductName" class="form-input" required placeholder="Product name">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">SKU (Optional)</label>
-                    <input type="text" id="importSKU" class="form-input" placeholder="Product SKU">
+                    <label class="form-label">Product</label>
+                    <select id="importProduct" class="form-input" required>
+                        <option value="">Select Product</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Quantity</label>
@@ -463,13 +456,17 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Platform Fee</label>
-                    <input type="number" id="importPlatformFee" class="form-input" min="0" placeholder="0">
+                    <input type="number" id="importPlatformFee" class="form-input" min="0" placeholder="0" value="0">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Shipping Fee</label>
-                    <input type="number" id="importShippingFee" class="form-input" min="0" placeholder="0">
+                    <input type="number" id="importShippingFee" class="form-input" min="0" placeholder="0" value="0">
                 </div>
-                <button type="submit" class="btn btn-primary">Import Order</button>
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea id="importNotes" class="form-input" rows="2" placeholder="Additional notes"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Add Order</button>
             </form>
         </div>
     </div>

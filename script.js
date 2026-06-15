@@ -1,7 +1,7 @@
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
 
-// Load marketplace reporting for combined POS + Marketplace analytics
+// Load marketplace data for combined POS + Marketplace analytics (Manual Entry System)
 // This ensures marketplace data is included in dashboard metrics
 
 // Sidebar Toggle Functionality
@@ -459,7 +459,7 @@ async function renderCandlestickChartFromSalesHistory(salesHistory = []) {
         }))
         .filter(x => x.t && Number.isFinite(x.v));
 
-    // Add marketplace orders to chart data
+    // Add marketplace orders to chart data (Manual Entry System)
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -735,7 +735,7 @@ async function loadDashboard() {
     let totalTerjualCount = 0;
     let pendingRevenue = 0;
 
-    // Load combined POS + Marketplace data for dashboard
+    // Load combined POS + Marketplace data for dashboard (Manual Entry System)
     let combinedRevenue = 0;
     let combinedProfit = 0;
     let combinedOrders = 0;
@@ -744,23 +744,30 @@ async function loadDashboard() {
     let marketplaceOrders = 0;
 
     try {
-        // Get combined revenue report (POS + Marketplace) for last 30 days
+        // Get marketplace data directly from online_orders table (Manual Entry)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
-        const revenueReport = await getCombinedRevenueReport(thirtyDaysAgo, new Date());
-        const profitReport = await getCombinedProfitReport(thirtyDaysAgo, new Date());
-        const orderStats = await getCombinedOrderStatistics(thirtyDaysAgo, new Date());
+        const { data: onlineOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales, net_revenue')
+            .gte('created_at', thirtyDaysAgo.toISOString());
         
-        combinedRevenue = revenueReport.combined.total_gross_sales;
-        combinedProfit = profitReport.combined.total_profit;
-        combinedOrders = orderStats.combined.total_orders;
-        marketplaceRevenue = revenueReport.marketplace.gross_sales;
-        marketplaceProfit = profitReport.marketplace.total_profit;
-        marketplaceOrders = orderStats.marketplace.total_orders;
+        if (onlineOrders) {
+            marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0);
+            marketplaceProfit = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
+            marketplaceOrders = onlineOrders.length;
+            
+            combinedRevenue = omsetAsli + marketplaceRevenue;
+            combinedProfit = profitAsli + marketplaceProfit;
+            combinedOrders = totalTerjualCount + marketplaceOrders;
+        }
     } catch (error) {
-        console.error('Error loading combined marketplace data:', error);
+        console.error('Error loading marketplace data:', error);
         // Fallback to POS-only data if marketplace data fails to load
+        combinedRevenue = omsetAsli;
+        combinedProfit = profitAsli;
+        combinedOrders = totalTerjualCount;
     }
 
     // Profit per produk (modal vs revenue terjual)
@@ -982,52 +989,50 @@ async function loadDashboard() {
             });
         }
         
-        // Add marketplace orders
-        if (marketplaceOrders > 0) {
-            try {
-                const thirtyDaysAgo = new Date();
-                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-                
-                const { data: onlineOrders } = await supabaseClient
-                    .from('online_orders')
-                    .select(`
-                        *,
-                        marketplace_accounts (
-                            platform,
-                            shop_name
-                        ),
-                        items (
-                            product_name,
-                            quantity,
-                            unit_price
-                        )
-                    `)
-                    .gte('created_at', thirtyDaysAgo.toISOString())
-                    .order('created_at', { ascending: false })
-                    .limit(10);
-                
-                if (onlineOrders) {
-                    onlineOrders.forEach(order => {
-                        const firstItem = order.items && order.items[0] ? order.items[0] : {};
-                        combinedTransactions.push({
-                            type: 'MARKETPLACE',
-                            id: order.id,
-                            invoice_number: order.order_number || order.platform_order_id || 'MKT-' + order.id.substring(0, 8),
-                            product: firstItem.product_name || 'Unknown',
-                            quantity: firstItem.quantity || 0,
-                            total: order.gross_sales || 0,
-                            paid: order.net_revenue || 0,
-                            remaining: 0,
-                            status: order.settlement_status === 'SETTLED' ? 'paid' : 'pending',
-                            created_at: order.created_at,
-                            buyer: order.customer_name || 'Online Customer',
-                            platform: order.marketplace_accounts?.platform || 'Unknown'
-                        });
+        // Add marketplace orders (Manual Entry System)
+        try {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            
+            const { data: onlineOrders } = await supabaseClient
+                .from('online_orders')
+                .select(`
+                    *,
+                    marketplace_accounts (
+                        platform,
+                        shop_name
+                    ),
+                    order_items (
+                        product_name,
+                        quantity,
+                        unit_price
+                    )
+                `)
+                .gte('created_at', thirtyDaysAgo.toISOString())
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            if (onlineOrders) {
+                onlineOrders.forEach(order => {
+                    const firstItem = order.order_items && order.order_items[0] ? order.order_items[0] : {};
+                    combinedTransactions.push({
+                        type: 'MARKETPLACE',
+                        id: order.id,
+                        invoice_number: order.order_number || 'MKT-' + order.id.substring(0, 8),
+                        product: firstItem.product_name || 'Unknown',
+                        quantity: firstItem.quantity || 0,
+                        total: order.gross_sales || 0,
+                        paid: order.net_revenue || 0,
+                        remaining: 0,
+                        status: order.order_status === 'COMPLETED' || order.order_status === 'DELIVERED' ? 'paid' : 'pending',
+                        created_at: order.created_at,
+                        buyer: order.customer_name || 'Online Customer',
+                        platform: order.marketplace_accounts?.platform || 'Unknown'
                     });
-                }
-            } catch (error) {
-                console.error('Error loading marketplace orders for invoice container:', error);
+                });
             }
+        } catch (error) {
+            console.error('Error loading marketplace orders for invoice container:', error);
         }
         
         // Sort by date
