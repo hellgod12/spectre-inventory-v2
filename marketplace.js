@@ -64,7 +64,10 @@ async function loadOrders() {
                     product_name,
                     sku,
                     quantity,
-                    unit_price
+                    unit_price,
+                    discount,
+                    tax,
+                    total_price
                 )
             `);
         
@@ -215,7 +218,10 @@ async function viewOrder(orderId) {
                     product_name,
                     sku,
                     quantity,
-                    unit_price
+                    unit_price,
+                    discount,
+                    tax,
+                    total_price
                 )
             `)
             .eq('id', orderId)
@@ -294,7 +300,9 @@ function showOrderModal(order) {
                         <span>SKU: ${item.sku || '-'}</span>
                         <span>Qty: ${item.quantity}</span>
                         <span>Price: ${formatCurrency(item.unit_price)}</span>
-                        <span>Total: ${formatCurrency(item.quantity * item.unit_price)}</span>
+                        <span>Discount: ${formatCurrency(item.discount || 0)}</span>
+                        <span>Tax: ${formatCurrency(item.tax || 0)}</span>
+                        <span>Total: ${formatCurrency(item.total_price)}</span>
                     </div>
                 </div>
             `).join('')}
@@ -347,6 +355,8 @@ async function handleImportOrder(e) {
         const productId = document.getElementById('importProduct').value;
         const quantity = parseInt(document.getElementById('importQuantity').value);
         const unitPrice = parseFloat(document.getElementById('importUnitPrice').value);
+        const discount = parseFloat(document.getElementById('importDiscount').value) || 0;
+        const tax = parseFloat(document.getElementById('importTax').value) || 0;
         const platformFee = parseFloat(document.getElementById('importPlatformFee').value) || 0;
         const shippingFee = parseFloat(document.getElementById('importShippingFee').value) || 0;
         const notes = document.getElementById('importNotes').value;
@@ -358,8 +368,9 @@ async function handleImportOrder(e) {
             return;
         }
         
-        const grossSales = quantity * unitPrice;
-        const netRevenue = grossSales - platformFee;
+        const totalPrice = (quantity * unitPrice) - discount + tax;
+        const grossSales = totalPrice;
+        const netRevenue = grossSales - platformFee - shippingFee;
         
         // Get or create marketplace account
         let marketplaceAccountId;
@@ -414,7 +425,9 @@ async function handleImportOrder(e) {
                 product_name: product.nama_barang,
                 sku: product.sku,
                 quantity: quantity,
-                unit_price: unitPrice
+                unit_price: unitPrice,
+                discount: discount,
+                tax: tax
             });
         
         alert('Order added successfully!');
