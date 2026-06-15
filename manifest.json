@@ -5,8 +5,8 @@
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#0a0f1f",
-  "background_color": "#0a0f1f",
+  "theme_color": "#050505",
+  "background_color": "#050505",
   "scope": "/",
   "icons": [
     {
@@ -41,6 +41,18 @@
       "short_name": "Sales",
       "description": "Create new sale",
       "url": "./penjualan.html",
+      "icons": [
+        {
+          "src": "spectrelogo.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Reports",
+      "short_name": "Reports",
+      "description": "View sales reports",
+      "url": "./reports.html",
       "icons": [
         {
           "src": "spectrelogo.png",

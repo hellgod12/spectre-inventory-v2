@@ -2779,3 +2779,204 @@ p{
 }
 /* End of SPECTRE Design System */
 
+/* ============================================
+   MOBILE RESPONSIVE DESIGN
+   ============================================ */
+
+/* Base mobile styles */
+@media (max-width: 768px) {
+  :root {
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-lg: 16px;
+    --space-xl: 20px;
+    --space-2xl: 32px;
+    
+    --radius-sm: 6px;
+    --radius: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+  }
+  
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  /* Grid adjustments */
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr;
+  }
+  
+  /* KPI cards - stack on mobile */
+  .reports-kpi-grid,
+  .returns-kpi-grid,
+  .discounts-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  /* Reduce font sizes on mobile */
+  .spectre-chart-title {
+    font-size: 14px;
+  }
+  
+  .spectre-chart-period {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+  
+  /* KPI values - smaller on mobile */
+  .ghost-panel p#totalOmset,
+  .ghost-panel p#totalProfit,
+  .ghost-panel p#totalExpenses,
+  .ghost-panel p#netProfit,
+  .ghost-panel p#totalSalesCount,
+  .ghost-panel p#totalMembers,
+  .ghost-panel p#totalItems,
+  .ghost-panel p#totalStock {
+    font-size: 28px;
+  }
+  
+  /* Touch-friendly buttons */
+  button,
+  .btn,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 12px 20px;
+  }
+  
+  /* Form inputs - touch friendly */
+  input,
+  select,
+  textarea {
+    min-height: 44px;
+    font-size: 16px; /* Prevent iOS zoom */
+  }
+  
+  /* Tables - make scrollable on mobile */
+  table {
+    font-size: 13px;
+  }
+  
+  /* Cards - full width on mobile */
+  .ghost-panel,
+  .card {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  
+  /* Navigation - adjust for mobile */
+  nav {
+    padding: 12px;
+  }
+  
+  /* Hide non-essential elements on mobile */
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  :root {
+    --space-md: 10px;
+    --space-lg: 14px;
+  }
+  
+  body {
+    font-size: 13px;
+  }
+  
+  /* KPI values - even smaller on small mobile */
+  .ghost-panel p#totalOmset,
+  .ghost-panel p#totalProfit,
+  .ghost-panel p#totalExpenses,
+  .ghost-panel p#netProfit,
+  .ghost-panel p#totalSalesCount,
+  .ghost-panel p#totalMembers,
+  .ghost-panel p#totalItems,
+  .ghost-panel p#totalStock {
+    font-size: 24px;
+  }
+  
+  /* Reduce padding on small screens */
+  .p-4 {
+    padding: 12px;
+  }
+  
+  .p-6 {
+    padding: 16px;
+  }
+}
+
+/* iPhone-specific fixes */
+@supports (padding: env(safe-area-inset-top)) {
+  body {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  /* Fixed elements need safe area padding */
+  .fixed-top,
+  .fixed-bottom,
+  header,
+  footer {
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Prevent horizontal scroll on mobile */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Touch feedback for mobile */
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  .btn:active,
+  a:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  body {
+    font-size: 12px;
+  }
+  
+  .ghost-panel p#totalOmset,
+  .ghost-panel p#totalProfit,
+  .ghost-panel p#totalExpenses,
+  .ghost-panel p#netProfit,
+  .ghost-panel p#totalSalesCount,
+  .ghost-panel p#totalMembers,
+  .ghost-panel p#totalItems,
+  .ghost-panel p#totalStock {
+    font-size: 20px;
+  }
+}
+
+/* High DPI displays */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  /* Crisper text on retina displays */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
