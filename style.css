@@ -2786,19 +2786,7 @@ p{
 
 /* Base mobile styles */
 @media (max-width: 768px) {
-  :root {
-    --space-xs: 4px !important;
-    --space-sm: 8px !important;
-    --space-md: 12px !important;
-    --space-lg: 16px !important;
-    --space-xl: 20px !important;
-    --space-2xl: 32px !important;
-    
-    --radius-sm: 6px !important;
-    --radius: 12px !important;
-    --radius-lg: 16px !important;
-    --radius-xl: 20px !important;
-  }
+  /* Keep design tokens consistent with desktop - only adjust layout-specific properties */
   
   body {
     font-size: 14px !important;
@@ -2885,10 +2873,7 @@ p{
 
 /* Small mobile devices */
 @media (max-width: 480px) {
-  :root {
-    --space-md: 10px !important;
-    --space-lg: 14px !important;
-  }
+  /* Keep design tokens consistent with desktop - only adjust layout-specific properties */
   
   body {
     font-size: 13px !important;
