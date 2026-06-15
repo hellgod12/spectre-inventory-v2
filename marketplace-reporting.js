@@ -469,13 +469,13 @@ async function getChannelPerformanceComparison(startDate, endDate) {
                 {
                     name: 'Shopee',
                     revenue: revenueReport.marketplace.by_platform.SHOPEE?.gross_sales || 0,
-                    profit: profitReport.marketplace.by_platform.SHOPEE ? 
-                        (profitReport.marketplace.by_platform.SHOPEE.gross_sales - 
+                    profit: revenueReport.marketplace.by_platform.SHOPEE ? 
+                        (revenueReport.marketplace.by_platform.SHOPEE.gross_sales - 
                          (profitReport.marketplace.cost_by_platform.SHOPEE || 0)) : 0,
-                    margin: profitReport.marketplace.by_platform.SHOPEE ? 
-                        ((profitReport.marketplace.by_platform.SHOPEE.gross_sales - 
+                    margin: revenueReport.marketplace.by_platform.SHOPEE ? 
+                        ((revenueReport.marketplace.by_platform.SHOPEE.gross_sales - 
                           (profitReport.marketplace.cost_by_platform.SHOPEE || 0)) / 
-                         profitReport.marketplace.by_platform.SHOPEE.gross_sales * 100) : 0,
+                         revenueReport.marketplace.by_platform.SHOPEE.gross_sales * 100) : 0,
                     orders: revenueReport.marketplace.by_platform.SHOPEE?.order_count || 0,
                     revenue_percentage: revenueReport.marketplace.by_platform.SHOPEE ? 
                         (revenueReport.marketplace.by_platform.SHOPEE.gross_sales / revenueReport.combined.total_gross_sales * 100) : 0
@@ -483,13 +483,13 @@ async function getChannelPerformanceComparison(startDate, endDate) {
                 {
                     name: 'TikTok Shop',
                     revenue: revenueReport.marketplace.by_platform.TIKTOK?.gross_sales || 0,
-                    profit: profitReport.marketplace.by_platform.TIKTOK ? 
-                        (profitReport.marketplace.by_platform.TIKTOK.gross_sales - 
+                    profit: revenueReport.marketplace.by_platform.TIKTOK ? 
+                        (revenueReport.marketplace.by_platform.TIKTOK.gross_sales - 
                          (profitReport.marketplace.cost_by_platform.TIKTOK || 0)) : 0,
-                    margin: profitReport.marketplace.by_platform.TIKTOK ? 
-                        ((profitReport.marketplace.by_platform.TIKTOK.gross_sales - 
+                    margin: revenueReport.marketplace.by_platform.TIKTOK ? 
+                        ((revenueReport.marketplace.by_platform.TIKTOK.gross_sales - 
                           (profitReport.marketplace.cost_by_platform.TIKTOK || 0)) / 
-                         profitReport.marketplace.by_platform.TIKTOK.gross_sales * 100) : 0,
+                         revenueReport.marketplace.by_platform.TIKTOK.gross_sales * 100) : 0,
                     orders: revenueReport.marketplace.by_platform.TIKTOK?.order_count || 0,
                     revenue_percentage: revenueReport.marketplace.by_platform.TIKTOK ? 
                         (revenueReport.marketplace.by_platform.TIKTOK.gross_sales / revenueReport.combined.total_gross_sales * 100) : 0
@@ -497,13 +497,13 @@ async function getChannelPerformanceComparison(startDate, endDate) {
                 {
                     name: 'Tokopedia',
                     revenue: revenueReport.marketplace.by_platform.TOKOPEDIA?.gross_sales || 0,
-                    profit: profitReport.marketplace.by_platform.TOKOPEDIA ? 
-                        (profitReport.marketplace.by_platform.TOKOPEDIA.gross_sales - 
+                    profit: revenueReport.marketplace.by_platform.TOKOPEDIA ? 
+                        (revenueReport.marketplace.by_platform.TOKOPEDIA.gross_sales - 
                          (profitReport.marketplace.cost_by_platform.TOKOPEDIA || 0)) : 0,
-                    margin: profitReport.marketplace.by_platform.TOKOPEDIA ? 
-                        ((profitReport.marketplace.by_platform.TOKOPEDIA.gross_sales - 
+                    margin: revenueReport.marketplace.by_platform.TOKOPEDIA ? 
+                        ((revenueReport.marketplace.by_platform.TOKOPEDIA.gross_sales - 
                           (profitReport.marketplace.cost_by_platform.TOKOPEDIA || 0)) / 
-                         profitReport.marketplace.by_platform.TOKOPEDIA.gross_sales * 100) : 0,
+                         revenueReport.marketplace.by_platform.TOKOPEDIA.gross_sales * 100) : 0,
                     orders: revenueReport.marketplace.by_platform.TOKOPEDIA?.order_count || 0,
                     revenue_percentage: revenueReport.marketplace.by_platform.TOKOPEDIA ? 
                         (revenueReport.marketplace.by_platform.TOKOPEDIA.gross_sales / revenueReport.combined.total_gross_sales * 100) : 0
@@ -511,13 +511,13 @@ async function getChannelPerformanceComparison(startDate, endDate) {
                 {
                     name: 'Lazada',
                     revenue: revenueReport.marketplace.by_platform.LAZADA?.gross_sales || 0,
-                    profit: profitReport.marketplace.by_platform.LAZADA ? 
-                        (profitReport.marketplace.by_platform.LAZADA.gross_sales - 
+                    profit: revenueReport.marketplace.by_platform.LAZADA ? 
+                        (revenueReport.marketplace.by_platform.LAZADA.gross_sales - 
                          (profitReport.marketplace.cost_by_platform.LAZADA || 0)) : 0,
-                    margin: profitReport.marketplace.by_platform.LAZADA ? 
-                        ((profitReport.marketplace.by_platform.LAZADA.gross_sales - 
+                    margin: revenueReport.marketplace.by_platform.LAZADA ? 
+                        ((revenueReport.marketplace.by_platform.LAZADA.gross_sales - 
                           (profitReport.marketplace.cost_by_platform.LAZADA || 0)) / 
-                         profitReport.marketplace.by_platform.LAZADA.gross_sales * 100) : 0,
+                         revenueReport.marketplace.by_platform.LAZADA.gross_sales * 100) : 0,
                     orders: revenueReport.marketplace.by_platform.LAZADA?.order_count || 0,
                     revenue_percentage: revenueReport.marketplace.by_platform.LAZADA ? 
                         (revenueReport.marketplace.by_platform.LAZADA.gross_sales / revenueReport.combined.total_gross_sales * 100) : 0

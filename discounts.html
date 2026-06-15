@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // Discounts & Promotions</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="status.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="button-animations.js"></script>
+    <script src="discount-system.js"></script>
+    <style>
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        .discounts-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .discounts-kpi-card {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .discounts-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+        .discounts-kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .discounts-kpi-value {
+            font-size: 32px;
+            color: var(--text);
+            font-weight: 700;
+            line-height: 1.1;
+            font-family: var(--font-display);
+        }
+        @media(max-width:900px){
+            .discounts-kpi-grid{
+                grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+            }
+        }
+        @media(max-width:480px){
+            .discounts-kpi-grid{
+                grid-template-columns: 1fr !important;
+            }
+        }
+        .discounts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .discounts-table th {
+            text-align: left;
+            padding: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .discounts-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .discounts-table tr:hover {
+            background: var(--glass);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius-md);
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2);
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+        }
+        .btn-secondary {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            color: var(--text);
+        }
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .badge {
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-active {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+        }
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+    </style>
+</head>
+<body class="spectre-body">
+    <div class="spectre-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="spectre-sidebar" aria-label="Primary">
+            <button class="spectre-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="spectre-sidebar__brand">
+                <div class="spectre-brand-logo">
+                    <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
+                </div>
+                <div class="spectre-brand-text">
+                    <h1 class="spectre-brand-title">SPECTRE</h1>
+                    <p class="spectre-brand-subtitle">CONTROL CENTER</p>
+                    <p class="spectre-brand-slogan">Built Different</p>
+                </div>
+            </div>
+            <nav class="spectre-sidebar__nav">
+                <ul>
+                    <li><a href="index.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Dashboard</a></li>
+                    <li><a href="member.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Members</a></li>
+                    <li><a href="penjualan.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sales</a></li>
+                    <li><a href="barang.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Products</a></li>
+                    <li><a href="pengeluaran.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Expenses</a></li>
+                    <li><a href="marketplace.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg> Online Sales</a></li>
+                    <li class="active"><a href="discounts.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.91 8.84L8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.05 3.69l12.22 6.93a2 2 0 0 0 1.94 0L21 14.47a2.12 2.12 0 0 0-.09-3.63zM11 10.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"></path><path d="M14.5 13.5L21 17"></path><path d="M3.27 7.93L12 12.48"></path></svg> Discounts</a></li>
+                </ul>
+            </nav>
+            <div class="spectre-sidebar__footer">
+                <div class="spectre-user-profile">
+                    <div class="spectre-user-avatar" id="userAvatar">A</div>
+                    <div class="spectre-user-info">
+                        <div class="spectre-user-name" id="userName">Admin</div>
+                        <div class="spectre-user-role" id="userRole">Administrator</div>
+                    </div>
+                    <div class="spectre-user-actions">
+                        <button class="spectre-logout-btn" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="spectre-content" role="main">
+            <!-- Topbar -->
+            <header class="spectre-topbar">
+                <div class="spectre-topbar__left">
+                    <div class="spectre-breadcrumb">
+                        <span class="spectre-breadcrumb__item">Discounts & Promotions</span>
+                    </div>
+                </div>
+                <div class="spectre-topbar__right">
+                    <button class="spectre-btn spectre-btn--primary" onclick="openDiscountModal()">+ New Discount</button>
+                </div>
+            </header>
+
+            <!-- KPI Cards -->
+            <section class="discounts-kpi-grid" aria-label="Discounts KPIs">
+                <div class="discounts-kpi-card">
+                    <div class="discounts-kpi-label">Total Discounts</div>
+                    <div class="discounts-kpi-value" id="totalDiscounts">0</div>
+                </div>
+                <div class="discounts-kpi-card">
+                    <div class="discounts-kpi-label">Active</div>
+                    <div class="discounts-kpi-value" id="activeDiscounts">0</div>
+                </div>
+                <div class="discounts-kpi-card">
+                    <div class="discounts-kpi-label">Total Usage</div>
+                    <div class="discounts-kpi-value" id="totalUsage">0</div>
+                </div>
+                <div class="discounts-kpi-card">
+                    <div class="discounts-kpi-label">Member Only</div>
+                    <div class="discounts-kpi-value" id="memberOnly">0</div>
+                </div>
+            </section>
+
+            <!-- Discounts Table -->
+            <section class="ghost-panel p-6 mb-6">
+                <h3>Active Discounts & Promotions</h3>
+                <div class="overflow-x-auto">
+                    <table class="discounts-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Value</th>
+                                <th>Promo Code</th>
+                                <th>Min Purchase</th>
+                                <th>Member Only</th>
+                                <th>Usage</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="discountsTableBody">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">Loading discounts...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Mobile Bottom Navigation -->
+            <nav class="spectre-bottomnav" aria-label="Mobile navigation">
+                <a href="index.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="penjualan.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Sales</span>
+                </a>
+                <a href="barang.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Products</span>
+                </a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Expenses</span>
+                </a>
+                <a href="marketplace.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    <span>Marketplace</span>
+                </a>
+                <a href="discounts.html" class="spectre-bottomnav__item is-active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.91 8.84L8.56 2.23a1.93 1.93 0 0 0-1.81 0L3.1 4.13a2.12 2.12 0 0 0-.05 3.69l12.22 6.93a2 2 0 0 0 1.94 0L21 14.47a2.12 2.12 0 0 0-.09-3.63zM11 10.5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0z"></path><path d="M14.5 13.5L21 17"></path><path d="M3.27 7.93L12 12.48"></path></svg>
+                    <span>Discounts</span>
+                </a>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Discount Modal -->
+    <div id="discountModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 24px;">New Discount/Promotion</h2>
+            <form id="discountForm">
+                <div class="form-group">
+                    <label class="form-label">Discount Name</label>
+                    <input type="text" id="discountName" class="form-input" placeholder="e.g., Summer Sale" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Discount Type</label>
+                    <select id="discountType" class="form-select" required>
+                        <option value="percentage">Percentage (%)</option>
+                        <option value="fixed">Fixed Amount (Rp)</option>
+                        <option value="buy_x_get_y">Buy X Get Y</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Discount Value</label>
+                    <input type="number" id="discountValue" class="form-input" min="0" placeholder="Enter value" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Minimum Purchase (Rp)</label>
+                    <input type="number" id="minPurchase" class="form-input" min="0" value="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Maximum Discount (Rp)</label>
+                    <input type="number" id="maxDiscount" class="form-input" min="0" placeholder="Optional">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Promo Code (Optional)</label>
+                    <input type="text" id="promoCode" class="form-input" placeholder="e.g., SUMMER2024">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="datetime-local" id="startDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="datetime-local" id="endDate" class="form-input" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Max Uses (Optional)</label>
+                    <input type="number" id="maxUses" class="form-input" min="0" placeholder="Unlimited if empty">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" id="memberOnly"> Member Only
+                    </label>
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeDiscountModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Discount</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load discounts on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadDiscounts();
+            await loadDiscountStatistics();
+        });
+
+        // Load discounts table
+        async function loadDiscounts() {
+            try {
+                const discounts = await window.DiscountSystem.getActiveDiscounts();
+                displayDiscounts(discounts);
+            } catch (error) {
+                console.error('Error loading discounts:', error);
+            }
+        }
+
+        // Display discounts in table
+        function displayDiscounts(discounts) {
+            const tableBody = document.getElementById('discountsTableBody');
+            
+            if (discounts.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No active discounts found</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = discounts.map(d => `
+                <tr>
+                    <td>${d.name}</td>
+                    <td>${d.type}</td>
+                    <td>${d.type === 'percentage' ? d.value + '%' : 'Rp ' + d.value.toLocaleString('id-ID')}</td>
+                    <td>${d.promo_code || '-'}</td>
+                    <td>Rp ${(d.min_purchase || 0).toLocaleString('id-ID')}</td>
+                    <td>${d.member_only ? 'Yes' : 'No'}</td>
+                    <td>${d.used_count || 0}${d.max_uses ? '/' + d.max_uses : ''}</td>
+                    <td><span class="badge badge-${d.active ? 'active' : 'inactive'}">${d.active ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            ${d.active ? `
+                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="deactivateDiscount('${d.id}')">Deactivate</button>
+                            ` : '-'}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load discount statistics
+        async function loadDiscountStatistics() {
+            try {
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 30);
+                const endDate = new Date();
+                
+                const stats = await window.DiscountSystem.getDiscountStatistics(startDate, endDate);
+                
+                document.getElementById('totalDiscounts').innerText = stats.totalDiscounts;
+                document.getElementById('activeDiscounts').innerText = stats.activeDiscounts;
+                document.getElementById('totalUsage').innerText = stats.totalUsage;
+                document.getElementById('memberOnly').innerText = stats.discountsByType['member_only'] || 0;
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Open discount modal
+        function openDiscountModal() {
+            document.getElementById('discountModal').classList.add('active');
+            // Set default dates
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 30);
+            
+            document.getElementById('startDate').value = now.toISOString().slice(0, 16);
+            document.getElementById('endDate').value = tomorrow.toISOString().slice(0, 16);
+        }
+
+        // Close discount modal
+        function closeDiscountModal() {
+            document.getElementById('discountModal').classList.remove('active');
+            document.getElementById('discountForm').reset();
+        }
+
+        // Deactivate discount
+        async function deactivateDiscount(discountId) {
+            if (!confirm('Deactivate this discount?')) {
+                return;
+            }
+
+            try {
+                await window.DiscountSystem.deactivateDiscount(discountId);
+                alert('Discount deactivated');
+                await loadDiscounts();
+                await loadDiscountStatistics();
+            } catch (error) {
+                console.error('Error deactivating discount:', error);
+                alert('Failed to deactivate discount: ' + error.message);
+            }
+        }
+
+        // Handle discount form submission
+        document.getElementById('discountForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const discountData = {
+                name: document.getElementById('discountName').value,
+                type: document.getElementById('discountType').value,
+                value: parseFloat(document.getElementById('discountValue').value),
+                min_purchase: parseFloat(document.getElementById('minPurchase').value) || 0,
+                max_discount: parseFloat(document.getElementById('maxDiscount').value) || null,
+                promo_code: document.getElementById('promoCode').value || null,
+                start_date: new Date(document.getElementById('startDate').value).toISOString(),
+                end_date: new Date(document.getElementById('endDate').value).toISOString(),
+                max_uses: parseInt(document.getElementById('maxUses').value) || null,
+                member_only: document.getElementById('memberOnly').checked
+            };
+
+            try {
+                await window.DiscountSystem.createDiscount(discountData);
+                alert('Discount created successfully');
+                closeDiscountModal();
+                await loadDiscounts();
+                await loadDiscountStatistics();
+            } catch (error) {
+                console.error('Error creating discount:', error);
+                alert('Failed to create discount: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

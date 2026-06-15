@@ -743,33 +743,6 @@ async function loadDashboard() {
     let marketplaceProfit = 0;
     let marketplaceOrders = 0;
 
-    try {
-        // Get marketplace data directly from online_orders table (Manual Entry)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
-        const { data: onlineOrders } = await supabaseClient
-            .from('online_orders')
-            .select('gross_sales, net_revenue')
-            .gte('created_at', thirtyDaysAgo.toISOString());
-        
-        if (onlineOrders) {
-            marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0);
-            marketplaceProfit = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
-            marketplaceOrders = onlineOrders.length;
-            
-            combinedRevenue = omsetAsli + marketplaceRevenue;
-            combinedProfit = profitAsli + marketplaceProfit;
-            combinedOrders = totalTerjualCount + marketplaceOrders;
-        }
-    } catch (error) {
-        console.error('Error loading marketplace data:', error);
-        // Fallback to POS-only data if marketplace data fails to load
-        combinedRevenue = omsetAsli;
-        combinedProfit = profitAsli;
-        combinedOrders = totalTerjualCount;
-    }
-
     // Profit per produk (modal vs revenue terjual)
     // profitProduk[p.nama_barang] = { nama_barang, kategori, ukuran, profit, revenue, modalTotal, qty }
     const profitProduk = new Map();
@@ -852,6 +825,35 @@ async function loadDashboard() {
     }
 
     const profitBersih = profitAsli - totalExpenses;
+
+    // Load combined POS + Marketplace data for dashboard (Manual Entry System)
+    // This must be after POS data calculations to ensure omsetAsli, profitAsli, totalTerjualCount are initialized
+    try {
+        // Get marketplace data directly from online_orders table (Manual Entry)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        
+        const { data: onlineOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales, net_revenue')
+            .gte('created_at', thirtyDaysAgo.toISOString());
+        
+        if (onlineOrders) {
+            marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0);
+            marketplaceProfit = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
+            marketplaceOrders = onlineOrders.length;
+            
+            combinedRevenue = omsetAsli + marketplaceRevenue;
+            combinedProfit = profitAsli + marketplaceProfit;
+            combinedOrders = totalTerjualCount + marketplaceOrders;
+        }
+    } catch (error) {
+        console.error('Error loading marketplace data:', error);
+        // Fallback to POS-only data if marketplace data fails to load
+        combinedRevenue = omsetAsli;
+        combinedProfit = profitAsli;
+        combinedOrders = totalTerjualCount;
+    }
 
     // Use combined data for dashboard KPIs (POS + Marketplace)
     // If combined data is available, use it; otherwise fallback to POS-only data

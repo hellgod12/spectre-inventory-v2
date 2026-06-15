@@ -615,6 +615,18 @@ salesForm.addEventListener('submit', async (e) => {
         } catch (e) {}
 
         alert('🎉 EKSEKUSI BERHASIL // Transaksi tersimpan.');
+        
+        // Print receipt after successful payment
+        if (window.ReceiptPrinter && invoiceStatus === 'paid') {
+            const companyInfo = {
+                name: 'SPECTRE SKATEBOARD',
+                address: 'Jakarta, Indonesia',
+                phone: '+62 812-3456-7890',
+                footer: 'Terima kasih atas kunjungan Anda!'
+            };
+            window.ReceiptPrinter.showPrintDialog(paymentRecord, selectedProduct, companyInfo);
+        }
+        
         salesForm.reset();
 
         boxMemberSelect.classList.add('hidden');

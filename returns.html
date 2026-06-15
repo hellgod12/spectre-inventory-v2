@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECTRE // Returns & Refunds</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="status.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#050505">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SPECTRE">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="auth.js"></script>
+    <script src="button-animations.js"></script>
+    <script src="returns-management.js"></script>
+    <style>
+        @supports (padding: env(safe-area-inset-top)) {
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+                padding-left: env(safe-area-inset-left);
+                padding-right: env(safe-area-inset-right);
+            }
+        }
+        .returns-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .returns-kpi-card {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 24px;
+            border-radius: var(--radius-lg);
+            transition: all .3s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .returns-kpi-card:hover {
+            border-color: var(--stroke-accent);
+            box-shadow: var(--shadow-glow);
+            transform: translateY(-4px);
+        }
+        .returns-kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+        .returns-kpi-value {
+            font-size: 32px;
+            color: var(--text);
+            font-weight: 700;
+            line-height: 1.1;
+            font-family: var(--font-display);
+        }
+        @media(max-width:900px){
+            .returns-kpi-grid{
+                grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+            }
+        }
+        @media(max-width:480px){
+            .returns-kpi-grid{
+                grid-template-columns: 1fr !important;
+            }
+        }
+        .returns-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .returns-table th {
+            text-align: left;
+            padding: 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .returns-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .returns-table tr:hover {
+            background: var(--glass);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: var(--glass);
+            border: 1px solid var(--stroke);
+            padding: 32px;
+            border-radius: var(--radius-lg);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius-md);
+            color: var(--text);
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2);
+        }
+        .form-textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: var(--radius-md);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: none;
+        }
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(124, 92, 255, 0.3);
+        }
+        .btn-secondary {
+            background: var(--surface);
+            border: 1px solid var(--stroke);
+            color: var(--text);
+        }
+        .btn-secondary:hover {
+            border-color: var(--primary);
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body class="spectre-body">
+    <div class="spectre-shell">
+        <!-- Sidebar Navigation -->
+        <aside class="spectre-sidebar" aria-label="Primary">
+            <button class="spectre-sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <div class="spectre-sidebar__brand">
+                <div class="spectre-brand-logo">
+                    <img src="assets/logos/logo-spectre.png" alt="SPECTRE Logo">
+                </div>
+                <div class="spectre-brand-text">
+                    <h1 class="spectre-brand-title">SPECTRE</h1>
+                    <p class="spectre-brand-subtitle">CONTROL CENTER</p>
+                    <p class="spectre-brand-slogan">Built Different</p>
+                </div>
+            </div>
+            <nav class="spectre-sidebar__nav">
+                <ul>
+                    <li><a href="index.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Dashboard</a></li>
+                    <li><a href="member.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> Members</a></li>
+                    <li><a href="penjualan.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Sales</a></li>
+                    <li><a href="barang.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Products</a></li>
+                    <li><a href="pengeluaran.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg> Expenses</a></li>
+                    <li><a href="marketplace.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg> Online Sales</a></li>
+                    <li class="active"><a href="returns.html" class="spectre-navlink"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg> Returns</a></li>
+                </ul>
+            </nav>
+            <div class="spectre-sidebar__footer">
+                <div class="spectre-user-profile">
+                    <div class="spectre-user-avatar" id="userAvatar">A</div>
+                    <div class="spectre-user-info">
+                        <div class="spectre-user-name" id="userName">Admin</div>
+                        <div class="spectre-user-role" id="userRole">Administrator</div>
+                    </div>
+                    <div class="spectre-user-actions">
+                        <button class="spectre-logout-btn" onclick="logout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="spectre-content" role="main">
+            <!-- Topbar -->
+            <header class="spectre-topbar">
+                <div class="spectre-topbar__left">
+                    <div class="spectre-breadcrumb">
+                        <span class="spectre-breadcrumb__item">Returns & Refunds</span>
+                    </div>
+                </div>
+                <div class="spectre-topbar__right">
+                    <button class="spectre-btn spectre-btn--primary" onclick="openReturnModal()">+ New Return</button>
+                </div>
+            </header>
+
+            <!-- KPI Cards -->
+            <section class="returns-kpi-grid" aria-label="Returns KPIs">
+                <div class="returns-kpi-card">
+                    <div class="returns-kpi-label">Total Returns</div>
+                    <div class="returns-kpi-value" id="totalReturns">0</div>
+                </div>
+                <div class="returns-kpi-card">
+                    <div class="returns-kpi-label">Pending</div>
+                    <div class="returns-kpi-value" id="pendingReturns">0</div>
+                </div>
+                <div class="returns-kpi-card">
+                    <div class="returns-kpi-label">Processed</div>
+                    <div class="returns-kpi-value" id="processedReturns">0</div>
+                </div>
+                <div class="returns-kpi-card">
+                    <div class="returns-kpi-label">Total Refunds</div>
+                    <div class="returns-kpi-value" id="totalRefunds">Rp 0</div>
+                </div>
+            </section>
+
+            <!-- Returns Table -->
+            <section class="ghost-panel p-6 mb-6">
+                <h3>Returns History</h3>
+                <div class="overflow-x-auto">
+                    <table class="returns-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Invoice</th>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Reason</th>
+                                <th>Type</th>
+                                <th>Refund Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="returnsTableBody">
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">Loading returns...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Mobile Bottom Navigation -->
+            <nav class="spectre-bottomnav" aria-label="Mobile navigation">
+                <a href="index.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="penjualan.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Sales</span>
+                </a>
+                <a href="barang.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    <span>Products</span>
+                </a>
+                <a href="pengeluaran.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    <span>Expenses</span>
+                </a>
+                <a href="marketplace.html" class="spectre-bottomnav__item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    <span>Marketplace</span>
+                </a>
+                <a href="returns.html" class="spectre-bottomnav__item is-active">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                    <span>Returns</span>
+                </a>
+            </nav>
+        </main>
+    </div>
+
+    <!-- Return Modal -->
+    <div id="returnModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 24px;">New Return</h2>
+            <form id="returnForm">
+                <div class="form-group">
+                    <label class="form-label">Invoice Number</label>
+                    <input type="text" id="returnInvoice" class="form-input" placeholder="Enter invoice number" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Product</label>
+                    <input type="text" id="returnProduct" class="form-input" placeholder="Product name" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantity</label>
+                    <input type="number" id="returnQuantity" class="form-input" min="1" value="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Return Type</label>
+                    <select id="returnType" class="form-select">
+                        <option value="refund">Refund</option>
+                        <option value="exchange">Exchange</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Refund Amount</label>
+                    <input type="number" id="refundAmount" class="form-input" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reason</label>
+                    <select id="returnReason" class="form-select">
+                        <option value="defective">Defective Product</option>
+                        <option value="wrong_item">Wrong Item</option>
+                        <option value="not_as_described">Not as Described</option>
+                        <option value="changed_mind">Changed Mind</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Additional Notes</label>
+                    <textarea id="returnNotes" class="form-textarea" placeholder="Additional details..."></textarea>
+                </div>
+                <div class="action-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="closeReturnModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Return</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Load returns on page load
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadReturns();
+            await loadReturnStatistics();
+        });
+
+        // Load returns table
+        async function loadReturns() {
+            try {
+                const returns = await window.ReturnsManagement.getReturns();
+                displayReturns(returns);
+            } catch (error) {
+                console.error('Error loading returns:', error);
+            }
+        }
+
+        // Display returns in table
+        function displayReturns(returns) {
+            const tableBody = document.getElementById('returnsTableBody');
+            
+            if (returns.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-muted">No returns found</td></tr>';
+                return;
+            }
+
+            tableBody.innerHTML = returns.map(r => `
+                <tr>
+                    <td>${new Date(r.created_at).toLocaleString('id-ID')}</td>
+                    <td>${r.payments?.invoice_number || '-'}</td>
+                    <td>${r.products?.nama_barang || '-'}</td>
+                    <td>${r.quantity}</td>
+                    <td>${r.reason || '-'}</td>
+                    <td>${r.return_type || '-'}</td>
+                    <td>Rp ${(r.refund_amount || 0).toLocaleString('id-ID')}</td>
+                    <td><span class="badge status-${r.status === 'processed' ? 'sudahbayar' : 'belumbayar'}">${r.status}</span></td>
+                    <td>
+                        <div class="action-buttons">
+                            ${r.status === 'pending' ? `
+                                <button class="btn btn-primary" style="padding: 4px 8px; font-size: 12px;" onclick="processReturn('${r.id}')">Process</button>
+                                <button class="btn btn-danger" style="padding: 4px 8px; font-size: 12px;" onclick="cancelReturn('${r.id}')">Cancel</button>
+                            ` : '-'}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Load return statistics
+        async function loadReturnStatistics() {
+            try {
+                const startDate = new Date();
+                startDate.setDate(startDate.getDate() - 30); // Last 30 days
+                const endDate = new Date();
+                
+                const stats = await window.ReturnsManagement.getReturnStatistics(startDate, endDate);
+                
+                document.getElementById('totalReturns').innerText = stats.totalReturns;
+                document.getElementById('pendingReturns').innerText = stats.pendingReturns;
+                document.getElementById('processedReturns').innerText = stats.processedReturns;
+                document.getElementById('totalRefunds').innerText = 'Rp ' + stats.totalRefundAmount.toLocaleString('id-ID');
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Open return modal
+        function openReturnModal() {
+            document.getElementById('returnModal').classList.add('active');
+        }
+
+        // Close return modal
+        function closeReturnModal() {
+            document.getElementById('returnModal').classList.remove('active');
+            document.getElementById('returnForm').reset();
+        }
+
+        // Process return
+        async function processReturn(returnId) {
+            if (!confirm('Process this return? Stock will be restored and payment will be updated.')) {
+                return;
+            }
+
+            try {
+                await window.ReturnsManagement.processReturn(returnId);
+                alert('Return processed successfully');
+                await loadReturns();
+                await loadReturnStatistics();
+            } catch (error) {
+                console.error('Error processing return:', error);
+                alert('Failed to process return: ' + error.message);
+            }
+        }
+
+        // Cancel return
+        async function cancelReturn(returnId) {
+            if (!confirm('Cancel this return?')) {
+                return;
+            }
+
+            try {
+                await window.ReturnsManagement.cancelReturn(returnId);
+                alert('Return cancelled');
+                await loadReturns();
+                await loadReturnStatistics();
+            } catch (error) {
+                console.error('Error cancelling return:', error);
+                alert('Failed to cancel return: ' + error.message);
+            }
+        }
+
+        // Handle return form submission
+        document.getElementById('returnForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const invoiceNumber = document.getElementById('returnInvoice').value;
+            const productName = document.getElementById('returnProduct').value;
+            const quantity = parseInt(document.getElementById('returnQuantity').value);
+            const returnType = document.getElementById('returnType').value;
+            const refundAmount = parseFloat(document.getElementById('refundAmount').value) || 0;
+            const reason = document.getElementById('returnReason').value;
+            const notes = document.getElementById('returnNotes').value;
+
+            try {
+                // Get payment record
+                const { data: payment } = await supabaseClient
+                    .from('payments')
+                    .select('id, product_id')
+                    .eq('invoice_number', invoiceNumber)
+                    .single();
+
+                if (!payment) {
+                    alert('Invoice not found');
+                    return;
+                }
+
+                // Get product record
+                const { data: product } = await supabaseClient
+                    .from('products')
+                    .select('id')
+                    .eq('nama_barang', productName)
+                    .single();
+
+                if (!product) {
+                    alert('Product not found');
+                    return;
+                }
+
+                // Create return record
+                await window.ReturnsManagement.createReturn({
+                    payment_id: payment.id,
+                    product_id: product.id,
+                    quantity: quantity,
+                    reason: reason,
+                    refund_amount: refundAmount,
+                    return_type: returnType,
+                    notes: notes
+                });
+
+                alert('Return created successfully');
+                closeReturnModal();
+                await loadReturns();
+                await loadReturnStatistics();
+            } catch (error) {
+                console.error('Error creating return:', error);
+                alert('Failed to create return: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>
