@@ -354,101 +354,126 @@ ALTER TABLE returns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE discounts ENABLE ROW LEVEL SECURITY;
 
 -- Products RLS
+DROP POLICY IF EXISTS "Admins can do anything on products" ON products;
 CREATE POLICY "Admins can do anything on products" ON products
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read products" ON products;
 CREATE POLICY "Cashiers can read products" ON products
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
 -- Members RLS
+DROP POLICY IF EXISTS "Admins can do anything on members" ON members;
 CREATE POLICY "Admins can do anything on members" ON members
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read members" ON members;
 CREATE POLICY "Cashiers can read members" ON members
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
 -- Payments RLS
+DROP POLICY IF EXISTS "Admins can do anything on payments" ON payments;
 CREATE POLICY "Admins can do anything on payments" ON payments
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read payments" ON payments;
 CREATE POLICY "Cashiers can read payments" ON payments
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
+DROP POLICY IF EXISTS "Cashiers can insert payments" ON payments;
 CREATE POLICY "Cashiers can insert payments" ON payments
     FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
+DROP POLICY IF EXISTS "Cashiers can update payments" ON payments;
 CREATE POLICY "Cashiers can update payments" ON payments
     FOR UPDATE USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
 -- Sales History RLS
+DROP POLICY IF EXISTS "Admins can do anything on sales_history" ON sales_history;
 CREATE POLICY "Admins can do anything on sales_history" ON sales_history
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read sales_history" ON sales_history;
 CREATE POLICY "Cashiers can read sales_history" ON sales_history
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
 -- Expenses RLS
+DROP POLICY IF EXISTS "Admins can do anything on expenses" ON expenses;
 CREATE POLICY "Admins can do anything on expenses" ON expenses
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read expenses" ON expenses;
 CREATE POLICY "Cashiers can read expenses" ON expenses
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
 -- Profiles RLS
+DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
 CREATE POLICY "Users can read own profile" ON profiles
     FOR SELECT USING (auth.uid() = id);
 
-CREATE POLICY "Admins can do anything on profiles" ON profiles
-    FOR ALL USING (auth.role() = 'authenticated' AND 
-    EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+CREATE POLICY "Users can update own profile" ON profiles
+    FOR UPDATE USING (auth.uid() = id);
+
+-- Note: Admin policy for profiles removed to prevent infinite recursion
+-- Admin access to profiles should be handled through service role or separate approach
 
 -- Marketplace Tables RLS (Admin only for now)
+DROP POLICY IF EXISTS "Admins can do anything on marketplace_accounts" ON marketplace_accounts;
 CREATE POLICY "Admins can do anything on marketplace_accounts" ON marketplace_accounts
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Admins can do anything on online_orders" ON online_orders;
 CREATE POLICY "Admins can do anything on online_orders" ON online_orders
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Admins can do anything on order_items" ON order_items;
 CREATE POLICY "Admins can do anything on order_items" ON order_items
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Admins can do anything on marketplace_fees" ON marketplace_fees;
 CREATE POLICY "Admins can do anything on marketplace_fees" ON marketplace_fees
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Admins can do anything on settlements" ON settlements;
 CREATE POLICY "Admins can do anything on settlements" ON settlements
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
 -- Returns RLS
+DROP POLICY IF EXISTS "Admins can do anything on returns" ON returns;
 CREATE POLICY "Admins can do anything on returns" ON returns
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read returns" ON returns;
 CREATE POLICY "Cashiers can read returns" ON returns
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER'));
 
 -- Discounts RLS
+DROP POLICY IF EXISTS "Admins can do anything on discounts" ON discounts;
 CREATE POLICY "Admins can do anything on discounts" ON discounts
     FOR ALL USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'ADMIN'));
 
+DROP POLICY IF EXISTS "Cashiers can read active discounts" ON discounts;
 CREATE POLICY "Cashiers can read active discounts" ON discounts
     FOR SELECT USING (auth.role() = 'authenticated' AND 
     EXISTS (SELECT 1 FROM profiles WHERE profiles.id = auth.uid() AND profiles.role = 'CASHIER') AND active = true);
