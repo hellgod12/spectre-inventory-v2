@@ -3,7 +3,7 @@
 
 // NOTE: This version string must be UNIQUE per deploy.
 // Replace below on each deployment.
-const SW_VERSION = '20260616-5';
+const SW_VERSION = '20260616-6';
 const CACHE_NAME = `spectre-inventory-cache-${SW_VERSION}`;
 
 const urlsToCache = [

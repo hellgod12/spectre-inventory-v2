@@ -2205,6 +2205,16 @@ html, body{
     gap:12px;
   }
   
+  /* DIAGNOSTIC TEST: Red border on KPI cards */
+  .spectre-kpi-card{
+    border: 5px solid red !important;
+  }
+  
+  /* DIAGNOSTIC TEST: Blue border on bottom navigation */
+  .spectre-bottomnav{
+    border: 5px solid blue !important;
+  }
+  
   .spectre-widgets{
     grid-template-columns: 1fr !important;
     gap:16px;
