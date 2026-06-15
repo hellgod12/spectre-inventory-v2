@@ -2080,15 +2080,6 @@ html, body{
 }
 
 @media(max-width:1024px){
-  .spectre-shell{display:block;}
-  .spectre-sidebar{display:none;}
-  .spectre-bottomnav{display:flex;}
-  
-  .spectre-content{
-    padding:16px;
-    padding-bottom:100px;
-  }
-  
   .spectre-kpi-grid,
   .spectre-kpi-grid2,
   .spectre-inventory-overview-grid{
@@ -2157,15 +2148,6 @@ html, body{
 }
 
 @media(max-width:900px){
-  .spectre-shell{display:block;}
-  .spectre-sidebar{display:none;}
-  .spectre-bottomnav{display:flex;}
-  
-  .spectre-content{
-    padding:16px;
-    padding-bottom:100px;
-  }
-  
   .spectre-kpi-grid,
   .spectre-kpi-grid2,
   .spectre-inventory-overview-grid{
@@ -2204,49 +2186,74 @@ html, body{
   .spectre-widget{
     padding:16px !important;
   }
+}
+
+@media(max-width:640px){
+  .spectre-shell{display:block;}
+  .spectre-sidebar{display:none;}
+  .spectre-bottomnav{display:flex;}
   
-  /* Reduce card padding */
-  .spectre-card--chart,
-  .spectre-card--activity{
-    padding:20px !important;
+  .spectre-content{
+    padding:16px;
+    padding-bottom:100px;
   }
   
-  /* Reduce chart height */
-  .relative{
-    height:300px !important;
-  }
-  
-  /* Reduce gap between sections */
   .spectre-kpi-grid,
-  .spectre-kpi-grid2{
-    margin-top:16px !important;
-  }
-  
-  .spectre-layout-grid{
-    margin-top:20px !important;
-    gap:16px !important;
+  .spectre-kpi-grid2,
+  .spectre-inventory-overview-grid{
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+    gap:12px;
   }
   
   .spectre-widgets{
-    margin-top:20px !important;
-    gap:16px !important;
+    grid-template-columns: 1fr !important;
+    gap:16px;
+  }
+  
+  /* Reduce KPI card padding for mobile */
+  .spectre-kpi-card{
+    padding:16px !important;
+    min-height:100px !important;
+  }
+  
+  /* Reduce KPI icon size for mobile */
+  .spectre-kpi-icon{
+    width:36px !important;
+    height:36px !important;
+  }
+  
+  /* Reduce KPI value font size for mobile */
+  .spectre-kpi-value{
+    font-size:28px !important;
+  }
+  
+  /* Reduce inventory overview card padding */
+  .spectre-inventory-overview-card{
+    padding:14px 10px !important;
+  }
+  
+  /* Reduce widget padding */
+  .spectre-widget{
+    padding:16px !important;
   }
 }
 
 @media(max-width:768px){
-  .spectre-shell{display:block !important;}
-  .spectre-sidebar{display:none !important;}
-  .spectre-bottomnav{display:flex !important;}
+  /* Keep sidebar visible until 640px */
 }
 
-@media(max-width:480px){
+@media(max-width:390px){
+  /* Keep KPI cards in 2 columns even at small sizes */
   .spectre-kpi-grid,
   .spectre-kpi-grid2,
   .spectre-inventory-overview-grid{
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
     gap:8px !important;
   }
-  
+}
+
+@media(max-width:480px){
+  /* Keep KPI cards in 2 columns - do not collapse to single column */
   .spectre-bottomnav{
     height:68px !important;
     bottom:12px !important;
@@ -2793,18 +2800,18 @@ p{
     line-height: 1.5 !important;
   }
   
-  /* Grid adjustments */
+  /* Grid adjustments - keep 2 columns for better desktop-like appearance */
   .grid-cols-2,
   .grid-cols-3,
   .grid-cols-4 {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
   }
   
-  /* KPI cards - stack on mobile */
+  /* KPI cards - keep 2 columns for better desktop-like appearance */
   .reports-kpi-grid,
   .returns-kpi-grid,
   .discounts-kpi-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
     gap: 12px !important;
   }
   
