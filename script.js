@@ -1076,8 +1076,6 @@ async function loadOnlineSalesStatistics(offlineRevenue = 0) {
 // Load top selling online products
 async function loadTopSellingOnlineProducts(startDate, endDate) {
     try {
-        console.log('loadTopSellingOnlineProducts - startDate:', startDate, 'endDate:', endDate);
-        
         const { data: orderItems } = await supabaseClient
             .from('order_items')
             .select('product_name, sku, quantity, total_price, online_orders!inner(order_status, order_date)')
@@ -1136,8 +1134,6 @@ async function loadTopSellingOnlineProducts(startDate, endDate) {
 // Load best selling product
 async function loadBestSellingProduct(startDate, endDate) {
     try {
-        console.log('loadBestSellingProduct - startDate:', startDate, 'endDate:', endDate);
-        
         const { data: orderItems } = await supabaseClient
             .from('order_items')
             .select('product_name, sku, quantity, total_price, online_orders!inner(order_status, order_date)')
