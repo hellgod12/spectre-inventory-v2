@@ -218,7 +218,50 @@ async function restoreProduct(id, namaBarang) {
 
 // Permanently delete archived product
 async function permanentDeleteProduct(id, namaBarang) {
-    const konfirmasi = confirm(`[PERMANENT DELETE] HAPUS PERMANEN "${namaBarang.toUpperCase()}"?\n\nPERINGATAN: Ini akan menghapus produk secara permanen dari database.\nData sales_history dan order_items akan tetap aman.\nTindakan ini TIDAK DAPAT dibatalkan!`);
+    // 1. Check if user is Admin
+    try {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) {
+            alert('❌ Anda harus login untuk melakukan aksi ini');
+            return;
+        }
+
+        const { data: profile } = await supabaseClient
+            .from('profiles')
+            .select('role')
+            .eq('id', user.id)
+            .single();
+
+        if (!profile || profile.role !== 'ADMIN') {
+            alert('❌ Hanya Admin yang dapat melakukan permanent delete');
+            return;
+        }
+    } catch (err) {
+        alert('❌ Gagal memverifikasi user role: ' + (err?.message || err));
+        return;
+    }
+
+    // 2. Check if product has transaction history
+    try {
+        const [salesHistoryResult, orderItemsResult] = await Promise.all([
+            supabaseClient.from('sales_history').select('id').eq('product_id', id),
+            supabaseClient.from('order_items').select('id').eq('product_id', id)
+        ]);
+
+        const salesHistoryCount = salesHistoryResult.data?.length || 0;
+        const orderItemsCount = orderItemsResult.data?.length || 0;
+
+        if (salesHistoryCount > 0 || orderItemsCount > 0) {
+            alert(`❌ Produk memiliki histori transaksi dan tidak dapat dihapus permanen.\n\nSales History: ${salesHistoryCount} record\nOrder Items: ${orderItemsCount} record\n\nGunakan "Archive Product" untuk menyembunyikan produk dari tampilan.`);
+            return;
+        }
+    } catch (err) {
+        alert('❌ Gagal mengecek histori transaksi: ' + (err?.message || err));
+        return;
+    }
+
+    // 3. Confirm permanent delete
+    const konfirmasi = confirm(`[PERMANENT DELETE] HAPUS PERMANEN "${namaBarang.toUpperCase()}"?\n\nPERINGATAN: Ini akan menghapus produk secara permanen dari database.\n\nTindakan ini TIDAK DAPAT dibatalkan!`);
     if (!konfirmasi) return;
 
     try {
@@ -234,28 +277,6 @@ async function permanentDeleteProduct(id, namaBarang) {
     } catch (err) {
         alert('❌ Gagal menghapus permanen: ' + (err?.message || err));
     }
-}
-
-    // Update KPI cards
-    const inventoryTotalProductsEl = document.getElementById('inventoryTotalProducts');
-    const inventoryTotalStockEl = document.getElementById('inventoryTotalStock');
-    const inventoryTotalValueEl = document.getElementById('inventoryTotalValue');
-    const inventoryLowStockEl = document.getElementById('inventoryLowStock');
-
-    if (inventoryTotalProductsEl) inventoryTotalProductsEl.innerText = totalProducts;
-    if (inventoryTotalStockEl) inventoryTotalStockEl.innerText = totalStock;
-    if (inventoryTotalValueEl) inventoryTotalValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
-    if (inventoryLowStockEl) inventoryLowStockEl.innerText = lowStockItems;
-
-    // Legacy progress bar support (if elements still exist)
-    const target = 120;
-    const percent = totalStock ? Math.min(100, Math.round((Math.min(totalStock, target) / target) * 100)) : 0;
-    if (stockProgressFill) stockProgressFill.style.width = percent + '%';
-    if (stockCapacityText) stockCapacityText.innerText = `${percent}% Warehouse Utilization`;
-    if (stockCapacityLabel) stockCapacityLabel.innerText = 'CAPACITY';
-    if (stockStatusNote) stockStatusNote.innerText = totalStock
-        ? `Total stock: ${totalStock} units. Warehouse active.`
-        : 'Warehouse empty. No inventory activity.';
 }
 
 productForm.addEventListener('submit', async (e) => {
