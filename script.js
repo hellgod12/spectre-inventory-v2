@@ -1296,7 +1296,12 @@ async function loadSalesComparisonChart() {
         const ctx = document.getElementById('salesComparisonChart');
         if (!ctx) return;
 
-        new Chart(ctx, {
+        // Destroy existing chart if it exists
+        if (window.salesComparisonChart) {
+            window.salesComparisonChart.destroy();
+        }
+
+        window.salesComparisonChart = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
@@ -1385,13 +1390,13 @@ function formatDateShort(date) {
 
 // Render invoices in Invoice Management section (POS + Marketplace)
 async function renderInvoices() {
+    // Fetch POS payments at function level so it's available in all scopes
+    const { data: payments } = await supabaseClient.from('payments').select('*');
+    
     // Render invoices in Invoice Management section (POS + Marketplace)
     const invoiceContainer = document.getElementById('invoiceContainer');
     if (invoiceContainer) {
         let combinedTransactions = [];
-        
-        // Fetch POS payments
-        const { data: payments } = await supabaseClient.from('payments').select('*');
         
         // Add POS payments
         if (payments) {
