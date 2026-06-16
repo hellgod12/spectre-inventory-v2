@@ -120,7 +120,7 @@ body{touch-action:auto; -webkit-font-smoothing:antialiased; -moz-osx-font-smooth
     radial-gradient(ellipse 40% 30% at 0% 50%, rgba(42,42,42,.01), transparent);
   color:var(--text);
   display:flex;
-  min-height:100vh;
+  height:100vh;
   overflow-x:hidden;
   -webkit-tap-highlight-color:transparent;
   line-height:1.6;
@@ -222,7 +222,7 @@ body{touch-action:auto; -webkit-font-smoothing:antialiased; -moz-osx-font-smooth
 }
 
 /* Navigation layout */
-.spectre-shell{display:flex; min-height:100vh; width:100%; overflow-x:hidden;}
+.spectre-shell{display:flex; height:100vh; width:100%; overflow-x:hidden;}
 .spectre-sidebar{
   width:220px;
   padding:14px;
@@ -2944,6 +2944,7 @@ p{
 /* Prevent horizontal scroll on mobile */
 html, body {
   overflow-x: hidden;
+  overflow-y: auto;
   width: 100%;
   max-width: 100%;
 }
