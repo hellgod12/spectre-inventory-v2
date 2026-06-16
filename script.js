@@ -408,23 +408,43 @@ async function confirmPayment(id) {
 
 async function loadOutstandingPayments() {
     const outstandingContainer = document.getElementById('outstandingContainer');
-    if (!outstandingContainer) return;
+    if (!outstandingContainer) {
+        console.log('outstandingContainer not found');
+        return;
+    }
 
     const mobile = isMobile();
+    console.log('loadOutstandingPayments called, mobile:', mobile);
 
     try {
+        // First, get all payments to debug status values
+        const { data: allPayments, error: allError } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        console.log('All payments sample:', allPayments);
+        console.log('Payment statuses:', allPayments?.map(p => p.status));
+
+        // Now filter for outstanding payments - try multiple status formats
         const { data: payments, error } = await supabaseClient
             .from('payments')
             .select('*')
-            .in('status', ['pending', 'partial', 'Belum Bayar'])
+            .or('status.eq.pending,status.eq.partial,status.eq.Belum Bayar,status.eq.belumbayar,status.eq.PENDING,status.eq.PARTIAL')
             .order('created_at', { ascending: false });
 
+        console.log('Outstanding payments query result:', payments);
+        console.log('Query error:', error);
+
         if (error) {
+            console.error('Error fetching outstanding payments:', error);
             outstandingContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat outstanding payments</div>`;
             return;
         }
 
         if (!payments || payments.length === 0) {
+            console.log('No outstanding payments found');
             outstandingContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Tidak ada pembayaran tertunda</div>`;
             return;
         }
