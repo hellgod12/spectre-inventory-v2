@@ -841,7 +841,7 @@ async function loadDashboard() {
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
         
         if (onlineOrders) {
-            marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0);
+            marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
             marketplaceProfit = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
             marketplaceOrders = onlineOrders.length;
             
@@ -991,7 +991,7 @@ async function loadOnlineSalesStatistics() {
             .lt('order_date', todayEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
-        const todayRevenue = todayOrders ? todayOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const todayRevenue = todayOrders ? todayOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0) : 0;
         const todayOrdersCount = todayOrders ? todayOrders.length : 0;
 
         // Online Sales Yesterday (for growth calculation) - Only count valid sales
@@ -1002,12 +1002,12 @@ async function loadOnlineSalesStatistics() {
 
         const { data: yesterdayOrders } = await supabaseClient
             .from('online_orders')
-            .select('gross_sales')
+            .select('net_revenue')
             .gte('order_date', yesterdayStart)
             .lt('order_date', yesterdayEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
-        const yesterdayRevenue = yesterdayOrders ? yesterdayOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const yesterdayRevenue = yesterdayOrders ? yesterdayOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0) : 0;
         const todayGrowth = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue * 100).toFixed(1) : 0;
 
         // Online Sales This Month - Only count valid sales
@@ -1021,7 +1021,7 @@ async function loadOnlineSalesStatistics() {
             .lt('order_date', monthEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
-        const monthRevenue = monthOrders ? monthOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const monthRevenue = monthOrders ? monthOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0) : 0;
         const monthOrdersCount = monthOrders ? monthOrders.length : 0;
 
         // Online Sales Last Month (for growth calculation) - Only count valid sales
@@ -1030,12 +1030,12 @@ async function loadOnlineSalesStatistics() {
 
         const { data: lastMonthOrders } = await supabaseClient
             .from('online_orders')
-            .select('gross_sales')
+            .select('net_revenue')
             .gte('order_date', lastMonthStart)
             .lt('order_date', lastMonthEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
-        const lastMonthRevenue = lastMonthOrders ? lastMonthOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const lastMonthRevenue = lastMonthOrders ? lastMonthOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0) : 0;
         const monthGrowth = lastMonthRevenue > 0 ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1) : 0;
 
         // Sales Overview (Online + Offline + Total)
@@ -1248,7 +1248,7 @@ async function loadSalesComparisonChart() {
         // Using order_date (actual order date) instead of created_at (database entry time)
         const { data: onlineOrders } = await supabaseClient
             .from('online_orders')
-            .select('gross_sales, order_date')
+            .select('net_revenue, order_date')
             .gte('order_date', thirtyDaysAgo.toISOString())
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
@@ -1267,7 +1267,7 @@ async function loadSalesComparisonChart() {
             onlineOrders.forEach(order => {
                 const date = order.order_date.split('T')[0];
                 if (!onlineByDate[date]) onlineByDate[date] = 0;
-                onlineByDate[date] += parseFloat(order.gross_sales) || 0;
+                onlineByDate[date] += parseFloat(order.net_revenue) || 0;
             });
         }
 
