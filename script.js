@@ -969,6 +969,38 @@ async function loadDashboard() {
     document.getElementById('totalModalBarang').innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
     document.getElementById('lowStockItems').innerText = lowStockItems;
 
+    // Render product inventory list
+    if (products && products.length > 0) {
+        let inventoryHtml = '<table class="w-full text-xs" style="border-collapse: collapse;">';
+        inventoryHtml += '<thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">';
+        inventoryHtml += '<th class="text-left p-3 text-muted">Product</th>';
+        inventoryHtml += '<th class="text-left p-3 text-muted">Category</th>';
+        inventoryHtml += '<th class="text-right p-3 text-muted">Stock</th>';
+        inventoryHtml += '<th class="text-right p-3 text-muted">Modal</th>';
+        inventoryHtml += '<th class="text-right p-3 text-muted">Value</th>';
+        inventoryHtml += '</tr></thead><tbody>';
+        
+        products.forEach(item => {
+            const currentStock = parseInt(item.stok || 0);
+            const baseCost = parseFloat(item.harga_modal || 0);
+            const itemValue = currentStock * baseCost;
+            const stockClass = currentStock <= 5 ? 'text-red-400' : 'text-green-400';
+            
+            inventoryHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
+            inventoryHtml += `<td class="p-3 font-medium">${item.nama_barang || '-'}</td>`;
+            inventoryHtml += `<td class="p-3 text-muted">${item.kategori || '-'}</td>`;
+            inventoryHtml += `<td class="p-3 text-right ${stockClass}">${currentStock}</td>`;
+            inventoryHtml += `<td class="p-3 text-right">Rp ${baseCost.toLocaleString('id-ID')}</td>`;
+            inventoryHtml += `<td class="p-3 text-right">Rp ${itemValue.toLocaleString('id-ID')}</td>`;
+            inventoryHtml += '</tr>';
+        });
+        
+        inventoryHtml += '</tbody></table>';
+        container.innerHTML = inventoryHtml;
+    } else {
+        container.innerHTML = '<div class="p-8 text-center text-muted text-xs">No products found</div>';
+    }
+
     // Load online sales statistics
     await loadOnlineSalesStatistics(omsetAsli);
 }
