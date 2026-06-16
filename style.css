@@ -100,7 +100,7 @@ body{
 }
 
 html{scroll-behavior:smooth;}
-body{touch-action:manipulation; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
+body{touch-action:auto; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;}
 
 /* Ensure Tailwind overflow helpers don’t break layout */
 .overflow-x-auto{max-width:100%;}
@@ -1903,7 +1903,7 @@ html {
 html, body{
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  touch-action: manipulation;
+  touch-action: auto;
 }
 
 .spectre-content{
