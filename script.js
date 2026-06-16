@@ -1366,6 +1366,9 @@ async function loadSalesComparisonChart() {
             }
         });
 
+        // Debug: Verify Chart instance constructor
+        console.log('Chart instance check:', window.salesComparisonChart, window.salesComparisonChart?.constructor?.name);
+
     } catch (error) {
         console.error('Error loading sales comparison chart:', error);
     }
