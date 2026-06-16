@@ -1371,6 +1371,7 @@ async function loadOnlineSalesStatistics(offlineRevenue = 0) {
 
     } catch (error) {
         console.error('Error loading online sales statistics:', error);
+        console.error('Error details:', error.message, error.stack);
     }
 }
 
@@ -1536,6 +1537,7 @@ async function loadRecentOnlineOrders() {
 
     } catch (error) {
         console.error('Error loading recent online orders:', error);
+        console.error('Error details:', error.message, error.stack);
     }
 }
 
@@ -1671,6 +1673,7 @@ async function loadSalesComparisonChart() {
 
     } catch (error) {
         console.error('Error loading sales comparison chart:', error);
+        console.error('Error details:', error.message, error.stack);
     }
 }
 
