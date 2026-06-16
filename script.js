@@ -216,7 +216,7 @@ function updateDashboardProgress(payments = []) {
     if (!fill || !progressText || !progressSub) return;
 
     const total = payments.length;
-    const paid = payments.filter(p => p.status === 'Sudah Bayar').length;
+    const paid = payments.filter(p => p.status === 'paid').length;
     const unpaid = total - paid;
     const percent = total === 0 ? 0 : Math.round((paid / total) * 100);
 
@@ -389,7 +389,7 @@ async function deletePayment(id) {
 async function confirmPayment(id) {
     const { error } = await supabaseClient
         .from('payments')
-        .update({ status: 'Sudah Bayar', confirmed_at: new Date().toISOString() })
+        .update({ status: 'paid', confirmed_at: new Date().toISOString() })
         .eq('id', id);
 
     if (error) {
@@ -404,6 +404,132 @@ async function confirmPayment(id) {
     } catch (e) {}
 
     await loadPayments();
+}
+
+async function loadOutstandingPayments() {
+    const outstandingContainer = document.getElementById('outstandingContainer');
+    if (!outstandingContainer) return;
+
+    const mobile = isMobile();
+
+    try {
+        const { data: payments, error } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .in('status', ['pending', 'partial', 'Belum Bayar'])
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            outstandingContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat outstanding payments</div>`;
+            return;
+        }
+
+        if (!payments || payments.length === 0) {
+            outstandingContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Tidak ada pembayaran tertunda</div>`;
+            return;
+        }
+
+        // Group by buyer and calculate total outstanding
+        const buyerDebt = new Map();
+        const buyerTransactionCount = new Map();
+
+        payments.forEach(payment => {
+            const buyer = payment.buyer || 'Unknown';
+            const remainingAmount = parseFloat(payment.remaining_amount || 0);
+            
+            const currentDebt = buyerDebt.get(buyer) || 0;
+            const currentCount = buyerTransactionCount.get(buyer) || 0;
+            
+            buyerDebt.set(buyer, currentDebt + remainingAmount);
+            buyerTransactionCount.set(buyer, currentCount + 1);
+        });
+
+        // Convert to array and sort by debt amount (highest first)
+        const outstandingList = Array.from(buyerDebt.entries())
+            .map(([buyer, debt]) => ({
+                buyer,
+                debt,
+                transactionCount: buyerTransactionCount.get(buyer)
+            }))
+            .sort((a, b) => b.debt - a.debt);
+
+        // Calculate total outstanding
+        const totalOutstanding = outstandingList.reduce((sum, item) => sum + item.debt, 0);
+
+        // Render based on device type
+        if (mobile) {
+            let html = `
+                <div class="space-y-2">
+                    <div class="p-3 border border-red-950/40 bg-black/40">
+                        <div class="text-[10px] text-red-500 font-bold uppercase">Total Outstanding</div>
+                        <div class="mt-1 text-[14px] font-bold text-white">${formatCurrency(totalOutstanding)}</div>
+                        <div class="mt-1 text-[11px] text-slate-400">${outstandingList.length} orang belum bayar</div>
+                    </div>
+            `;
+
+            outstandingList.forEach(item => {
+                html += `
+                    <div class="p-3 border border-red-950/40 bg-black/40">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="text-[11px] text-red-500 font-bold uppercase">${item.buyer}</div>
+                                <div class="mt-1 text-[12px] font-bold text-white">${formatCurrency(item.debt)}</div>
+                                <div class="mt-1 text-[11px] text-slate-400">${item.transactionCount} transaksi belum lunas</div>
+                            </div>
+                            <div class="text-right">
+                                <span class="badge status-belumbayar">Pending</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            outstandingContainer.innerHTML = html;
+        } else {
+            let html = `
+                <div class="mb-4 p-3 border border-red-950/40 bg-black/40">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] text-red-500 font-bold uppercase">Total Outstanding</div>
+                            <div class="text-[14px] font-bold text-white">${formatCurrency(totalOutstanding)}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-[11px] text-slate-400">${outstandingList.length} orang belum bayar</div>
+                        </div>
+                    </div>
+                </div>
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase text-[10px]">
+                            <th class="p-3 font-bold tracking-wider">NAMA PEMBELI</th>
+                            <th class="p-3 font-bold text-right tracking-wider">JUMLAH HUTANG</th>
+                            <th class="p-3 font-bold text-center tracking-wider">TRANSAKSI</th>
+                            <th class="p-3 font-bold tracking-wider">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-black/45 divide-y divide-red-950/25">
+            `;
+
+            outstandingList.forEach(item => {
+                html += `
+                    <tr class="hover:bg-red-950/10 transition-colors">
+                        <td class="p-3 font-bold">${item.buyer}</td>
+                        <td class="p-3 text-right font-bold text-red-400">${formatCurrency(item.debt)}</td>
+                        <td class="p-3 text-center">${item.transactionCount}</td>
+                        <td class="p-3"><span class="badge status-belumbayar">Pending</span></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            outstandingContainer.innerHTML = html;
+        }
+
+    } catch (error) {
+        console.error('Error loading outstanding payments:', error);
+        outstandingContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Error memuat data</div>`;
+    }
 }
 
 
@@ -891,6 +1017,7 @@ async function loadDashboard() {
     loadRecentOnlineOrders();
     loadSalesComparisonChart();
     loadPayments(); // Load payments data
+    loadOutstandingPayments(); // Load outstanding payments for dashboard
     renderInvoices(); // Render invoices and outstanding payments
     
     // Animate counters for key statistics
