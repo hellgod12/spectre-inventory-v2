@@ -972,11 +972,11 @@ async function loadDashboard() {
     document.getElementById('lowStockItems').innerText = lowStockItems;
 
     // Load online sales statistics
-    await loadOnlineSalesStatistics();
+    await loadOnlineSalesStatistics(omsetAsli);
 }
 
 // Load online sales statistics
-async function loadOnlineSalesStatistics() {
+async function loadOnlineSalesStatistics(offlineRevenue = 0) {
     try {
         // Online Sales Today - Only count valid sales (delivered, completed, paid, shipped)
         // Using order_date (actual order date) instead of created_at (database entry time)
@@ -1039,7 +1039,6 @@ async function loadOnlineSalesStatistics() {
         const monthGrowth = lastMonthRevenue > 0 ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1) : 0;
 
         // Sales Overview (Online + Offline + Total)
-        const offlineRevenue = omsetAsli || 0;
         const totalRevenue = offlineRevenue + monthRevenue;
 
         // Average Order Value (AOV) Online
@@ -1390,10 +1389,13 @@ async function renderInvoices() {
     const invoiceContainer = document.getElementById('invoiceContainer');
     if (invoiceContainer) {
         let combinedTransactions = [];
-            
-            // Add POS payments
-            if (payments) {
-                payments.forEach(payment => {
+        
+        // Fetch POS payments
+        const { data: payments } = await supabaseClient.from('payments').select('*');
+        
+        // Add POS payments
+        if (payments) {
+            payments.forEach(payment => {
                     combinedTransactions.push({
                         type: 'POS',
                         id: payment.id,
