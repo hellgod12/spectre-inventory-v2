@@ -1288,8 +1288,10 @@ async function loadOnlineSalesStatistics(offlineRevenue = 0) {
             .lt('order_date', todayEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
+        console.log('Today orders:', todayOrders);
         const todayRevenue = todayOrders ? todayOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0) : 0;
         const todayOrdersCount = todayOrders ? todayOrders.length : 0;
+        console.log('Today revenue:', todayRevenue, 'Today orders count:', todayOrdersCount);
 
         // Online Sales Yesterday (for growth calculation) - Only count valid sales
         const yesterday = new Date(today);
@@ -1505,8 +1507,10 @@ async function loadRecentOnlineOrders() {
                     platform
                 )
             `)
-            .order('created_at', { ascending: false })
+            .order('order_date', { ascending: false })
             .limit(10);
+
+        console.log('Recent orders:', recentOrders);
 
         if (!recentOrders || recentOrders.length === 0) {
             document.getElementById('recentOnlineOrders').innerHTML = '<div class="p-8 text-center text-muted text-xs">No orders yet</div>';
@@ -1549,6 +1553,8 @@ async function loadSalesComparisonChart() {
             .select('net_revenue, order_date')
             .gte('order_date', thirtyDaysAgo.toISOString())
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        console.log('Online orders for chart:', onlineOrders);
 
         // Get offline sales by day
         const { data: offlinePayments } = await supabaseClient
