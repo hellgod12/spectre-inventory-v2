@@ -1213,6 +1213,7 @@ async function loadDashboard() {
                             <div>
                                 <div class="text-[11px] text-white font-bold uppercase leading-4">${item.nama_barang}</div>
                                 <div class="mt-2 text-[11px] text-muted">${item.kategori || '-'}</div>
+                                <div class="mt-2 text-[11px] text-slate-400">Size: ${item.ukuran || '-'}</div>
                                 <div class="mt-2">${stockBadge}</div>
                                 <div class="mt-2 text-[11px] text-slate-500">
                                     Modal: Rp ${Number(item.harga_modal).toLocaleString('id-ID')}<br/>
@@ -1233,6 +1234,7 @@ async function loadDashboard() {
             inventoryHtml += '<thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">';
             inventoryHtml += '<th class="text-left p-3 text-muted">Product</th>';
             inventoryHtml += '<th class="text-left p-3 text-muted">Category</th>';
+            inventoryHtml += '<th class="text-left p-3 text-muted">Size</th>';
             inventoryHtml += '<th class="text-right p-3 text-muted">Stock</th>';
             inventoryHtml += '<th class="text-right p-3 text-muted">Modal</th>';
             inventoryHtml += '<th class="text-right p-3 text-muted">Value</th>';
@@ -1248,6 +1250,7 @@ async function loadDashboard() {
                 inventoryHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
                 inventoryHtml += `<td class="p-3 font-medium">${item.nama_barang || '-'}</td>`;
                 inventoryHtml += `<td class="p-3 text-muted">${item.kategori || '-'}</td>`;
+                inventoryHtml += `<td class="p-3 text-muted">${item.ukuran || '-'}</td>`;
                 inventoryHtml += `<td class="p-3 text-right ${stockClass}">${currentStock}</td>`;
                 inventoryHtml += `<td class="p-3 text-right">Rp ${baseCost.toLocaleString('id-ID')}</td>`;
                 inventoryHtml += `<td class="p-3 text-right">Rp ${itemValue.toLocaleString('id-ID')}</td>`;
@@ -1270,6 +1273,7 @@ async function loadDashboard() {
 
 // Load online sales statistics
 async function loadOnlineSalesStatistics(offlineRevenue = 0) {
+    console.log('loadOnlineSalesStatistics() called, offlineRevenue:', offlineRevenue);
     try {
         // Online Sales Today - Only count valid sales (delivered, completed, paid, shipped)
         // Using order_date (actual order date) instead of created_at (database entry time)
@@ -1487,6 +1491,7 @@ async function loadBestSellingProduct(startDate, endDate) {
 
 // Load recent online orders
 async function loadRecentOnlineOrders() {
+    console.log('loadRecentOnlineOrders() called');
     try {
         const { data: recentOrders } = await supabaseClient
             .from('online_orders')
@@ -1532,6 +1537,7 @@ async function loadRecentOnlineOrders() {
 
 // Load sales comparison chart (30 days)
 async function loadSalesComparisonChart() {
+    console.log('loadSalesComparisonChart() called');
     try {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
