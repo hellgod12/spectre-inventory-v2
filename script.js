@@ -244,13 +244,44 @@ async function loadPayments() {
     let supabaseError = null;
 
     try {
-        const { data, error } = await supabaseClient
-            .from('payments')
-            .select('*')
-            .order('created_at', { ascending: false });
+        // Fetch payments and members data
+        const [paymentsResult, membersResult] = await Promise.all([
+            supabaseClient.from('payments').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('members').select('*')
+        ]);
+
+        const { data, error } = paymentsResult;
+        const { data: members } = membersResult;
 
         if (error) supabaseError = error;
         else payments = normalizePayments(data);
+        
+        // Create phone to name map
+        const phoneToName = new Map();
+        if (members) {
+            members.forEach(member => {
+                phoneToName.set(member.telepon, member.nama);
+            });
+        }
+        
+        // Helper function to get display name from buyer field
+        function getDisplayName(buyer) {
+            if (!buyer) return 'Walk-in';
+            // Extract phone number if present
+            const phoneMatch = buyer.match(/\d{10,15}/);
+            if (phoneMatch) {
+                const phoneNumber = phoneMatch[0];
+                const memberName = phoneToName.get(phoneNumber);
+                if (memberName) return memberName;
+            }
+            return buyer;
+        }
+        
+        // Add display name to each payment
+        payments = payments.map(payment => ({
+            ...payment,
+            displayName: getDisplayName(payment.buyer)
+        }));
         
         console.log('Payments query result:', payments);
         console.log('Payments count:', payments?.length);
@@ -286,7 +317,7 @@ async function loadPayments() {
                 <div class="p-3 border border-red-950/40 bg-black/40">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="text-[10px] text-red-500 font-bold uppercase">${payment.buyer}</div>
+                            <div class="text-[10px] text-red-500 font-bold uppercase">${payment.displayName || payment.buyer}</div>
                             <div class="mt-1 text-[12px] font-bold text-white uppercase">${payment.product}</div>
                             <div class="mt-1 text-[11px] text-slate-400">Ukuran: ${payment.ukuran || '—'}</div>
                             <div class="mt-1 text-[11px] text-rose-400 font-bold">Jumlah: ${payment.jumlah}</div>
@@ -332,7 +363,7 @@ async function loadPayments() {
         const statusClass = payment.status === 'Belum Bayar' ? 'status-belumbayar' : 'status-sudahbayar';
         html += `
             <tr class="hover:bg-red-950/10 transition-colors">
-                <td class="p-3 font-bold">${payment.buyer}</td>
+                <td class="p-3 font-bold">${payment.displayName || payment.buyer}</td>
                 <td class="p-3">${payment.product}</td>
                 <td class="p-3">${payment.ukuran || '—'}</td>
                 <td class="p-3 text-center">${payment.jumlah}</td>
@@ -1655,12 +1686,40 @@ function formatDateShort(date) {
 async function renderInvoices() {
     console.log('renderInvoices() called');
     
-    // Fetch POS payments at function level so it's available in all scopes
-    const { data: payments, error: paymentsError } = await supabaseClient.from('payments').select('*');
+    // Fetch POS payments and members data
+    const [paymentsResult, membersResult] = await Promise.all([
+        supabaseClient.from('payments').select('*'),
+        supabaseClient.from('members').select('*')
+    ]);
+    
+    const { data: payments, error: paymentsError } = paymentsResult;
+    const { data: members } = membersResult;
     
     console.log('Payments loaded:', payments);
     console.log('Payments count:', payments?.length);
     console.log('Payments query error:', paymentsError);
+    console.log('Members loaded:', members);
+    
+    // Create phone to name map
+    const phoneToName = new Map();
+    if (members) {
+        members.forEach(member => {
+            phoneToName.set(member.telepon, member.nama);
+        });
+    }
+    
+    // Helper function to get display name from buyer field
+    function getDisplayName(buyer) {
+        if (!buyer) return 'Walk-in';
+        // Extract phone number if present
+        const phoneMatch = buyer.match(/\d{10,15}/);
+        if (phoneMatch) {
+            const phoneNumber = phoneMatch[0];
+            const memberName = phoneToName.get(phoneNumber);
+            if (memberName) return memberName;
+        }
+        return buyer;
+    }
     
     // Render invoices in Invoice Management section (POS + Marketplace)
     const invoiceContainer = document.getElementById('invoiceContainer');
@@ -1683,7 +1742,7 @@ async function renderInvoices() {
                         remaining: payment.remaining_amount || 0,
                         status: payment.status || 'pending',
                         created_at: payment.created_at,
-                        buyer: payment.buyer || 'Walk-in'
+                        buyer: getDisplayName(payment.buyer) || 'Walk-in'
                     });
                 });
             }
@@ -1725,7 +1784,7 @@ async function renderInvoices() {
                         remaining: 0,
                         status: order.order_status === 'COMPLETED' || order.order_status === 'DELIVERED' ? 'paid' : 'pending',
                         created_at: order.created_at,
-                        buyer: order.customer_name || 'Online Customer',
+                        buyer: getDisplayName(order.customer_name) || 'Online Customer',
                         platform: order.marketplace_accounts?.platform || 'Unknown'
                     });
                 });
