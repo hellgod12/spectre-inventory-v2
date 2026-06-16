@@ -238,6 +238,62 @@
                 </div>
             </section>
 
+            <!-- Online Sales KPIs -->
+            <section class="spectre-kpi-grid2" aria-label="Online Sales KPIs">
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Online Sales Today</span>
+                            <span id="onlineSalesTodayTrend" class="spectre-kpi-trend spectre-kpi-trend--neutral">↑ 0%</span>
+                        </div>
+                        <p id="onlineSalesTodayRevenue" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle"><span id="onlineSalesTodayOrders">0</span> orders</span>
+                    </div>
+                </div>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Online Sales This Month</span>
+                            <span id="onlineSalesMonthTrend" class="spectre-kpi-trend spectre-kpi-trend--neutral">↑ 0%</span>
+                        </div>
+                        <p id="onlineSalesMonthRevenue" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle"><span id="onlineSalesMonthOrders">0</span> orders</span>
+                    </div>
+                </div>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Sales Overview</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--neutral">Total</span>
+                        </div>
+                        <p id="totalSalesRevenue" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle">Online + Offline</span>
+                    </div>
+                </div>
+                <div class="spectre-kpi-card">
+                    <div class="spectre-kpi-icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                    </div>
+                    <div class="spectre-kpi-content">
+                        <div class="spectre-kpi-header">
+                            <span class="spectre-kpi-label">Avg Order Value</span>
+                            <span class="spectre-kpi-trend spectre-kpi-trend--neutral">Online</span>
+                        </div>
+                        <p id="onlineAOV" class="spectre-kpi-value">Rp 0</p>
+                        <span class="spectre-kpi-subtitle">Per Order</span>
+                    </div>
+                </div>
+            </section>
+
             <!-- Secondary KPIs -->
             <section class="spectre-kpi-grid2" aria-label="Secondary KPIs">
                 <div class="spectre-kpi-card">
@@ -323,6 +379,69 @@
                     <div class="spectre-card__body">
                         <div id="invoiceContainer">
                             <div class="p-8 text-center text-muted text-xs">Loading invoices...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Online Sales Chart & Top Products -->
+            <section class="spectre-layout-grid">
+                <!-- Left: Online vs Offline Sales Chart -->
+                <div class="spectre-card spectre-card--chart">
+                    <div class="spectre-card__header">
+                        <h2>Online vs Offline Sales (30 Days)</h2>
+                        <span class="badge status-sudahbayar">Live</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div class="relative" style="height: 300px;">
+                            <canvas id="salesComparisonChart" class="w-full h-full"></canvas>
+                        </div>
+                        <div class="flex justify-between items-center mt-4 text-xs text-muted">
+                            <span>📦 Online Sales</span>
+                            <span>🏪 Offline Sales</span>
+                            <span>📊 Total Revenue</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Top Selling Online Products -->
+                <div class="spectre-card spectre-card--activity">
+                    <div class="spectre-card__header">
+                        <h2>Top Selling Online Products</h2>
+                        <span class="text-xs text-muted">This Month</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div id="topSellingProducts">
+                            <div class="p-8 text-center text-muted text-xs">Loading products...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Best Selling Product & Recent Online Orders -->
+            <section class="spectre-layout-grid">
+                <!-- Left: Best Selling Product -->
+                <div class="spectre-card">
+                    <div class="spectre-card__header">
+                        <h2>Best Selling Product</h2>
+                        <span class="text-xs text-muted">This Month</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div id="bestSellingProduct">
+                            <div class="p-8 text-center text-muted text-xs">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Recent Online Orders (Compact) -->
+                <div class="spectre-card">
+                    <div class="spectre-card__header">
+                        <h2>Recent Online Orders</h2>
+                        <span class="text-xs text-muted">Last 10</span>
+                    </div>
+                    <div class="spectre-card__body">
+                        <div id="recentOnlineOrders">
+                            <div class="p-8 text-center text-muted text-xs">Loading orders...</div>
                         </div>
                     </div>
                 </div>

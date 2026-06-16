@@ -2983,3 +2983,377 @@ html, body {
   }
 }
 
+/* Online Sales Dashboard Styles */
+.spectre-kpi-grid2 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .spectre-kpi-grid2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .spectre-kpi-grid2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Sales Overview Card */
+.sales-overview-card {
+  background: var(--surface2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.sales-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .sales-overview-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sales-overview-item {
+  text-align: center;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.sales-overview-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.sales-overview-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.sales-overview-sub {
+  font-size: 10px;
+  color: var(--text-tertiary);
+}
+
+/* Online Sales Chart Container */
+.online-sales-chart-container {
+  background: var(--surface2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.chart-legend-label {
+  color: var(--text-secondary);
+}
+
+/* Top Selling Products Section */
+.top-products-section {
+  background: var(--surface2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.top-products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.top-product-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.top-product-item:hover {
+  background: var(--surface-hover);
+}
+
+.product-rank {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+}
+
+.product-info {
+  flex: 1;
+}
+
+.product-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.product-sales {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.product-revenue {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+/* Best Selling Product Card */
+.best-product-card {
+  background: linear-gradient(135deg, var(--surface3) 0%, var(--surface2) 100%);
+  border: 1px solid var(--stroke-accent);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.best-product-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.best-product-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+  font-size: 20px;
+}
+
+.best-product-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.best-product-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.best-product-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.best-product-stat {
+  text-align: center;
+  padding: 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
+.best-product-stat-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.best-product-stat-value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Recent Online Orders Section */
+.recent-orders-section {
+  background: var(--surface2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.recent-orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recent-order-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s;
+}
+
+.recent-order-item:hover {
+  background: var(--surface-hover);
+}
+
+.order-platform {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--info);
+  color: white;
+}
+
+.order-info {
+  flex: 1;
+}
+
+.order-id {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.order-customer {
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.order-amount {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--success);
+}
+
+.order-status {
+  font-size: 10px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.order-status.pending {
+  background: var(--warning);
+  color: black;
+}
+
+.order-status.completed {
+  background: var(--success);
+  color: black;
+}
+
+.order-status.cancelled {
+  background: var(--danger);
+  color: white;
+}
+
+/* AOV Card */
+.aov-card {
+  background: var(--surface2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.aov-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.aov-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.aov-trend {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.aov-trend.positive {
+  color: var(--success);
+}
+
+.aov-trend.negative {
+  color: var(--danger);
+}
+

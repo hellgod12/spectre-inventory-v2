@@ -869,6 +869,13 @@ async function loadDashboard() {
     // Hide loading skeleton after data is loaded
     hideLoadingSkeleton();
     
+    // Load online sales statistics and dashboard sections
+    loadOnlineSalesStatistics();
+    loadTopSellingOnlineProducts();
+    loadBestSellingProduct();
+    loadRecentOnlineOrders();
+    loadSalesComparisonChart();
+    
     // Animate counters for key statistics
     const totalOmsetEl = document.getElementById('totalOmset');
     const totalProfitEl = document.getElementById('totalProfit');
@@ -958,45 +965,453 @@ async function loadDashboard() {
         });
     }
 
-    // Update main dashboard Inventory Overview elements
-    const inventoryValueEl = document.getElementById('inventoryValue');
-    const lowStockItemsEl = document.getElementById('lowStockItems');
-    const totalModalBarangEl = document.getElementById('totalModalBarang');
-    
-    if (inventoryValueEl) inventoryValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
-    if (lowStockItemsEl) lowStockItemsEl.innerText = lowStockItems;
-    if (totalModalBarangEl) totalModalBarangEl.innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
+    document.getElementById('inventoryValue').innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
+    document.getElementById('totalModalBarang').innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
+    document.getElementById('lowStockItems').innerText = lowStockItems;
 
+    // Load online sales statistics
+    await loadOnlineSalesStatistics();
+}
+
+// Load online sales statistics
+async function loadOnlineSalesStatistics() {
+    try {
+        // Online Sales Today - Only count valid sales (delivered, completed, paid, shipped)
+        const today = new Date();
+        const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
+        const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+
+        const { data: todayOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales, net_revenue')
+            .gte('created_at', todayStart)
+            .lt('created_at', todayEnd)
+            .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        const todayRevenue = todayOrders ? todayOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const todayOrdersCount = todayOrders ? todayOrders.length : 0;
+
+        // Online Sales Yesterday (for growth calculation) - Only count valid sales
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStart = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate()).toISOString();
+        const yesterdayEnd = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate() + 1).toISOString();
+
+        const { data: yesterdayOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales')
+            .gte('created_at', yesterdayStart)
+            .lt('created_at', yesterdayEnd)
+            .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        const yesterdayRevenue = yesterdayOrders ? yesterdayOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const todayGrowth = yesterdayRevenue > 0 ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue * 100).toFixed(1) : 0;
+
+        // Online Sales This Month - Only count valid sales
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+        const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 1).toISOString();
+
+        const { data: monthOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales, net_revenue')
+            .gte('created_at', monthStart)
+            .lt('created_at', monthEnd)
+            .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        const monthRevenue = monthOrders ? monthOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const monthOrdersCount = monthOrders ? monthOrders.length : 0;
+
+        // Online Sales Last Month (for growth calculation) - Only count valid sales
+        const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString();
+        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 1).toISOString();
+
+        const { data: lastMonthOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales')
+            .gte('created_at', lastMonthStart)
+            .lt('created_at', lastMonthEnd)
+            .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        const lastMonthRevenue = lastMonthOrders ? lastMonthOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
+        const monthGrowth = lastMonthRevenue > 0 ? ((monthRevenue - lastMonthRevenue) / lastMonthRevenue * 100).toFixed(1) : 0;
+
+        // Sales Overview (Online + Offline + Total)
+        const offlineRevenue = omsetAsli || 0;
+        const totalRevenue = offlineRevenue + monthRevenue;
+
+        // Average Order Value (AOV) Online
+        const aov = monthOrdersCount > 0 ? (monthRevenue / monthOrdersCount) : 0;
+
+        // Update DOM elements
+        document.getElementById('onlineSalesTodayRevenue').innerText = 'Rp ' + todayRevenue.toLocaleString('id-ID');
+        document.getElementById('onlineSalesTodayOrders').innerText = todayOrdersCount;
+        document.getElementById('onlineSalesTodayTrend').innerText = `${todayGrowth >= 0 ? '↑' : '↓'} ${Math.abs(todayGrowth)}%`;
+        document.getElementById('onlineSalesTodayTrend').className = `spectre-kpi-trend ${todayGrowth >= 0 ? 'spectre-kpi-trend--up' : 'spectre-kpi-trend--down'}`;
+
+        document.getElementById('onlineSalesMonthRevenue').innerText = 'Rp ' + monthRevenue.toLocaleString('id-ID');
+        document.getElementById('onlineSalesMonthOrders').innerText = monthOrdersCount;
+        document.getElementById('onlineSalesMonthTrend').innerText = `${monthGrowth >= 0 ? '↑' : '↓'} ${Math.abs(monthGrowth)}%`;
+        document.getElementById('onlineSalesMonthTrend').className = `spectre-kpi-trend ${monthGrowth >= 0 ? 'spectre-kpi-trend--up' : 'spectre-kpi-trend--down'}`;
+
+        document.getElementById('totalSalesRevenue').innerText = 'Rp ' + totalRevenue.toLocaleString('id-ID');
+        document.getElementById('onlineAOV').innerText = 'Rp ' + aov.toLocaleString('id-ID');
+
+        // Load top selling online products
+        await loadTopSellingOnlineProducts(monthStart, monthEnd);
+
+        // Load best selling product
+        await loadBestSellingProduct(monthStart, monthEnd);
+
+        // Load recent online orders
+        await loadRecentOnlineOrders();
+
+        // Load sales comparison chart
+        await loadSalesComparisonChart();
+
+    } catch (error) {
+        console.error('Error loading online sales statistics:', error);
+    }
+}
+
+// Load top selling online products
+async function loadTopSellingOnlineProducts(startDate, endDate) {
+    try {
+        const { data: orderItems } = await supabaseClient
+            .from('order_items')
+            .select('product_name, sku, quantity, total_price, online_orders!inner(order_status)')
+            .gte('order_items.created_at', startDate)
+            .lt('order_items.created_at', endDate)
+            .in('online_orders.order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        if (!orderItems || orderItems.length === 0) {
+            document.getElementById('topSellingProducts').innerHTML = '<div class="p-8 text-center text-muted text-xs">No data available</div>';
+            return;
+        }
+
+        // Aggregate by product
+        const productSales = {};
+        orderItems.forEach(item => {
+            const key = item.product_name;
+            if (!productSales[key]) {
+                productSales[key] = {
+                    name: item.product_name,
+                    sku: item.sku,
+                    quantity: 0,
+                    revenue: 0
+                };
+            }
+            productSales[key].quantity += item.quantity || 0;
+            productSales[key].revenue += item.total_price || 0;
+        });
+
+        // Sort by quantity and get top 5
+        const topProducts = Object.values(productSales)
+            .sort((a, b) => b.quantity - a.quantity)
+            .slice(0, 5);
+
+        const container = document.getElementById('topSellingProducts');
+        container.innerHTML = topProducts.map((product, index) => `
+            <div class="product-item" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 32px; height: 32px; background: rgba(255,255,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px;">${index + 1}</div>
+                    <div>
+                        <div style="font-weight: 500; font-size: 14px;">${product.name}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.5);">${product.sku || '-'}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; font-size: 14px;">${product.quantity} units</div>
+                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);">Rp ${(product.revenue / 1000000).toFixed(2)}M</div>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading top selling products:', error);
+    }
+}
+
+// Load best selling product
+async function loadBestSellingProduct(startDate, endDate) {
+    try {
+        const { data: orderItems } = await supabaseClient
+            .from('order_items')
+            .select('product_name, sku, quantity, total_price, online_orders!inner(order_status)')
+            .gte('order_items.created_at', startDate)
+            .lt('order_items.created_at', endDate)
+            .in('online_orders.order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        if (!orderItems || orderItems.length === 0) {
+            document.getElementById('bestSellingProduct').innerHTML = '<div class="p-8 text-center text-muted text-xs">No data available</div>';
+            return;
+        }
+
+        // Aggregate by product
+        const productSales = {};
+        orderItems.forEach(item => {
+            const key = item.product_name;
+            if (!productSales[key]) {
+                productSales[key] = {
+                    name: item.product_name,
+                    sku: item.sku,
+                    quantity: 0,
+                    revenue: 0
+                };
+            }
+            productSales[key].quantity += item.quantity || 0;
+            productSales[key].revenue += item.total_price || 0;
+        });
+
+        // Get best selling
+        const bestProduct = Object.values(productSales)
+            .sort((a, b) => b.quantity - a.quantity)[0];
+
+        const container = document.getElementById('bestSellingProduct');
+        container.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px;">🏆</div>
+                <div style="font-weight: 600; font-size: 18px; margin-bottom: 4px;">${bestProduct.name}</div>
+                <div style="font-size: 14px; color: rgba(255,255,255,0.5); margin-bottom: 12px;">${bestProduct.sku || '-'}</div>
+                <div style="display: flex; justify-content: center; gap: 24px;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 24px;">${bestProduct.quantity}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.5);">Units Sold</div>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; font-size: 24px;">Rp ${(bestProduct.revenue / 1000000).toFixed(2)}M</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.5);">Revenue</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+    } catch (error) {
+        console.error('Error loading best selling product:', error);
+    }
+}
+
+// Load recent online orders
+async function loadRecentOnlineOrders() {
+    try {
+        const { data: recentOrders } = await supabaseClient
+            .from('online_orders')
+            .select(`
+                order_number,
+                customer_name,
+                gross_sales,
+                order_status,
+                order_date,
+                marketplace_accounts (
+                    platform
+                )
+            `)
+            .order('created_at', { ascending: false })
+            .limit(10);
+
+        if (!recentOrders || recentOrders.length === 0) {
+            document.getElementById('recentOnlineOrders').innerHTML = '<div class="p-8 text-center text-muted text-xs">No orders yet</div>';
+            return;
+        }
+
+        const container = document.getElementById('recentOnlineOrders');
+        container.innerHTML = recentOrders.map(order => `
+            <div class="order-item" style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 8px; height: 8px; border-radius: 50%; background: ${getStatusColor(order.order_status)};"></div>
+                    <div>
+                        <div style="font-weight: 500; font-size: 13px;">${order.order_number}</div>
+                        <div style="font-size: 11px; color: rgba(255,255,255,0.5);">${order.marketplace_accounts?.platform || 'Unknown'}</div>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 600; font-size: 13px;">Rp ${(order.gross_sales / 1000).toFixed(0)}K</div>
+                    <div style="font-size: 11px; color: rgba(255,255,255,0.5);">${formatDateShort(order.order_date)}</div>
+                </div>
+            </div>
+        `).join('');
+
+    } catch (error) {
+        console.error('Error loading recent online orders:', error);
+    }
+}
+
+// Load sales comparison chart (30 days)
+async function loadSalesComparisonChart() {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        // Get online sales by day - Only count valid sales
+        const { data: onlineOrders } = await supabaseClient
+            .from('online_orders')
+            .select('gross_sales, created_at')
+            .gte('created_at', thirtyDaysAgo.toISOString())
+            .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
+
+        // Get offline sales by day
+        const { data: offlinePayments } = await supabaseClient
+            .from('payments')
+            .select('paid_amount, created_at')
+            .eq('status', 'paid')
+            .gte('created_at', thirtyDaysAgo.toISOString());
+
+        // Aggregate by date
+        const onlineByDate = {};
+        const offlineByDate = {};
+
+        if (onlineOrders) {
+            onlineOrders.forEach(order => {
+                const date = order.created_at.split('T')[0];
+                if (!onlineByDate[date]) onlineByDate[date] = 0;
+                onlineByDate[date] += parseFloat(order.gross_sales) || 0;
+            });
+        }
+
+        if (offlinePayments) {
+            offlinePayments.forEach(payment => {
+                const date = payment.created_at.split('T')[0];
+                if (!offlineByDate[date]) offlineByDate[date] = 0;
+                offlineByDate[date] += parseFloat(payment.paid_amount) || 0;
+            });
+        }
+
+        // Generate labels and data for last 30 days
+        const labels = [];
+        const onlineData = [];
+        const offlineData = [];
+
+        for (let i = 29; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const dateStr = date.toISOString().split('T')[0];
+            labels.push(date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }));
+            onlineData.push(onlineByDate[dateStr] || 0);
+            offlineData.push(offlineByDate[dateStr] || 0);
+        }
+
+        // Create chart
+        const ctx = document.getElementById('salesComparisonChart');
+        if (!ctx) return;
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Online Sales',
+                        data: onlineData,
+                        backgroundColor: 'rgba(99, 102, 241, 0.8)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Offline Sales',
+                        data: offlineData,
+                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            color: 'rgba(255, 255, 255, 0.7)',
+                            font: { size: 11 }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        stacked: true,
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            font: { size: 10 }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    },
+                    y: {
+                        stacked: true,
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                            font: { size: 10 },
+                            callback: function(value) {
+                                return 'Rp ' + (value / 1000000).toFixed(1) + 'M';
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)'
+                        }
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Error loading sales comparison chart:', error);
+    }
+}
+
+// Helper function to get status color
+function getStatusColor(status) {
+    const colors = {
+        'PENDING': '#f59e0b',
+        'PROCESSING': '#3b82f6',
+        'SHIPPED': '#8b5cf6',
+        'DELIVERED': '#10b981',
+        'COMPLETED': '#10b981',
+        'CANCELLED': '#ef4444',
+        'RETURNED': '#ef4444'
+    };
+    return colors[status] || '#6b7280';
+}
+
+// Helper function to format date short
+function formatDateShort(date) {
+    const dateObj = new Date(date);
+    return dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+}
+
+// Render invoices in Invoice Management section (POS + Marketplace)
+async function renderInvoices() {
     // Render invoices in Invoice Management section (POS + Marketplace)
     const invoiceContainer = document.getElementById('invoiceContainer');
     if (invoiceContainer) {
         let combinedTransactions = [];
-        
-        // Add POS payments
-        if (payments) {
-            payments.forEach(payment => {
-                combinedTransactions.push({
-                    type: 'POS',
-                    id: payment.id,
-                    invoice_number: payment.invoice_number || 'POS-' + payment.id.substring(0, 8),
-                    product: payment.product || 'Unknown',
-                    quantity: payment.jumlah || 0,
-                    total: payment.total_harga || 0,
-                    paid: payment.paid_amount || 0,
-                    remaining: payment.remaining_amount || 0,
-                    status: payment.status || 'pending',
-                    created_at: payment.created_at,
-                    buyer: payment.buyer || 'Walk-in'
-                });
-            });
-        }
-        
-        // Add marketplace orders (Manual Entry System)
-        try {
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             
-            const { data: onlineOrders } = await supabaseClient
+            // Add POS payments
+            if (payments) {
+                payments.forEach(payment => {
+                    combinedTransactions.push({
+                        type: 'POS',
+                        id: payment.id,
+                        invoice_number: payment.invoice_number || 'POS-' + payment.id.substring(0, 8),
+                        product: payment.product || 'Unknown',
+                        quantity: payment.jumlah || 0,
+                        total: payment.total_harga || 0,
+                        paid: payment.paid_amount || 0,
+                        remaining: payment.remaining_amount || 0,
+                        status: payment.status || 'pending',
+                        created_at: payment.created_at,
+                        buyer: payment.buyer || 'Walk-in'
+                    });
+                });
+            }
+            
+            // Add marketplace orders (Manual Entry System)
+            try {
+                const thirtyDaysAgo = new Date();
+                thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+                
+                const { data: onlineOrders } = await supabaseClient
                 .from('online_orders')
                 .select(`
                     *,
@@ -1155,524 +1570,298 @@ async function loadDashboard() {
             outstandingContainer.innerHTML = outstandingHtml;
         }
     }
-
-    // Make invoice management functions globally accessible
-    window.addPartialPayment = async function(invoiceId, paymentAmount) {
-        const amount = prompt('Enter payment amount:', paymentAmount);
-        if (amount === null) return;
-
-        const paymentAmountNum = parseFloat(amount);
-        if (isNaN(paymentAmountNum) || paymentAmountNum <= 0) {
-            alert('Invalid payment amount');
-            return;
-        }
-
-        try {
-            const { data: invoice } = await supabaseClient
-                .from('payments')
-                .select('*')
-                .eq('id', invoiceId)
-                .single();
-
-            if (!invoice) {
-                alert('Invoice not found');
-                return;
-            }
-
-            if (invoice.status === 'cancelled') {
-                alert('Cannot add payment to cancelled invoice');
-                return;
-            }
-
-            const newPaidAmount = invoice.paid_amount + paymentAmountNum;
-            const newRemainingAmount = invoice.remaining_amount - paymentAmountNum;
-            let newStatus = invoice.status;
-
-            if (newRemainingAmount <= 0) {
-                newStatus = 'paid';
-            } else if (newPaidAmount > 0) {
-                newStatus = 'partial';
-            }
-
-            const { error } = await supabaseClient
-                .from('payments')
-                .update({
-                    paid_amount: newPaidAmount,
-                    remaining_amount: Math.max(0, newRemainingAmount),
-                    status: newStatus,
-                    confirmed_at: newStatus === 'paid' ? new Date().toISOString() : null
-                })
-                .eq('id', invoiceId);
-
-            if (error) {
-                alert('Failed to add payment: ' + error.message);
-            } else {
-                alert('Payment added successfully');
-                location.reload();
-            }
-        } catch (err) {
-            alert('Error adding payment: ' + err.message);
-        }
-    };
-
-    window.markAsPaid = async function(invoiceId) {
-        if (!confirm('Mark this invoice as fully paid?')) return;
-
-        try {
-            const { data: invoice } = await supabaseClient
-                .from('payments')
-                .select('*')
-                .eq('id', invoiceId)
-                .single();
-
-            if (!invoice) {
-                alert('Invoice not found');
-                return;
-            }
-
-            const { error } = await supabaseClient
-                .from('payments')
-                .update({
-                    paid_amount: invoice.total_harga,
-                    remaining_amount: 0,
-                    status: 'paid',
-                    confirmed_at: new Date().toISOString()
-                })
-                .eq('id', invoiceId);
-
-            if (error) {
-                alert('Failed to mark as paid: ' + error.message);
-            } else {
-                alert('Invoice marked as paid');
-                location.reload();
-            }
-        } catch (err) {
-            alert('Error marking as paid: ' + err.message);
-        }
-    };
-
-    window.cancelInvoice = async function(invoiceId) {
-        // Role check: Only ADMIN can cancel invoices
-        if (!requireAdmin()) {
-            return;
-        }
-
-        if (!confirm('Cancel this invoice and restore stock?')) return;
-
-        try {
-            const { data: invoice } = await supabaseClient
-                .from('payments')
-                .select('*')
-                .eq('id', invoiceId)
-                .single();
-
-            if (!invoice) {
-                alert('Invoice not found');
-                return;
-            }
-
-            if (invoice.status === 'cancelled') {
-                alert('Invoice already cancelled');
-                return;
-            }
-
-            // Find related sales_history records
-            const { data: salesHistory } = await supabaseClient
-                .from('sales_history')
-                .select('*')
-                .eq('payment_id', invoiceId);
-
-            if (salesHistory && salesHistory.length > 0) {
-                // Restore stock for each sales record
-                for (const sale of salesHistory) {
-                    const { data: product } = await supabaseClient
-                        .from('products')
-                        .select('stok')
-                        .eq('id', sale.product_id)
-                        .single();
-
-                    if (product) {
-                        const newStock = product.stok + sale.jumlah;
-                        await supabaseClient
-                            .from('products')
-                            .update({ stok: newStock })
-                            .eq('id', sale.product_id);
-                    }
-                }
-            }
-
-            // Update invoice status to cancelled
-            const { error } = await supabaseClient
-                .from('payments')
-                .update({ status: 'cancelled' })
-                .eq('id', invoiceId);
-
-            if (error) {
-                alert('Failed to cancel invoice: ' + error.message);
-            } else {
-                alert('Invoice cancelled and stock restored');
-                location.reload();
-            }
-        } catch (err) {
-            alert('Error cancelling invoice: ' + err.message);
-        }
-    };
-
-    window.deleteTransaction = async function(invoiceId) {
-        // Role check: Only ADMIN can delete transactions
-        if (!requireAdmin()) {
-            return;
-        }
-
-        if (!confirm('Yakin ingin menghapus transaksi ini? Semua data penjualan dan pembayaran akan dihapus.')) return;
-
-        try {
-            console.log('=== DELETE TRANSACTION START ===');
-            console.log('Invoice ID:', invoiceId);
-
-            // Get invoice data
-            const { data: invoice } = await supabaseClient
-                .from('payments')
-                .select('*')
-                .eq('id', invoiceId)
-                .single();
-
-            if (!invoice) {
-                alert('Invoice not found');
-                return;
-            }
-
-            console.log('Invoice data:', invoice);
-
-            // Find related sales_history records
-            const { data: salesHistory } = await supabaseClient
-                .from('sales_history')
-                .select('*')
-                .eq('payment_id', invoiceId);
-
-            console.log('Sales history records:', salesHistory);
-
-            if (salesHistory && salesHistory.length > 0) {
-                // Restore stock for each sales record
-                for (const sale of salesHistory) {
-                    console.log('Restoring stock for product:', sale.product_id, 'quantity:', sale.jumlah);
-                    
-                    const { data: product } = await supabaseClient
-                        .from('products')
-                        .select('stok')
-                        .eq('id', sale.product_id)
-                        .single();
-
-                    if (product) {
-                        const oldStock = product.stok;
-                        const newStock = product.stok + sale.jumlah;
-                        console.log(`Stock restoration: ${oldStock} + ${sale.jumlah} = ${newStock}`);
-                        
-                        await supabaseClient
-                            .from('products')
-                            .update({ stok: newStock })
-                            .eq('id', sale.product_id);
-                            
-                        console.log('Stock updated successfully');
-                    } else {
-                        console.error('Product not found:', sale.product_id);
-                    }
-                }
-
-                // Delete sales_history records
-                console.log('Deleting sales_history records...');
-                const { error: historyError } = await supabaseClient
-                    .from('sales_history')
-                    .delete()
-                    .eq('payment_id', invoiceId);
-
-                if (historyError) {
-                    console.error('Failed to delete sales history:', historyError);
-                    alert('Failed to delete sales history: ' + historyError.message);
-                    return;
-                }
-                console.log('Sales history deleted successfully');
-            }
-
-            // Delete payment record
-            console.log('Deleting payment record...');
-            const { error: paymentError } = await supabaseClient
-                .from('payments')
-                .delete()
-                .eq('id', invoiceId);
-
-            if (paymentError) {
-                console.error('Failed to delete payment:', paymentError);
-                alert('Failed to delete payment: ' + paymentError.message);
-                return;
-            }
-            console.log('Payment deleted successfully');
-
-            console.log('=== DELETE TRANSACTION END ===');
-
-            alert('Transaksi berhasil dihapus dan stok telah dikembalikan.');
-            
-            // Refresh products data (to show updated stock)
-            console.log('Refreshing products...');
-            await refreshProducts();
-            console.log('Products refreshed');
-            
-            // Refresh dashboard (recalculates all metrics from database)
-            console.log('Refreshing dashboard...');
-            await loadDashboard();
-            console.log('Dashboard refreshed');
-            
-        } catch (err) {
-            console.error('Error deleting transaction:', err);
-            alert('Error deleting transaction: ' + err.message);
-        }
-    };
-
-    // Function to refresh products data (for stock updates)
-    async function refreshProducts() {
-        console.log('=== REFRESH PRODUCTS START ===');
-        const { data: products, error } = await supabaseClient
-            .from('products')
-            .select('*')
-            .order('created_at', { ascending: false });
-        
-        if (error) {
-            console.error('Failed to refresh products:', error);
-            return null;
-        }
-        
-        console.log('Products refreshed:', products.length, 'items');
-        console.log('=== REFRESH PRODUCTS END ===');
-        return products;
-    }
-
-    // --- RENDERING TABEL 1: STOK GUDANG ---
-    if (!products || products.length === 0) {
-        container.innerHTML = `<div class="p-8 text-center text-red-900/60 text-xs uppercase">>> GUDANG_KOSONG</div>`;
-    } else if (isMobile()) {
-        let cards = `
-            <div class="space-y-2">
-        `;
-        products.forEach(item => {
-            let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 font-bold text-[9px] uppercase">${item.kategori || 'Apparel'}</span>`;
-            if (item.kategori === 'Skateboard') katBadge = `<span class="bg-red-950/60 text-red-500 px-2 py-0.5 border border-red-800/50 font-bold text-[9px] uppercase">🛹 PAPAN_SKATE</span>`;
-            if (item.kategori === 'Perlengkapan') katBadge = `<span class="bg-zinc-900 text-zinc-400 px-2 py-0.5 border border-zinc-700 font-bold text-[9px] uppercase">🛠️ HARDWARE</span>`;
-
-            const ukuranBadge = item.ukuran
-                ? `<span class="bg-stone-900 text-yellow-500 border border-yellow-900/50 px-2 py-0.5 font-bold text-[10px] uppercase">${item.ukuran}</span>`
-                : `<span class="text-slate-700 text-[9px]">—</span>`;
-
-            const currentStock = parseInt(item.stok || 0);
-            const stokBadge = currentStock <= 5
-                ? `<span class="bg-red-950 text-red-500 border border-red-600 px-2 py-0.5 font-bold text-[10px] animate-pulse">☠️ KRITIS_${currentStock}</span>`
-                : `<span class="bg-stone-900 text-slate-300 border border-stone-800 px-2 py-0.5 font-bold text-[10px]">${currentStock} UNIT</span>`;
-
-            cards += `
-                <div class="p-3 border border-red-950/40 bg-black/40">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <div class="text-[11px] text-white font-bold uppercase leading-4">${item.nama_barang}</div>
-                            <div class="mt-2">${katBadge}</div>
-                            <div class="mt-2">${ukuranBadge}</div>
-                            <div class="mt-2">${stokBadge}</div>
-                            <div class="mt-2 text-[11px] text-slate-500">
-                                Modal: Rp ${Number(item.harga_modal).toLocaleString('id-ID')}<br/>
-                                Umum: Rp ${Number(item.harga_jual).toLocaleString('id-ID')}<br/>
-                                Member: Rp ${Number(item.harga_member).toLocaleString('id-ID')}
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <button onclick="deleteProduct(${item.id}, '${item.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-        cards += `
-            </div>
-        `;
-        container.innerHTML = cards;
-    } else {
-        let tableHtml = `
-            <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
-                <thead>
-                    <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase tracking-wider text-[10px]">
-                        <th class="p-4 font-bold tracking-wider">SKU</th>
-                        <th class="p-4 font-bold tracking-wider">NAMA_BARANG</th>
-                        <th class="p-4 font-bold tracking-wider">SEKTOR_KATEGORI</th>
-                        <th class="p-4 font-bold text-center tracking-wider">TINGKAT_STOK</th>
-                        <th class="p-4 font-bold tracking-wider">HARGA_UMUM</th>
-                        <th class="p-4 font-bold text-center tracking-wider">HANCURKAN</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-red-950/25 bg-black/45">
-`;
-
-
-        products.forEach(item => {
-            let katBadge = `<span class="bg-stone-900 text-stone-400 px-2 py-0.5 border border-stone-800 font-bold text-[9px] uppercase">${item.kategori || 'Apparel'}</span>`;
-            if (item.kategori === 'Skateboard') katBadge = `<span class="bg-red-950/60 text-red-500 px-2 py-0.5 border border-red-800/50 font-bold text-[9px] uppercase">🛹 PAPAN_SKATE</span>`;
-            if (item.kategori === 'Perlengkapan') katBadge = `<span class="bg-zinc-900 text-zinc-400 px-2 py-0.5 border border-zinc-700 font-bold text-[9px] uppercase">🛠️ HARDWARE</span>`;
-
-            const currentStock = parseInt(item.stok || 0);
-            const stokBadge = currentStock <= 5
-                ? `<span class="bg-red-950 text-red-500 border border-red-600 px-2 py-0.5 font-bold text-[10px] animate-pulse">☠️ KRITIS_${currentStock}</span>`
-                : `<span class="bg-stone-900 text-slate-300 border border-stone-800 px-2 py-0.5 font-bold text-[10px]">${currentStock} UNIT</span>`;
-
-            tableHtml += `
-                <tr class="hover:bg-red-950/10 transition-colors">
-                    <td class="p-4"><span class="inline-flex items-center px-2.5 py-1 rounded-md bg-purple-950/40 border border-purple-700/50 font-mono text-purple-300 text-xs font-medium">${item.sku || '—'}</span></td>
-                    <td class="p-4 font-bold text-white uppercase tracking-wide">${item.nama_barang}</td>
-                    <td class="p-4">${katBadge}</td>
-                    <td class="p-4 text-center">${stokBadge}</td>
-                    <td class="p-4 text-red-400 font-bold">Rp ${Number(item.harga_jual).toLocaleString('id-ID')}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteProduct(${item.id}, '${item.nama_barang}')" class="bg-transparent hover:bg-red-600 hover:text-white text-red-600 border border-red-900 px-2.5 py-1 text-[9px] font-bold uppercase transition-all">HAPUS</button>
-                    </td>
-                </tr>
-            `;
-        });
-        tableHtml += `</tbody></table>`;
-        container.innerHTML = tableHtml;
-    }
-
-    // --- RENDERING TABEL 2: RIWAYAT PENJUALAN NYATA + TANGGAL & DATA ORANG ---
-    if (soldContainer) {
-        if (!salesHistory || salesHistory.length === 0) {
-            soldContainer.innerHTML = `<div class="p-8 text-center text-stone-700 text-xs uppercase">>> BELUM ADA TRANSAKSI MASUK KASIR</div>`;
-        } else if (isMobile()) {
-            let cards = `
-                <div class="space-y-2">`;
-
-            salesHistory.forEach(sale => {
-                const dateObj = new Date(sale.created_at);
-                const opsiFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-                const tanggalLokalan = dateObj.toLocaleDateString('id-ID', opsiFormat).replace(',', ' //');
-
-                const isMember = (sale.tipe_pembeli || '').toLowerCase().startsWith('member');
-                const orangBadge = isMember
-                    ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 MEMBER</span>`
-                : `<span class="bg-zinc-900 text-zinc-400 border border-zinc-700 text-[10px] px-2 py-0.5 font-bold">👤 NON-MEMBER</span>`;
-
-            cards += `
-                <div class="p-3 border border-red-950/20 bg-black/50">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <div class="text-[10px] text-red-500 font-bold">${tanggalLokalan} WIB</div>
-                            <div class="mt-1 text-[12px] font-bold text-white uppercase">${sale.nama_barang}</div>
-                            <div class="mt-1">${orangBadge}</div>
-                            <div class="mt-1 text-slate-400 text-[11px]">Ukuran: ${sale.ukuran || '—'}</div>
-                            <div class="mt-1 text-rose-400 font-bold text-[11px]">${sale.jumlah} PCS</div>
-                            <div class="mt-1 text-yellow-400 font-bold text-[11px]">Harga pakai (per PCS): Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
-                            <div class="mt-1 text-emerald-400 font-bold text-[12px]">Total: Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</div>
-
-                        </div>
-                        <div class="text-right">
-                            <button onclick="deleteFromSalesHistory(${sale.id}, '${sale.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        });
-
-
-        cards += `</div>`;
-        soldContainer.innerHTML = cards;
-    } else {
-        let soldHtml = `
-            <table class="w-full text-left border-collapse text-xs whitespace-nowrap">
-                <thead>
-            <tr class="bg-black/60 border-b border-red-950 uppercase tracking-wider text-[10px]">
-                        <th class="p-4 font-bold">WAKTU_MUTASI (TANGGAL/JAM)</th>
-                        <th class="p-4 font-bold">ITEM_TERJUAL</th>
-                        <th class="p-4 font-bold">STRUKTUR_ORANG</th>
-                        <th class="p-4 font-bold">UKURAN</th>
-                        <th class="p-4 font-bold text-center">KUANTITAS</th>
-                        <th class="p-4 font-bold">TOTAL_DANA_MASUK</th>
-                        <th class="p-4 font-bold text-center">AKSI</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-red-950/20 bg-black/60">
-        `;
-
-        salesHistory.forEach(sale => {
-            // Memformat data mentah tanggal waktu dari Supabase agar enak dibaca manusia
-            const dateObj = new Date(sale.created_at);
-            const opsiFormat = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
-            const tanggalLokalan = dateObj.toLocaleDateString('id-ID', opsiFormat).replace(',', ' //');
-
-            const isMember = (sale.tipe_pembeli || '').toLowerCase().startsWith('member');
-            const orangBadge = isMember
-                ? `<span class="bg-purple-950 text-purple-400 border border-purple-800 text-[10px] px-2 py-0.5 font-bold">👤 MEMBER</span>`
-                : `<span class="bg-zinc-900 text-zinc-400 border border-zinc-700 text-[10px] px-2 py-0.5 font-bold">👤 NON-MEMBER</span>`;
-
-
-            soldHtml += `
-                <tr class="hover:bg-rose-950/10 transition-colors">
-                    <td class="p-4 text-red-500 font-bold tracking-tight">${tanggalLokalan} WIB</td>
-                    <td class="p-4 font-bold text-white uppercase">
-                        ${sale.nama_barang}
-                        <div class="text-[10px] text-yellow-400 font-bold">Harga pakai (per PCS): Rp ${sale.jumlah ? Math.round(Number(sale.total_harga)/Number(sale.jumlah)).toLocaleString('id-ID') : 0}</div>
-
-                    </td>
-                    <td class="p-4">${orangBadge}</td>
-                    <td class="p-4">${sale.ukuran || '—'}</td>
-                    <td class="p-4 text-center text-rose-400 font-bold">${sale.jumlah} PCS</td>
-                    <td class="p-4 text-emerald-400 font-bold">Rp ${Number(sale.total_harga).toLocaleString('id-ID')}</td>
-                    <td class="p-4 text-center">
-                        <button onclick="deleteFromSalesHistory(${sale.id}, '${sale.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
-                    </td>
-                </tr>
-            `;
-        });
-
-        soldHtml += `</tbody></table>`;
-        soldContainer.innerHTML = soldHtml;
-    }
-    }
-
-    // Render 1 inventory profit indicator (hanya 1 indikator di bagian atas)
-    // Kita pilih produk dengan abs(profit) terbesar, lalu mapping ke progress fill atas.
-    try {
-        const topFill = document.getElementById('dashboardProgressFill');
-        const topText = document.getElementById('dashboardProgressText');
-        const topSub = document.getElementById('dashboardProgressSub');
-        if (topFill && topText && topSub && profitProduk && profitProduk.size > 0) {
-            let best = null;
-            let maxAbs = 0;
-            profitProduk.forEach(v => {
-                const p = v.profit || 0;
-                const abs = Math.abs(p);
-                if (abs > maxAbs) {
-                    maxAbs = abs;
-                    best = v;
-                }
-            });
-            if (!best) return;
-
-            const percent = Math.min(100, Math.round((Math.abs(best.profit || 0) / (maxAbs || 1)) * 100));
-            const isNeg = (best.profit || 0) < 0;
-            topFill.style.transition = 'width 600ms ease, filter 300ms ease';
-            topFill.style.width = `${percent}%`;
-            topFill.style.background = isNeg ? 'linear-gradient(90deg, #ef4444, #7f1d1d)' : 'linear-gradient(90deg, #10b981, #34d399)';
-
-            topText.innerText = `${percent}% profit tracked — inventory active`;
-            topSub.innerText = `Focus product: ${(best.nama_barang || '').toString().toUpperCase()} • Cost Rp ${(best.modalTotal || 0).toLocaleString('id-ID')}`;
-
-            // partikel kecil arah profit (tanpa teks tambahan)
-            try { window.InventoryManager?.applyPaymentDelta?.(); } catch (e) {}
-
-        }
-    } catch (e) {}
-
-
-    await loadPayments();
-    await loadExpenses();
-
-    // Render area chart with sales history data (now includes marketplace)
-    await renderCandlestickChartFromSalesHistory(salesHistory);
 }
 
+// Call renderInvoices function
+renderInvoices();
+window.addPartialPayment = async function(invoiceId, paymentAmount) {
+    const amount = prompt('Enter payment amount:', paymentAmount);
+    if (amount === null) return;
+
+    const paymentAmountNum = parseFloat(amount);
+    if (isNaN(paymentAmountNum) || paymentAmountNum <= 0) {
+        alert('Invalid payment amount');
+        return;
+    }
+
+    try {
+        const { data: invoice } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (!invoice) {
+            alert('Invoice not found');
+            return;
+        }
+
+        if (invoice.status === 'cancelled') {
+            alert('Cannot add payment to cancelled invoice');
+            return;
+        }
+
+        const newPaidAmount = invoice.paid_amount + paymentAmountNum;
+        const newRemainingAmount = invoice.remaining_amount - paymentAmountNum;
+        let newStatus = invoice.status;
+
+        if (newRemainingAmount <= 0) {
+            newStatus = 'paid';
+        } else if (newPaidAmount > 0) {
+            newStatus = 'partial';
+        }
+
+        const { error } = await supabaseClient
+            .from('payments')
+            .update({
+                paid_amount: newPaidAmount,
+                remaining_amount: Math.max(0, newRemainingAmount),
+                status: newStatus,
+                confirmed_at: newStatus === 'paid' ? new Date().toISOString() : null
+            })
+            .eq('id', invoiceId);
+
+        if (error) {
+            alert('Failed to add payment: ' + error.message);
+        } else {
+            alert('Payment added successfully');
+            location.reload();
+        }
+    } catch (err) {
+        alert('Error adding payment: ' + err.message);
+    }
+};
+
+window.markAsPaid = async function(invoiceId) {
+    if (!confirm('Mark this invoice as fully paid?')) return;
+
+    try {
+        const { data: invoice } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (!invoice) {
+            alert('Invoice not found');
+            return;
+        }
+
+        const { error } = await supabaseClient
+            .from('payments')
+            .update({
+                paid_amount: invoice.total_harga,
+                remaining_amount: 0,
+                status: 'paid',
+                confirmed_at: new Date().toISOString()
+            })
+            .eq('id', invoiceId);
+
+        if (error) {
+            alert('Failed to mark as paid: ' + error.message);
+        } else {
+            alert('Invoice marked as paid');
+            location.reload();
+        }
+    } catch (err) {
+        alert('Error marking as paid: ' + err.message);
+    }
+};
+
+window.cancelInvoice = async function(invoiceId) {
+    // Role check: Only ADMIN can cancel invoices
+    if (!requireAdmin()) {
+        return;
+    }
+
+    if (!confirm('Cancel this invoice and restore stock?')) return;
+
+    try {
+        const { data: invoice } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (!invoice) {
+            alert('Invoice not found');
+            return;
+        }
+
+        if (invoice.status === 'cancelled') {
+            alert('Invoice already cancelled');
+            return;
+        }
+
+        // Find related sales_history records
+        const { data: salesHistory } = await supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('payment_id', invoiceId);
+
+        if (salesHistory && salesHistory.length > 0) {
+            // Restore stock for each sales record
+            for (const sale of salesHistory) {
+                const { data: product } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', sale.product_id)
+                    .single();
+
+                if (product) {
+                    const newStock = product.stok + sale.jumlah;
+                    await supabaseClient
+                        .from('products')
+                        .update({ stok: newStock })
+                        .eq('id', sale.product_id);
+                }
+            }
+        }
+
+        // Update invoice status to cancelled
+        const { error } = await supabaseClient
+            .from('payments')
+            .update({ status: 'cancelled' })
+            .eq('id', invoiceId);
+
+        if (error) {
+            alert('Failed to cancel invoice: ' + error.message);
+        } else {
+            alert('Invoice cancelled and stock restored');
+            location.reload();
+        }
+    } catch (err) {
+        alert('Error cancelling invoice: ' + err.message);
+    }
+};
+
+window.deleteTransaction = async function(invoiceId) {
+    // Role check: Only ADMIN can delete transactions
+    if (!requireAdmin()) {
+        return;
+    }
+
+    if (!confirm('Yakin ingin menghapus transaksi ini? Semua data penjualan dan pembayaran akan dihapus.')) return;
+
+    try {
+        console.log('=== DELETE TRANSACTION START ===');
+        console.log('Invoice ID:', invoiceId);
+
+        // Get invoice data
+        const { data: invoice } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', invoiceId)
+            .single();
+
+        if (!invoice) {
+            alert('Invoice not found');
+            return;
+        }
+
+        console.log('Invoice data:', invoice);
+
+        // Find related sales_history records
+        const { data: salesHistory } = await supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('payment_id', invoiceId);
+
+        console.log('Sales history records:', salesHistory);
+
+        if (salesHistory && salesHistory.length > 0) {
+            // Restore stock for each sales record
+            for (const sale of salesHistory) {
+                console.log('Restoring stock for product:', sale.product_id, 'quantity:', sale.jumlah);
+                
+                const { data: product } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', sale.product_id)
+                    .single();
+
+                if (product) {
+                    const oldStock = product.stok;
+                    const newStock = product.stok + sale.jumlah;
+                    console.log(`Stock restoration: ${oldStock} + ${sale.jumlah} = ${newStock}`);
+                    
+                    await supabaseClient
+                        .from('products')
+                        .update({ stok: newStock })
+                        .eq('id', sale.product_id);
+                    
+                    console.log('Stock updated successfully');
+                } else {
+                    console.error('Product not found:', sale.product_id);
+                }
+            }
+
+            // Delete sales_history records
+            console.log('Deleting sales_history records...');
+            const { error: historyError } = await supabaseClient
+                .from('sales_history')
+                .delete()
+                .eq('payment_id', invoiceId);
+
+            if (historyError) {
+                console.error('Failed to delete sales history:', historyError);
+                alert('Failed to delete sales history: ' + historyError.message);
+                return;
+            }
+            console.log('Sales history deleted successfully');
+        }
+
+        // Delete payment record
+        console.log('Deleting payment record...');
+        const { error: paymentError } = await supabaseClient
+            .from('payments')
+            .delete()
+            .eq('id', invoiceId);
+
+        if (paymentError) {
+            console.error('Failed to delete payment:', paymentError);
+            alert('Failed to delete payment: ' + paymentError.message);
+            return;
+        }
+        console.log('Payment deleted successfully');
+
+        console.log('=== DELETE TRANSACTION END ===');
+
+        alert('Transaksi berhasil dihapus dan stok telah dikembalikan.');
+        
+        // Refresh products data (to show updated stock)
+        console.log('Refreshing products...');
+        await refreshProducts();
+        console.log('Products refreshed');
+        
+        // Refresh dashboard (recalculates all metrics from database)
+        console.log('Refreshing dashboard...');
+        await loadDashboard();
+        console.log('Dashboard refreshed');
+        
+    } catch (err) {
+        console.error('Error deleting transaction:', err);
+        alert('Error deleting transaction: ' + err.message);
+    }
+};
+
+// Function to refresh products data (for stock updates)
+async function refreshProducts() {
+    console.log('=== REFRESH PRODUCTS START ===');
+    const { data: products, error } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('Failed to refresh products:', error);
+        return null;
+    }
+    
+    console.log('Products refreshed:', products.length, 'items');
+    console.log('=== REFRESH PRODUCTS END ===');
+    return products;
+}
 
 async function loadExpenses() {
     const expenseContainer = document.getElementById('expenseContainer');
@@ -1692,7 +1881,7 @@ async function loadExpenses() {
     let html = `
         <div class="block sm:hidden">
             <div class="space-y-2">
-    `
+    `;
 
     expenses.forEach(expense => {
         const tanggalObj = new Date(expense.tanggal);
@@ -1727,6 +1916,7 @@ async function loadExpenses() {
     `;
     expenseContainer.innerHTML = html;
 }
+
 async function deleteExpense(id) {
     const konfirmasi = confirm('[PERINGATAN] HAPUS PENGELUARAN? Tidak bisa dikembalikan.');
     if (!konfirmasi) return;
@@ -1760,124 +1950,53 @@ async function deleteFromSalesHistory(id, namaBarang) {
     if (!konfirmasi) return;
 
     try {
-        // 1) Ambil data sales_history (jadi source of truth)
-        const { data: saleRecord, error: fetchErr } = await supabaseClient
+        // Get the sales history record
+        const { data: saleRecord, error: fetchError } = await supabaseClient
             .from('sales_history')
             .select('*')
             .eq('id', id)
             .single();
 
-        if (fetchErr || !saleRecord) {
-            alert('❌ Gagal ambil data penjualan: ' + (fetchErr?.message || 'Tidak ditemukan'));
+        if (fetchError || !saleRecord) {
+            alert('❌ Gagal mengambil data penjualan: ' + (fetchError?.message || 'Record tidak ditemukan'));
             return;
         }
 
-        // 2) Restore stock
-        // Catatan: sistem stok/varian bergantung pada (nama_barang + ukuran). Agar akurat, kita juga cocokkan ukuran saat restore.
-        const namaBarangSale = String(saleRecord.nama_barang || '').trim();
-        const ukuranSale = saleRecord.ukuran ? String(saleRecord.ukuran).trim() : null;
+        // Restore stock
+        const { data: product } = await supabaseClient
+            .from('products')
+            .select('stok')
+            .eq('id', saleRecord.product_id)
+            .single();
 
-
-        // 2a) Coba match exact nama_barang + ukuran (kalau tersedia)
-        let product = null;
-        try {
-            let q = supabaseClient
-                .from('products')
-                .select('*')
-                .eq('nama_barang', namaBarangSale);
-
-            if (ukuranSale !== null) {
-                q = q.eq('ukuran', ukuranSale);
-            }
-
-            const { data, error } = await q.maybeSingle();
-            if (!error && data) product = data;
-        } catch (e) {}
-
-        // 2b) Fallback: match ilike nama_barang + ukuran
-        if (!product && namaBarangSale) {
-            try {
-                let q = supabaseClient
-                    .from('products')
-                    .select('*')
-                    .ilike('nama_barang', `%${namaBarangSale}%`)
-                    .limit(5);
-
-                if (ukuranSale !== null) {
-                    q = q.eq('ukuran', ukuranSale);
-                }
-
-                const { data, error } = await q;
-                if (!error && Array.isArray(data) && data.length > 0) product = data[0];
-            } catch (e) {}
-        }
-
-
-        if (!product) {
-            // Jangan silent: ini yang membuat stok "tetap kritis" walau riwayat dihapus
-            alert('⚠️ Produk tidak ditemukan untuk restore stok: ' + namaBarangSale);
-        } else {
-            // Prefer restore by product_id (lebih akurat daripada nama_barang + ukuran)
-            // Pastikan currentStok diambil dari target yang benar (restoreTargetId),
-            // bukan dari hasil match nama_barang+ukuran yang mungkin tidak sama.
-            const restoreTargetId = saleRecord.product_id || product.id;
-            const deltaQty = parseInt(saleRecord.jumlah || 0, 10);
-
-            let currentStok = 0;
-            try {
-                const { data: targetProduct } = await supabaseClient
-                    .from('products')
-                    .select('stok')
-                    .eq('id', restoreTargetId)
-                    .single();
-
-                currentStok = parseInt(targetProduct?.stok || 0, 10);
-            } catch (e) {
-                // fallback pakai stok dari hasil match awal
-                currentStok = parseInt(product.stok || 0, 10);
-            }
-
-            const stokBaru = currentStok + deltaQty;
-            const { error: updateErr } = await supabaseClient
-                .from('products')
-                .update({ stok: stokBaru })
-                .eq('id', restoreTargetId);
-
-            if (updateErr) {
-                alert('⚠️ Stock tidak terupdate: ' + updateErr.message);
-            }
-        }
-
-
-
-        // 3) Hapus record payments terkait (kalau payment_id ada)
-        // Tujuan: kalau user hapus 1 transaksi dari dashboard, tidak perlu hapus 1-1 lagi.
-        if (saleRecord.payment_id) {
+        if (product) {
+            const newStock = product.stok + saleRecord.jumlah;
             await supabaseClient
-                .from('payments')
-                .delete()
-                .eq('id', saleRecord.payment_id);
+                .from('products')
+                .update({ stok: newStock })
+                .eq('id', saleRecord.product_id);
         }
 
-        // 4) Hapus sales_history
-        const { error: delErr } = await supabaseClient
+        // Delete the sales history record
+        const { error: deleteError } = await supabaseClient
             .from('sales_history')
             .delete()
             .eq('id', id);
 
-        if (delErr) {
-            alert('❌ Gagal menghapus record: ' + delErr.message);
-        } else {
-            alert('✅ RECORD PENJUALAN DIHAPUS SEKALIGUS + STOCK DIKEMBALIKAN');
-            await loadDashboard();
+        if (deleteError) {
+            alert('❌ Gagal menghapus: ' + deleteError.message);
+            return;
         }
+
+        alert('✅ RECORD PENJUALAN BERHASIL DIHAPUS DAN STOCK TELAH DIKEMBALIKAN');
+        await loadDashboard();
     } catch (err) {
-        console.error('Error deleting sales_history:', err);
+        console.error('Error deleting from sales history:', err);
         alert('❌ Error: ' + err.message);
     }
 }
 
-
+// Chart rendering function
 async function deleteProduct(id, namaBarang) {
     const konfirmasi = confirm(`[PERINGATAN] HAPUS PRODUK "${namaBarang.toUpperCase()}"?`);
     if (!konfirmasi) return;
@@ -1912,7 +2031,7 @@ async function deleteProduct(id, namaBarang) {
     }
 }
 
-
+// Event listeners
 document.getElementById('refreshPaymentsBtn')?.addEventListener('click', loadPayments);
 window.confirmPayment = confirmPayment;
 window.deletePayment = deletePayment;
