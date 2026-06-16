@@ -987,32 +987,70 @@ async function loadDashboard() {
 
     // Render product inventory list
     if (products && products.length > 0) {
-        let inventoryHtml = '<table class="w-full text-xs" style="border-collapse: collapse;">';
-        inventoryHtml += '<thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">';
-        inventoryHtml += '<th class="text-left p-3 text-muted">Product</th>';
-        inventoryHtml += '<th class="text-left p-3 text-muted">Category</th>';
-        inventoryHtml += '<th class="text-right p-3 text-muted">Stock</th>';
-        inventoryHtml += '<th class="text-right p-3 text-muted">Modal</th>';
-        inventoryHtml += '<th class="text-right p-3 text-muted">Value</th>';
-        inventoryHtml += '</tr></thead><tbody>';
+        const mobile = isMobile();
         
-        products.forEach(item => {
-            const currentStock = parseInt(item.stok || 0);
-            const baseCost = parseFloat(item.harga_modal || 0);
-            const itemValue = currentStock * baseCost;
-            const stockClass = currentStock <= 5 ? 'text-red-400' : 'text-green-400';
+        if (mobile) {
+            let cards = '<div class="space-y-2">';
+            products.forEach(item => {
+                const currentStock = parseInt(item.stok || 0);
+                const stockClass = currentStock <= 5 ? 'text-red-400' : 'text-green-400';
+                const stockBadge = currentStock <= 5 
+                    ? `<span class="bg-red-950 text-red-500 border border-red-600 px-2 py-0.5 font-bold text-[10px] animate-pulse">⚠️ KRITIS_${currentStock}</span>`
+                    : `<span class="bg-stone-900 text-slate-300 border border-stone-800 px-2 py-0.5 font-bold text-[10px]">${currentStock} UNIT</span>`;
+                
+                cards += `
+                    <div class="p-3 border border-red-950/40 bg-black/40">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <div class="text-[11px] text-white font-bold uppercase leading-4">${item.nama_barang}</div>
+                                <div class="mt-2 text-[11px] text-muted">${item.kategori || '-'}</div>
+                                <div class="mt-2">${stockBadge}</div>
+                                <div class="mt-2 text-[11px] text-slate-500">
+                                    Modal: Rp ${Number(item.harga_modal).toLocaleString('id-ID')}<br/>
+                                    Value: Rp ${(currentStock * Number(item.harga_modal)).toLocaleString('id-ID')}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <button onclick="deleteProduct(${item.id}, '${item.nama_barang}')" class="px-2 py-1 bg-red-900 hover:bg-red-800 rounded text-[10px] font-bold uppercase">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            cards += '</div>';
+            container.innerHTML = cards;
+        } else {
+            let inventoryHtml = '<table class="w-full text-xs" style="border-collapse: collapse;">';
+            inventoryHtml += '<thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">';
+            inventoryHtml += '<th class="text-left p-3 text-muted">Product</th>';
+            inventoryHtml += '<th class="text-left p-3 text-muted">Category</th>';
+            inventoryHtml += '<th class="text-right p-3 text-muted">Stock</th>';
+            inventoryHtml += '<th class="text-right p-3 text-muted">Modal</th>';
+            inventoryHtml += '<th class="text-right p-3 text-muted">Value</th>';
+            inventoryHtml += '<th class="text-center p-3 text-muted">Action</th>';
+            inventoryHtml += '</tr></thead><tbody>';
             
-            inventoryHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
-            inventoryHtml += `<td class="p-3 font-medium">${item.nama_barang || '-'}</td>`;
-            inventoryHtml += `<td class="p-3 text-muted">${item.kategori || '-'}</td>`;
-            inventoryHtml += `<td class="p-3 text-right ${stockClass}">${currentStock}</td>`;
-            inventoryHtml += `<td class="p-3 text-right">Rp ${baseCost.toLocaleString('id-ID')}</td>`;
-            inventoryHtml += `<td class="p-3 text-right">Rp ${itemValue.toLocaleString('id-ID')}</td>`;
-            inventoryHtml += '</tr>';
-        });
-        
-        inventoryHtml += '</tbody></table>';
-        container.innerHTML = inventoryHtml;
+            products.forEach(item => {
+                const currentStock = parseInt(item.stok || 0);
+                const baseCost = parseFloat(item.harga_modal || 0);
+                const itemValue = currentStock * baseCost;
+                const stockClass = currentStock <= 5 ? 'text-red-400' : 'text-green-400';
+                
+                inventoryHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
+                inventoryHtml += `<td class="p-3 font-medium">${item.nama_barang || '-'}</td>`;
+                inventoryHtml += `<td class="p-3 text-muted">${item.kategori || '-'}</td>`;
+                inventoryHtml += `<td class="p-3 text-right ${stockClass}">${currentStock}</td>`;
+                inventoryHtml += `<td class="p-3 text-right">Rp ${baseCost.toLocaleString('id-ID')}</td>`;
+                inventoryHtml += `<td class="p-3 text-right">Rp ${itemValue.toLocaleString('id-ID')}</td>`;
+                inventoryHtml += `<td class="p-3 text-center">
+                    <button onclick="deleteProduct(${item.id}, '${item.nama_barang}')" class="bg-transparent hover:bg-red-600 hover:text-white text-red-600 border border-red-900 px-2.5 py-1 text-[9px] font-bold uppercase transition-all">HAPUS</button>
+                </td>`;
+                inventoryHtml += '</tr>';
+            });
+            
+            inventoryHtml += '</tbody></table>';
+            container.innerHTML = inventoryHtml;
+        }
     } else {
         container.innerHTML = '<div class="p-8 text-center text-muted text-xs">No products found</div>';
     }
