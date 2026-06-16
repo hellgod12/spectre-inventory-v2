@@ -1296,9 +1296,12 @@ async function loadSalesComparisonChart() {
         const ctx = document.getElementById('salesComparisonChart');
         if (!ctx) return;
 
-        // Destroy existing chart if it exists
-        if (window.salesComparisonChart) {
+        // Destroy existing chart if it exists and is a Chart instance
+        console.log('Current window.salesComparisonChart:', window.salesComparisonChart);
+        if (window.salesComparisonChart && typeof window.salesComparisonChart.destroy === 'function') {
+            console.log('Destroying existing chart instance');
             window.salesComparisonChart.destroy();
+            window.salesComparisonChart = null;
         }
 
         window.salesComparisonChart = new Chart(ctx, {
