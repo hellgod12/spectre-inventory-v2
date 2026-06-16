@@ -417,45 +417,64 @@ async function loadOutstandingPayments() {
     console.log('loadOutstandingPayments called, mobile:', mobile);
 
     try {
-        // First, get all payments to debug status values
-        const { data: allPayments, error: allError } = await supabaseClient
-            .from('payments')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(10);
+        // Get all payments and members data
+        const [paymentsResult, membersResult] = await Promise.all([
+            supabaseClient.from('payments').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('members').select('*')
+        ]);
 
-        console.log('All payments sample:', allPayments);
-        console.log('Payment statuses:', allPayments?.map(p => p.status));
+        const { data: allPayments, error: paymentsError } = paymentsResult;
+        const { data: members, error: membersError } = membersResult;
 
-        // Now filter for outstanding payments - try multiple status formats
-        const { data: payments, error } = await supabaseClient
-            .from('payments')
-            .select('*')
-            .or('status.eq.pending,status.eq.partial,status.eq.Belum Bayar,status.eq.belumbayar,status.eq.PENDING,status.eq.PARTIAL')
-            .order('created_at', { ascending: false });
+        console.log('All payments:', allPayments);
+        console.log('Members:', members);
 
-        console.log('Outstanding payments query result:', payments);
-        console.log('Query error:', error);
-
-        if (error) {
-            console.error('Error fetching outstanding payments:', error);
+        if (paymentsError) {
+            console.error('Error fetching payments:', paymentsError);
             outstandingContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat outstanding payments</div>`;
             return;
         }
 
-        if (!payments || payments.length === 0) {
-            console.log('No outstanding payments found');
-            outstandingContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Tidak ada pembayaran tertunda</div>`;
+        if (!allPayments || allPayments.length === 0) {
+            console.log('No payments found at all');
+            outstandingContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Tidak ada data pembayaran</div>`;
+            return;
+        }
+
+        // Create a map of phone numbers to member names
+        const phoneToName = new Map();
+        if (members) {
+            members.forEach(member => {
+                phoneToName.set(member.telepon, member.nama);
+            });
+        }
+
+        // Filter payments with remaining_amount > 0 (regardless of status)
+        const outstandingPayments = allPayments.filter(payment => {
+            const remaining = parseFloat(payment.remaining_amount || 0);
+            return remaining > 0;
+        });
+
+        console.log('Outstanding payments (remaining > 0):', outstandingPayments);
+
+        if (outstandingPayments.length === 0) {
+            console.log('No payments with remaining_amount > 0');
+            outstandingContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Semua pembayaran sudah lunas</div>`;
             return;
         }
 
         // Group by buyer and calculate total outstanding
         const buyerDebt = new Map();
         const buyerTransactionCount = new Map();
+        const buyerNames = new Map();
 
-        payments.forEach(payment => {
+        outstandingPayments.forEach(payment => {
             const buyer = payment.buyer || 'Unknown';
             const remainingAmount = parseFloat(payment.remaining_amount || 0);
+            
+            // Try to get member name from phone number
+            const memberName = phoneToName.get(buyer) || buyer;
+            buyerNames.set(buyer, memberName);
             
             const currentDebt = buyerDebt.get(buyer) || 0;
             const currentCount = buyerTransactionCount.get(buyer) || 0;
@@ -468,6 +487,7 @@ async function loadOutstandingPayments() {
         const outstandingList = Array.from(buyerDebt.entries())
             .map(([buyer, debt]) => ({
                 buyer,
+                displayName: buyerNames.get(buyer) || buyer,
                 debt,
                 transactionCount: buyerTransactionCount.get(buyer)
             }))
@@ -492,7 +512,7 @@ async function loadOutstandingPayments() {
                     <div class="p-3 border border-red-950/40 bg-black/40">
                         <div class="flex items-start justify-between gap-3">
                             <div>
-                                <div class="text-[11px] text-red-500 font-bold uppercase">${item.buyer}</div>
+                                <div class="text-[11px] text-red-500 font-bold uppercase">${item.displayName}</div>
                                 <div class="mt-1 text-[12px] font-bold text-white">${formatCurrency(item.debt)}</div>
                                 <div class="mt-1 text-[11px] text-slate-400">${item.transactionCount} transaksi belum lunas</div>
                             </div>
@@ -534,7 +554,7 @@ async function loadOutstandingPayments() {
             outstandingList.forEach(item => {
                 html += `
                     <tr class="hover:bg-red-950/10 transition-colors">
-                        <td class="p-3 font-bold">${item.buyer}</td>
+                        <td class="p-3 font-bold">${item.displayName}</td>
                         <td class="p-3 text-right font-bold text-red-400">${formatCurrency(item.debt)}</td>
                         <td class="p-3 text-center">${item.transactionCount}</td>
                         <td class="p-3"><span class="badge status-belumbayar">Pending</span></td>
