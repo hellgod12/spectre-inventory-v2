@@ -1297,9 +1297,7 @@ async function loadSalesComparisonChart() {
         if (!ctx) return;
 
         // Destroy existing chart if it exists and is a Chart instance
-        console.log('Current window.salesComparisonChart:', window.salesComparisonChart);
         if (window.salesComparisonChart && typeof window.salesComparisonChart.destroy === 'function') {
-            console.log('Destroying existing chart instance');
             window.salesComparisonChart.destroy();
             window.salesComparisonChart = null;
         }
@@ -1365,9 +1363,6 @@ async function loadSalesComparisonChart() {
                 }
             }
         });
-
-        // Debug: Verify Chart instance constructor
-        console.log('Chart instance check:', window.salesComparisonChart, window.salesComparisonChart?.constructor?.name);
 
     } catch (error) {
         console.error('Error loading sales comparison chart:', error);
