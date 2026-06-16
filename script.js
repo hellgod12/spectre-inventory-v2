@@ -1802,62 +1802,62 @@ async function renderInvoices() {
         }
     }
 
-    // Render Outstanding Payments widget (member debt)
-    const outstandingContainer = document.getElementById('outstandingContainer');
-    console.log('Outstanding container:', outstandingContainer);
-    
-    if (outstandingContainer && payments) {
-        console.log('Rendering outstanding payments with payments:', payments);
-        
-        // Filter for member transactions with remaining balance
-        const memberPayments = payments.filter(p => 
-            p.buyer && p.buyer.includes('Member') && 
-            p.status !== 'paid' && 
-            p.status !== 'cancelled' &&
-            (p.remaining_amount || 0) > 0
-        );
-
-        console.log('Member payments with outstanding balance:', memberPayments);
-
-        // Group by member
-        const memberDebt = new Map();
-        memberPayments.forEach(payment => {
-            const memberName = payment.buyer.replace('Member (', '').replace(')', '');
-            const currentDebt = memberDebt.get(memberName) || 0;
-            memberDebt.set(memberName, currentDebt + (payment.remaining_amount || 0));
-        });
-
-        const totalOutstanding = Array.from(memberDebt.values()).reduce((sum, debt) => sum + debt, 0);
-
-        if (memberDebt.size === 0) {
-            outstandingContainer.innerHTML = '<div class="p-8 text-center text-muted text-xs">No outstanding payments</div>';
-        } else {
-            let outstandingHtml = '<div class="space-y-3">';
-            outstandingHtml += `
-                <div class="p-3 bg-red-950/20 border border-red-900/30 rounded-lg">
-                    <div class="flex justify-between items-center">
-                        <span class="text-xs text-muted">Total Outstanding</span>
-                        <span class="font-semibold text-red-400">Rp ${totalOutstanding.toLocaleString('id-ID')}</span>
-                    </div>
-                </div>
-            `;
-
-            memberDebt.forEach((debt, memberName) => {
-                outstandingHtml += `
-                    <div class="p-3 bg-black/50 border border-stone-800 rounded-lg flex justify-between items-center">
-                        <div>
-                            <div class="font-semibold text-white text-sm">${memberName}</div>
-                            <div class="text-xs text-muted">Member</div>
-                        </div>
-                        <span class="font-semibold text-red-400 text-sm">Rp ${debt.toLocaleString('id-ID')}</span>
-                    </div>
-                `;
-            });
-
-            outstandingHtml += '</div>';
-            outstandingContainer.innerHTML = outstandingHtml;
-        }
-    }
+    // Render Outstanding Payments widget (member debt) - DISABLED, using loadOutstandingPayments() instead
+    // const outstandingContainer = document.getElementById('outstandingContainer');
+    // console.log('Outstanding container:', outstandingContainer);
+    // 
+    // if (outstandingContainer && payments) {
+    //     console.log('Rendering outstanding payments with payments:', payments);
+    //     
+    //     // Filter for member transactions with remaining balance
+    //     const memberPayments = payments.filter(p => 
+    //         p.buyer && p.buyer.includes('Member') && 
+    //         p.status !== 'paid' && 
+    //         p.status !== 'cancelled' &&
+    //         (p.remaining_amount || 0) > 0
+    //     );
+    // 
+    //     console.log('Member payments with outstanding balance:', memberPayments);
+    // 
+    //     // Group by member
+    //     const memberDebt = new Map();
+    //     memberPayments.forEach(payment => {
+    //         const memberName = payment.buyer.replace('Member (', '').replace(')', '');
+    //         const currentDebt = memberDebt.get(memberName) || 0;
+    //         memberDebt.set(memberName, currentDebt + (payment.remaining_amount || 0));
+    //     });
+    // 
+    //     const totalOutstanding = Array.from(memberDebt.values()).reduce((sum, debt) => sum + debt, 0);
+    // 
+    //     if (memberDebt.size === 0) {
+    //         outstandingContainer.innerHTML = '<div class="p-8 text-center text-muted text-xs">No outstanding payments</div>';
+    //     } else {
+    //         let outstandingHtml = '<div class="space-y-3">';
+    //         outstandingHtml += `
+    //             <div class="p-3 bg-red-950/20 border border-red-900/30 rounded-lg">
+    //                 <div class="flex justify-between items-center">
+    //                     <span class="text-xs text-muted">Total Outstanding</span>
+    //                     <span class="font-semibold text-red-400">Rp ${totalOutstanding.toLocaleString('id-ID')}</span>
+    //                 </div>
+    //             </div>
+    //         `;
+    // 
+    //         memberDebt.forEach((debt, memberName) => {
+    //             outstandingHtml += `
+    //                 <div class="p-3 bg-black/50 border border-stone-800 rounded-lg flex justify-between items-center">
+    //                     <div>
+    //                         <div class="font-semibold text-white text-sm">${memberName}</div>
+    //                         <div class="text-xs text-muted">Member</div>
+    //                     </div>
+    //                     <span class="font-semibold text-red-400 text-sm">Rp ${debt.toLocaleString('id-ID')}</span>
+    //                 </div>
+    //             `;
+    //         });
+    // 
+    //         outstandingHtml += '</div>';
+    //         outstandingContainer.innerHTML = outstandingHtml;
+    //     }
+    // }
 }
 
 window.addPartialPayment = async function(invoiceId, paymentAmount) {
