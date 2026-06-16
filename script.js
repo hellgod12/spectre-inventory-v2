@@ -445,9 +445,11 @@ async function loadOutstandingPayments() {
         const phoneToName = new Map();
         if (members) {
             members.forEach(member => {
+                console.log(`Mapping phone: ${member.telepon} -> name: ${member.nama}`);
                 phoneToName.set(member.telepon, member.nama);
             });
         }
+        console.log('Phone to name map:', Array.from(phoneToName.entries()));
 
         // Filter payments with remaining_amount > 0 (regardless of status)
         const outstandingPayments = allPayments.filter(payment => {
@@ -474,6 +476,7 @@ async function loadOutstandingPayments() {
             
             // Try to get member name from phone number
             const memberName = phoneToName.get(buyer) || buyer;
+            console.log(`Payment buyer: ${buyer} -> Mapped to: ${memberName}`);
             buyerNames.set(buyer, memberName);
             
             const currentDebt = buyerDebt.get(buyer) || 0;
