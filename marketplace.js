@@ -72,7 +72,7 @@ async function loadOrders() {
             `);
         
         if (filters.start_date && filters.end_date) {
-            query = query.gte('created_at', filters.start_date).lte('created_at', filters.end_date);
+            query = query.gte('order_date', filters.start_date).lte('order_date', filters.end_date);
         }
         
         if (filters.platform) {
@@ -83,7 +83,7 @@ async function loadOrders() {
             query = query.eq('order_status', filters.order_status);
         }
         
-        const { data, error } = await query.order('created_at', { ascending: false });
+        const { data, error } = await query.order('order_date', { ascending: false });
         
         if (error) throw error;
         

@@ -6,8 +6,8 @@
 ```sql
 SELECT gross_sales, net_revenue
 FROM online_orders
-WHERE created_at >= '2025-01-16T00:00:00.000Z'
-  AND created_at < '2025-01-17T00:00:00.000Z'
+WHERE order_date >= '2025-01-16T00:00:00.000Z'
+  AND order_date < '2025-01-17T00:00:00.000Z'
   AND order_status IN ('delivered', 'completed', 'paid', 'shipped')
 ```
 
@@ -15,8 +15,8 @@ WHERE created_at >= '2025-01-16T00:00:00.000Z'
 ```sql
 SELECT gross_sales, net_revenue
 FROM online_orders
-WHERE created_at >= '2025-01-01T00:00:00.000Z'
-  AND created_at < '2025-02-01T00:00:00.000Z'
+WHERE order_date >= '2025-01-01T00:00:00.000Z'
+  AND order_date < '2025-02-01T00:00:00.000Z'
   AND order_status IN ('delivered', 'completed', 'paid', 'shipped')
 ```
 
@@ -44,8 +44,8 @@ WHERE created_at >= '2025-01-01T00:00:00.000Z'
 SELECT product_name, sku, quantity, total_price
 FROM order_items
 INNER JOIN online_orders ON order_items.order_id = online_orders.id
-WHERE order_items.created_at >= '2025-01-01T00:00:00.000Z'
-  AND order_items.created_at < '2025-02-01T00:00:00.000Z'
+WHERE online_orders.order_date >= '2025-01-01T00:00:00.000Z'
+  AND online_orders.order_date < '2025-02-01T00:00:00.000Z'
   AND online_orders.order_status IN ('delivered', 'completed', 'paid', 'shipped')
 ```
 
@@ -54,8 +54,8 @@ WHERE order_items.created_at >= '2025-01-01T00:00:00.000Z'
 SELECT product_name, sku, quantity, total_price
 FROM order_items
 INNER JOIN online_orders ON order_items.order_id = online_orders.id
-WHERE order_items.created_at >= '2025-01-01T00:00:00.000Z'
-  AND order_items.created_at < '2025-02-01T00:00:00.000Z'
+WHERE online_orders.order_date >= '2025-01-01T00:00:00.000Z'
+  AND online_orders.order_date < '2025-02-01T00:00:00.000Z'
   AND online_orders.order_status IN ('delivered', 'completed', 'paid', 'shipped')
 GROUP BY product_name, sku
 ORDER BY quantity DESC
@@ -65,9 +65,9 @@ LIMIT 5
 ### Sales Comparison Chart (30 Days)
 ```sql
 -- Online Sales
-SELECT gross_sales, created_at
+SELECT gross_sales, order_date
 FROM online_orders
-WHERE created_at >= '2025-12-17T00:00:00.000Z'
+WHERE order_date >= '2025-12-17T00:00:00.000Z'
   AND order_status IN ('delivered', 'completed', 'paid', 'shipped')
 
 -- Offline Sales
@@ -91,7 +91,24 @@ WHERE created_at >= '2025-12-17T00:00:00.000Z'
 - **pending** - Order is still pending payment/processing
 - **refunded** - Order was refunded
 
-## 3. Example Calculations
+## 3. Date Field Usage
+
+### Why order_date instead of created_at:
+- **order_date**: Tanggal order sebenarnya (actual order date) - ini adalah tanggal ketika order benar-benar terjadi
+- **created_at**: Waktu data masuk ke database (database entry time) - ini adalah timestamp ketika record di-insert ke database
+
+### Alasan menggunakan order_date:
+1. **Akurasi laporan penjualan**: Untuk laporan penjualan, kita ingin berdasarkan tanggal order sebenarnya, bukan waktu data entry
+2. **Manual Entry System**: Karena sistem ini menggunakan manual entry, data mungkin di-input setelah order terjadi
+3. **Data Import**: Jika ada import data dari marketplace, order_date akan berbeda dari created_at
+4. **Konsistensi dengan halaman Online Sales**: Halaman Online Sales juga menggunakan order_date untuk filtering
+
+### Konsistensi Dashboard vs Online Sales:
+- **Dashboard**: Sekarang menggunakan `order_date` untuk semua query online sales
+- **Online Sales Page**: Juga menggunakan `order_date` untuk filtering dan sorting
+- **Hasil**: Angka di dashboard dan halaman Online Sales akan konsisten
+
+## 4. Example Calculations
 
 ### Total Order Online Hari Ini
 ```javascript
@@ -99,8 +116,8 @@ WHERE created_at >= '2025-12-17T00:00:00.000Z'
 const todayOrders = await supabaseClient
     .from('online_orders')
     .select('gross_sales')
-    .gte('created_at', todayStart)
-    .lt('created_at', todayEnd)
+    .gte('order_date', todayStart)
+    .lt('order_date', todayEnd)
     .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
 // Count
@@ -114,8 +131,8 @@ const todayOrdersCount = todayOrders ? todayOrders.length : 0;
 const todayOrders = await supabaseClient
     .from('online_orders')
     .select('gross_sales')
-    .gte('created_at', todayStart)
-    .lt('created_at', todayEnd)
+    .gte('order_date', todayStart)
+    .lt('order_date', todayEnd)
     .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
 // Sum gross_sales
@@ -129,8 +146,8 @@ const todayRevenue = todayOrders ? todayOrders.reduce((sum, o) => sum + (parseFl
 const monthOrders = await supabaseClient
     .from('online_orders')
     .select('gross_sales')
-    .gte('created_at', monthStart)
-    .lt('created_at', monthEnd)
+    .gte('order_date', monthStart)
+    .lt('order_date', monthEnd)
     .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
 // Sum gross_sales
@@ -138,12 +155,13 @@ const monthRevenue = monthOrders ? monthOrders.reduce((sum, o) => sum + (parseFl
 // Example: Rp 45.000.000 (450 orders this month)
 ```
 
-## 4. Dashboard Validation
+## 5. Dashboard Validation
 
 ### Validation Checklist:
 - ✅ All queries include order_status filtering
 - ✅ Only valid statuses (delivered, completed, paid, shipped) are counted
 - ✅ Invalid statuses (cancelled, returned, pending, refunded) are excluded
+- ✅ Using order_date (actual order date) instead of created_at (database entry time)
 - ✅ Date ranges are correctly calculated using ISO format
 - ✅ Growth calculations use previous period data
 - ✅ AOV calculation: Revenue / Order Count
@@ -151,34 +169,43 @@ const monthRevenue = monthOrders ? monthOrders.reduce((sum, o) => sum + (parseFl
 - ✅ Best product is the one with highest quantity
 
 ### Dashboard vs Online Sales Page:
-The dashboard now uses the same filtering logic as the Online Sales page would use:
-- Both filter by order_status
-- Both use the same date ranges
-- Both calculate revenue from gross_sales field
+- ✅ Both filter by order_status
+- ✅ Both use order_date for date filtering (NOT created_at)
+- ✅ Both use the same date ranges
+- ✅ Both calculate revenue from gross_sales field
+- ✅ Angka di dashboard dan halaman Online Sales akan konsisten
 
-## 5. Changes Made
+## 6. Changes Made
 
 ### Files Modified:
-1. **script.js** - Added order_status filtering to all online sales queries:
-   - loadOnlineSalesStatistics()
-   - loadTopSellingOnlineProducts()
-   - loadBestSellingProduct()
-   - loadSalesComparisonChart()
+1. **script.js** - Updated to use order_date instead of created_at:
+   - loadOnlineSalesStatistics() - All queries now use order_date
+   - loadTopSellingOnlineProducts() - Uses online_orders.order_date
+   - loadBestSellingProduct() - Uses online_orders.order_date
+   - loadSalesComparisonChart() - Uses order_date for filtering and aggregation
+   - loadKPIs() - Marketplace data query uses order_date
 
-2. **style.css** - Added CSS styling for new online sales sections
+2. **marketplace.js** - Updated to use order_date:
+   - loadOrders() - Filtering and sorting now use order_date
 
-3. **index.html** - Added HTML structure for online sales dashboard sections
+3. **style.css** - Added CSS styling for new online sales sections
+
+4. **index.html** - Added HTML structure for online sales dashboard sections
 
 ### Key Changes:
+- Changed all date filtering from created_at to order_date
 - Added `.in('order_status', ['delivered', 'completed', 'paid', 'shipped'])` to all online orders queries
-- Updated order_items queries to join with online_orders table for status filtering
+- Updated order_items queries to join with online_orders table for status and date filtering
 - Ensured consistent filtering across all metrics
+- Ensured consistency between Dashboard and Online Sales page
 
-## 6. Deployment Status
+## 7. Deployment Status
 
 ### Ready for Deployment:
 - ✅ All queries validated
 - ✅ Order status filtering implemented
+- ✅ Using order_date instead of created_at for accurate sales reporting
+- ✅ Dashboard and Online Sales page use same date field
 - ✅ CSS styling complete
 - ✅ Integration complete
 - ✅ Local testing complete

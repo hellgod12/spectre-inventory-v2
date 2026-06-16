@@ -830,13 +830,15 @@ async function loadDashboard() {
     // This must be after POS data calculations to ensure omsetAsli, profitAsli, totalTerjualCount are initialized
     try {
         // Get marketplace data directly from online_orders table (Manual Entry)
+        // Using order_date (actual order date) instead of created_at (database entry time)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         
         const { data: onlineOrders } = await supabaseClient
             .from('online_orders')
             .select('gross_sales, net_revenue')
-            .gte('created_at', thirtyDaysAgo.toISOString());
+            .gte('order_date', thirtyDaysAgo.toISOString())
+            .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
         
         if (onlineOrders) {
             marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0);
@@ -977,6 +979,7 @@ async function loadDashboard() {
 async function loadOnlineSalesStatistics() {
     try {
         // Online Sales Today - Only count valid sales (delivered, completed, paid, shipped)
+        // Using order_date (actual order date) instead of created_at (database entry time)
         const today = new Date();
         const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
         const todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
@@ -984,8 +987,8 @@ async function loadOnlineSalesStatistics() {
         const { data: todayOrders } = await supabaseClient
             .from('online_orders')
             .select('gross_sales, net_revenue')
-            .gte('created_at', todayStart)
-            .lt('created_at', todayEnd)
+            .gte('order_date', todayStart)
+            .lt('order_date', todayEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         const todayRevenue = todayOrders ? todayOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
@@ -1000,8 +1003,8 @@ async function loadOnlineSalesStatistics() {
         const { data: yesterdayOrders } = await supabaseClient
             .from('online_orders')
             .select('gross_sales')
-            .gte('created_at', yesterdayStart)
-            .lt('created_at', yesterdayEnd)
+            .gte('order_date', yesterdayStart)
+            .lt('order_date', yesterdayEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         const yesterdayRevenue = yesterdayOrders ? yesterdayOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
@@ -1014,8 +1017,8 @@ async function loadOnlineSalesStatistics() {
         const { data: monthOrders } = await supabaseClient
             .from('online_orders')
             .select('gross_sales, net_revenue')
-            .gte('created_at', monthStart)
-            .lt('created_at', monthEnd)
+            .gte('order_date', monthStart)
+            .lt('order_date', monthEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         const monthRevenue = monthOrders ? monthOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
@@ -1028,8 +1031,8 @@ async function loadOnlineSalesStatistics() {
         const { data: lastMonthOrders } = await supabaseClient
             .from('online_orders')
             .select('gross_sales')
-            .gte('created_at', lastMonthStart)
-            .lt('created_at', lastMonthEnd)
+            .gte('order_date', lastMonthStart)
+            .lt('order_date', lastMonthEnd)
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         const lastMonthRevenue = lastMonthOrders ? lastMonthOrders.reduce((sum, o) => sum + (parseFloat(o.gross_sales) || 0), 0) : 0;
@@ -1078,9 +1081,9 @@ async function loadTopSellingOnlineProducts(startDate, endDate) {
     try {
         const { data: orderItems } = await supabaseClient
             .from('order_items')
-            .select('product_name, sku, quantity, total_price, online_orders!inner(order_status)')
-            .gte('order_items.created_at', startDate)
-            .lt('order_items.created_at', endDate)
+            .select('product_name, sku, quantity, total_price, online_orders!inner(order_status, order_date)')
+            .gte('online_orders.order_date', startDate)
+            .lt('online_orders.order_date', endDate)
             .in('online_orders.order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         if (!orderItems || orderItems.length === 0) {
@@ -1136,9 +1139,9 @@ async function loadBestSellingProduct(startDate, endDate) {
     try {
         const { data: orderItems } = await supabaseClient
             .from('order_items')
-            .select('product_name, sku, quantity, total_price, online_orders!inner(order_status)')
-            .gte('order_items.created_at', startDate)
-            .lt('order_items.created_at', endDate)
+            .select('product_name, sku, quantity, total_price, online_orders!inner(order_status, order_date)')
+            .gte('online_orders.order_date', startDate)
+            .lt('online_orders.order_date', endDate)
             .in('online_orders.order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         if (!orderItems || orderItems.length === 0) {
@@ -1242,10 +1245,11 @@ async function loadSalesComparisonChart() {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         // Get online sales by day - Only count valid sales
+        // Using order_date (actual order date) instead of created_at (database entry time)
         const { data: onlineOrders } = await supabaseClient
             .from('online_orders')
-            .select('gross_sales, created_at')
-            .gte('created_at', thirtyDaysAgo.toISOString())
+            .select('gross_sales, order_date')
+            .gte('order_date', thirtyDaysAgo.toISOString())
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
 
         // Get offline sales by day
@@ -1261,7 +1265,7 @@ async function loadSalesComparisonChart() {
 
         if (onlineOrders) {
             onlineOrders.forEach(order => {
-                const date = order.created_at.split('T')[0];
+                const date = order.order_date.split('T')[0];
                 if (!onlineByDate[date]) onlineByDate[date] = 0;
                 onlineByDate[date] += parseFloat(order.gross_sales) || 0;
             });
