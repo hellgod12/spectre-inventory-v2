@@ -1211,6 +1211,7 @@ async function loadDashboard() {
                     <div class="p-3 border border-red-950/40 bg-black/40">
                         <div class="flex items-start justify-between gap-3">
                             <div>
+                                <div class="text-[10px] font-mono text-muted mb-1">${item.sku || '-'}</div>
                                 <div class="text-[11px] text-white font-bold uppercase leading-4">${item.nama_barang}</div>
                                 <div class="mt-2 text-[11px] text-muted">${item.kategori || '-'}</div>
                                 <div class="mt-2 text-[11px] text-slate-400">Size: ${item.ukuran || '-'}</div>
@@ -1232,6 +1233,7 @@ async function loadDashboard() {
         } else {
             let inventoryHtml = '<table class="w-full text-xs" style="border-collapse: collapse;">';
             inventoryHtml += '<thead><tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">';
+            inventoryHtml += '<th class="text-left p-3 text-muted">SKU</th>';
             inventoryHtml += '<th class="text-left p-3 text-muted">Product</th>';
             inventoryHtml += '<th class="text-left p-3 text-muted">Category</th>';
             inventoryHtml += '<th class="text-left p-3 text-muted">Size</th>';
@@ -1248,6 +1250,7 @@ async function loadDashboard() {
                 const stockClass = currentStock <= 5 ? 'text-red-400' : 'text-green-400';
                 
                 inventoryHtml += '<tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">';
+                inventoryHtml += `<td class="p-3 font-mono text-xs text-muted">${item.sku || '-'}</td>`;
                 inventoryHtml += `<td class="p-3 font-medium">${item.nama_barang || '-'}</td>`;
                 inventoryHtml += `<td class="p-3 text-muted">${item.kategori || '-'}</td>`;
                 inventoryHtml += `<td class="p-3 text-muted">${item.ukuran || '-'}</td>`;
