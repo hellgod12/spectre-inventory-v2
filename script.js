@@ -720,10 +720,11 @@ async function loadDashboard() {
         return;
     }
 
-    // Tarik data produk aktif
+    // Tarik data produk aktif (hanya is_active = true)
     const { data: products, error: prodError } = await supabaseClient
         .from('products')
         .select('*')
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
 
 
@@ -1959,6 +1960,7 @@ async function refreshProducts() {
     const { data: products, error } = await supabaseClient
         .from('products')
         .select('*')
+        .eq('is_active', true)
         .order('created_at', { ascending: false });
     
     if (error) {
@@ -2106,36 +2108,28 @@ async function deleteFromSalesHistory(id, namaBarang) {
 
 // Chart rendering function
 async function deleteProduct(id, namaBarang) {
-    const konfirmasi = confirm(`[PERINGATAN] HAPUS PRODUK "${namaBarang.toUpperCase()}"?`);
+    const konfirmasi = confirm(`[PERINGATAN] ARCHIVE PRODUK "${namaBarang.toUpperCase()}"?\n\nProduk akan diarsipkan (soft delete) dan tidak akan muncul di dashboard, POS, atau penjualan.\nData sales_history dan order_items tetap aman.`);
     if (!konfirmasi) return;
 
-    // ambil stok agar candel bisa turun saat produk dihapus
-    let stokTerhapus = 0;
     try {
-        const { data: product } = await supabaseClient
+        // Soft delete: update is_active = false and deleted_at = NOW()
+        const { error } = await supabaseClient
             .from('products')
-            .select('stok')
-            .eq('id', id)
-            .single();
-        stokTerhapus = parseInt(product?.stok || 0, 10);
-    } catch (e) {}
+            .update({ 
+                is_active: false,
+                deleted_at: new Date().toISOString()
+            })
+            .eq('id', id);
 
-    try {
-        await supabaseClient.from('products').delete().eq('id', id);
+        if (error) {
+            alert('❌ Gagal mengarsipkan produk: ' + error.message);
+            return;
+        }
 
-        // efek visual inventory turun (stok berkurang sebesar stokTerhapus)
-        try {
-            if (stokTerhapus > 0) {
-                window.InventoryManager?.applyStockDelta?.(-stokTerhapus);
-                try {
-                    localStorage.setItem('inventory_stock_delta', JSON.stringify({ delta: -stokTerhapus, t: Date.now() }));
-                } catch (e) {}
-            }
-        } catch (e) {}
-
+        alert('✅ Produk berhasil diarsipkan');
         await loadDashboard();
     } catch (err) {
-        alert('❌ Gagal menghapus produk: ' + (err?.message || err));
+        alert('❌ Gagal mengarsipkan produk: ' + (err?.message || err));
     }
 }
 

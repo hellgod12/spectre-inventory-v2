@@ -146,12 +146,13 @@ async function initTerminalData() {
         selectProduct.innerHTML = '<option value="">>> PENJUALAN.JS LOAD OK</option>';
     }
 
-    // Ambil Produk
+    // Ambil Produk (hanya aktif)
     console.log('loadProducts started');
     try {
         const { data: prods, error: prodErr } = await supabaseClient
             .from('products')
             .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
+            .eq('is_active', true)
             .order('nama_barang');
 
         console.log('Products result:', prods);

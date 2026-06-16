@@ -3,6 +3,9 @@
 
 const productForm = document.getElementById('productForm');
 
+// Archive view state
+let showArchived = false;
+
 // Activity Logging Function
 async function logActivity(action, entityType, entityId, details = null) {
     try {
@@ -118,7 +121,7 @@ async function refreshStockProgress() {
     let lowStockItems = 0;
 
     try {
-        const { data: products } = await supabaseClient.from('products').select('*');
+        const { data: products } = await supabaseClient.from('products').select('*').eq('is_active', true);
         if (products) {
             totalProducts = products.length;
             totalStock = products.reduce((sum, item) => sum + (parseInt(item.stok || 0)), 0);
@@ -128,6 +131,110 @@ async function refreshStockProgress() {
     } catch (error) {
         console.warn('Tidak bisa memuat data inventory:', error?.message || error);
     }
+
+    // Update KPI cards
+    const inventoryTotalProductsEl = document.getElementById('inventoryTotalProducts');
+    const inventoryTotalStockEl = document.getElementById('inventoryTotalStock');
+    const inventoryTotalValueEl = document.getElementById('inventoryTotalValue');
+    const inventoryLowStockEl = document.getElementById('inventoryLowStock');
+
+    if (inventoryTotalProductsEl) inventoryTotalProductsEl.innerText = totalProducts;
+    if (inventoryTotalStockEl) inventoryTotalStockEl.innerText = totalStock;
+    if (inventoryTotalValueEl) inventoryTotalValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
+    if (inventoryLowStockEl) inventoryLowStockEl.innerText = lowStockItems;
+
+    // Legacy progress bar support (if elements still exist)
+    const target = 120;
+    const percent = totalStock ? Math.min(100, Math.round((Math.min(totalStock, target) / target) * 100)) : 0;
+    if (stockProgressFill) stockProgressFill.style.width = percent + '%';
+    if (stockCapacityText) stockCapacityText.innerText = `${percent}% Warehouse Utilization`;
+    if (stockCapacityLabel) stockCapacityLabel.innerText = 'CAPACITY';
+    if (stockStatusNote) stockStatusNote.innerText = totalStock
+        ? `Total stock: ${totalStock} units. Warehouse active.`
+        : 'Warehouse empty. No inventory activity.';
+}
+
+// Toggle between active and archived products view
+async function toggleArchiveView() {
+    showArchived = !showArchived;
+    const toggleBtn = document.getElementById('toggleArchiveBtn');
+    
+    if (showArchived) {
+        toggleBtn.innerText = 'Show Active';
+        toggleBtn.classList.add('spectre-btn--primary');
+        await loadArchivedProducts();
+    } else {
+        toggleBtn.innerText = 'Show Archived';
+        toggleBtn.classList.remove('spectre-btn--primary');
+        await loadProducts();
+    }
+}
+
+// Load archived products
+async function loadArchivedProducts() {
+    try {
+        const { data: products, error } = await supabaseClient
+            .from('products')
+            .select('*')
+            .eq('is_active', false)
+            .order('deleted_at', { ascending: false });
+
+        if (error) {
+            console.error('Gagal memuat produk arsip:', error);
+            return;
+        }
+
+        renderProductsTable(products, true);
+    } catch (err) {
+        console.error('Error loading archived products:', err);
+    }
+}
+
+// Restore archived product
+async function restoreProduct(id, namaBarang) {
+    const konfirmasi = confirm(`[RESTORE] Pulihkan produk "${namaBarang.toUpperCase()}"?\n\nProduk akan aktif kembali dan muncul di dashboard, POS, dan penjualan.`);
+    if (!konfirmasi) return;
+
+    try {
+        const { error } = await supabaseClient
+            .from('products')
+            .update({ 
+                is_active: true,
+                deleted_at: null
+            })
+            .eq('id', id);
+
+        if (error) {
+            alert('❌ Gagal memulihkan produk: ' + error.message);
+            return;
+        }
+
+        alert('✅ Produk berhasil dipulihkan');
+        await loadArchivedProducts();
+    } catch (err) {
+        alert('❌ Gagal memulihkan produk: ' + (err?.message || err));
+    }
+}
+
+// Permanently delete archived product
+async function permanentDeleteProduct(id, namaBarang) {
+    const konfirmasi = confirm(`[PERMANENT DELETE] HAPUS PERMANEN "${namaBarang.toUpperCase()}"?\n\nPERINGATAN: Ini akan menghapus produk secara permanen dari database.\nData sales_history dan order_items akan tetap aman.\nTindakan ini TIDAK DAPAT dibatalkan!`);
+    if (!konfirmasi) return;
+
+    try {
+        const { error } = await supabaseClient.from('products').delete().eq('id', id);
+
+        if (error) {
+            alert('❌ Gagal menghapus permanen: ' + error.message);
+            return;
+        }
+
+        alert('✅ Produk dihapus permanen');
+        await loadArchivedProducts();
+    } catch (err) {
+        alert('❌ Gagal menghapus permanen: ' + (err?.message || err));
+    }
+}
 
     // Update KPI cards
     const inventoryTotalProductsEl = document.getElementById('inventoryTotalProducts');
