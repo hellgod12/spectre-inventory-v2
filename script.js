@@ -228,8 +228,15 @@ function updateDashboardProgress(payments = []) {
 }
 
 async function loadPayments() {
+    console.log('loadPayments() called');
+    
     const paymentsContainer = document.getElementById('paymentsContainer');
-    if (!paymentsContainer) return;
+    console.log('Payments container:', paymentsContainer);
+    
+    if (!paymentsContainer) {
+        console.log('Payments container not found, returning');
+        return;
+    }
 
     const mobile = isMobile();
 
@@ -244,17 +251,24 @@ async function loadPayments() {
 
         if (error) supabaseError = error;
         else payments = normalizePayments(data);
+        
+        console.log('Payments query result:', payments);
+        console.log('Payments count:', payments?.length);
+        console.log('Supabase error:', supabaseError);
     } catch (error) {
         supabaseError = error;
+        console.error('Payments query exception:', error);
     }
 
     if (supabaseError) {
+        console.error('Payments query failed:', supabaseError);
         updateDashboardProgress([]);
         paymentsContainer.innerHTML = `<div class="p-8 text-center text-red-500 text-xs uppercase">>> Gagal memuat pembayaran</div>`;
         return;
     }
 
     if (!payments || payments.length === 0) {
+        console.log('No payments data found');
         updateDashboardProgress([]);
         paymentsContainer.innerHTML = `<div class="p-8 text-center text-slate-500 text-xs uppercase">>> Belum ada pembayaran</div>`;
         return;
@@ -875,6 +889,8 @@ async function loadDashboard() {
     loadOnlineSalesStatistics();
     loadRecentOnlineOrders();
     loadSalesComparisonChart();
+    loadPayments(); // Load payments data
+    renderInvoices(); // Render invoices and outstanding payments
     
     // Animate counters for key statistics
     const totalOmsetEl = document.getElementById('totalOmset');
@@ -1421,11 +1437,19 @@ function formatDateShort(date) {
 
 // Render invoices in Invoice Management section (POS + Marketplace)
 async function renderInvoices() {
+    console.log('renderInvoices() called');
+    
     // Fetch POS payments at function level so it's available in all scopes
-    const { data: payments } = await supabaseClient.from('payments').select('*');
+    const { data: payments, error: paymentsError } = await supabaseClient.from('payments').select('*');
+    
+    console.log('Payments loaded:', payments);
+    console.log('Payments count:', payments?.length);
+    console.log('Payments query error:', paymentsError);
     
     // Render invoices in Invoice Management section (POS + Marketplace)
     const invoiceContainer = document.getElementById('invoiceContainer');
+    console.log('Invoice container:', invoiceContainer);
+    
     if (invoiceContainer) {
         let combinedTransactions = [];
         
@@ -1564,7 +1588,11 @@ async function renderInvoices() {
 
     // Render Outstanding Payments widget (member debt)
     const outstandingContainer = document.getElementById('outstandingContainer');
+    console.log('Outstanding container:', outstandingContainer);
+    
     if (outstandingContainer && payments) {
+        console.log('Rendering outstanding payments with payments:', payments);
+        
         // Filter for member transactions with remaining balance
         const memberPayments = payments.filter(p => 
             p.buyer && p.buyer.includes('Member') && 
@@ -1572,6 +1600,8 @@ async function renderInvoices() {
             p.status !== 'cancelled' &&
             (p.remaining_amount || 0) > 0
         );
+
+        console.log('Member payments with outstanding balance:', memberPayments);
 
         // Group by member
         const memberDebt = new Map();
@@ -1614,8 +1644,6 @@ async function renderInvoices() {
     }
 }
 
-// Call renderInvoices function
-renderInvoices();
 window.addPartialPayment = async function(invoiceId, paymentAmount) {
     const amount = prompt('Enter payment amount:', paymentAmount);
     if (amount === null) return;
