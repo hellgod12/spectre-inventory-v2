@@ -474,9 +474,16 @@ async function loadOutstandingPayments() {
             const buyer = payment.buyer || 'Unknown';
             const remainingAmount = parseFloat(payment.remaining_amount || 0);
             
+            // Extract phone number from buyer field (format: "Member (085156944139)" or just phone number)
+            let phoneNumber = buyer;
+            const phoneMatch = buyer.match(/\d{10,15}/);
+            if (phoneMatch) {
+                phoneNumber = phoneMatch[0];
+            }
+            
             // Try to get member name from phone number
-            const memberName = phoneToName.get(buyer) || buyer;
-            console.log(`Payment buyer: ${buyer} -> Mapped to: ${memberName}`);
+            const memberName = phoneToName.get(phoneNumber) || buyer;
+            console.log(`Payment buyer: ${buyer} -> Extracted phone: ${phoneNumber} -> Mapped to: ${memberName}`);
             buyerNames.set(buyer, memberName);
             
             const currentDebt = buyerDebt.get(buyer) || 0;
