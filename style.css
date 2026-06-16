@@ -1296,6 +1296,8 @@ html {
   display:flex;
   flex-direction:column;
   align-items:center;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Max content width 1200px */
