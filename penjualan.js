@@ -399,9 +399,15 @@ function updatePricePreview() {
     const jumlah = parseInt(inputJumlah.value) || 0;
     const total = hargaSatuan * jumlah;
 
-
+    // Update price preview
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
+
+    // Update price information display
+    const hargaUmumDefaultEl = document.getElementById('hargaUmumDefault');
+    const hargaMemberDefaultEl = document.getElementById('hargaMemberDefault');
+    if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_jual).toLocaleString('id-ID');
+    if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_member).toLocaleString('id-ID');
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
     if (selectedProduct.kategori === 'Skateboard') sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
