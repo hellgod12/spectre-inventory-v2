@@ -1094,7 +1094,9 @@ async function loadDashboard() {
 
 
     // Tarik data member
-    const { data: members } = await supabaseClient.from('members').select('id');
+    const { data: members, error: membersError } = await supabaseClient.from('members').select('id');
+    console.log('Members query result:', members);
+    console.log('Members query error:', membersError);
     document.getElementById('totalMembers').innerText = (members ? members.length : 0) + " Jiwa";
 
     // Tarik data RIWAYAT PENJUALAN ASLI
