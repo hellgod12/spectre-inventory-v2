@@ -244,14 +244,16 @@ async function loadPayments() {
     let supabaseError = null;
 
     try {
-        // Fetch payments and members data
-        const [paymentsResult, membersResult] = await Promise.all([
+        // Fetch payments, members, and sales_history data
+        const [paymentsResult, membersResult, salesHistoryResult] = await Promise.all([
             supabaseClient.from('payments').select('*').order('created_at', { ascending: false }),
-            supabaseClient.from('members').select('*')
+            supabaseClient.from('members').select('*'),
+            supabaseClient.from('sales_history').select('*')
         ]);
 
         const { data, error } = paymentsResult;
         const { data: members } = membersResult;
+        const { data: salesHistory } = salesHistoryResult;
 
         if (error) supabaseError = error;
         else payments = normalizePayments(data);
@@ -261,6 +263,16 @@ async function loadPayments() {
         if (members) {
             members.forEach(member => {
                 phoneToName.set(member.telepon, member.nama);
+            });
+        }
+        
+        // Create payment_id to ukuran map from sales_history
+        const paymentIdToUkuran = new Map();
+        if (salesHistory) {
+            salesHistory.forEach(sale => {
+                if (sale.payment_id && sale.ukuran) {
+                    paymentIdToUkuran.set(sale.payment_id, sale.ukuran);
+                }
             });
         }
         
@@ -277,10 +289,11 @@ async function loadPayments() {
             return buyer;
         }
         
-        // Add display name to each payment
+        // Add display name and ukuran to each payment
         payments = payments.map(payment => ({
             ...payment,
-            displayName: getDisplayName(payment.buyer)
+            displayName: getDisplayName(payment.buyer),
+            ukuran: payment.ukuran || paymentIdToUkuran.get(payment.id) || null
         }));
         
         console.log('Payments query result:', payments);
