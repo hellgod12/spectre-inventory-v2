@@ -365,6 +365,11 @@ function handleTypeChange() {
     updatePricePreview();
 }
 
+// Add event listener to update price info when member selection changes
+if (selectMember) {
+    selectMember.addEventListener('change', updatePricePreview);
+}
+
 function updatePricePreview() {
     const prodId = selectProduct.value;
     selectedProduct = allProducts.find(p => p.id == prodId);
@@ -425,7 +430,15 @@ function updatePricePreview() {
     const hargaUmumDefaultEl = document.getElementById('hargaUmumDefault');
     const hargaMemberDefaultEl = document.getElementById('hargaMemberDefault');
     if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_jual).toLocaleString('id-ID');
-    if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_member).toLocaleString('id-ID');
+
+    // Calculate dynamic member price based on selected member's discount
+    let hargaMemberDisplay = selectedProduct.harga_member;
+    if (tipePembeli === 'Member') {
+        const selectedMemberOption = selectMember.options[selectMember.selectedIndex];
+        const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
+        hargaMemberDisplay = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
+    }
+    if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerText = 'Rp ' + Number(hargaMemberDisplay).toLocaleString('id-ID');
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
     if (selectedProduct.kategori === 'Skateboard') sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
