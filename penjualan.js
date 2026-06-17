@@ -32,6 +32,7 @@ const kasirProgressLabel = document.getElementById('kasirProgressLabel');
 
 let allProducts = [];
 let selectedProduct = null;
+let cart = [];
 
 async function updateLedgerBookkeeping() {
     // Calculate directly from Supabase (no localStorage)
@@ -136,6 +137,105 @@ function showSaleSuccess(message) {
     toast.innerText = message;
     document.body.appendChild(toast);
     setTimeout(() => toast.remove(), 2800);
+}
+
+// Cart Management Functions
+function addToCart() {
+    if (!selectedProduct) {
+        alert('[ALARM] GAGAL: PRODUK BELUM DIKUNCI.');
+        return;
+    }
+
+    const jumlahJual = parseInt(inputJumlah.value);
+    if (selectedProduct.stok < jumlahJual) {
+        alert(`[GAGAL] STOK GUDANG KURANG! Sisa: ${selectedProduct.stok}`);
+        return;
+    }
+
+    const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
+    const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+
+    let hargaOverride = null;
+    if (hargaOverrideEl) {
+        const raw = String(hargaOverrideEl.value || '').trim();
+        const n = raw === '' ? null : Number(raw);
+        if (Number.isFinite(n) && n >= 0) hargaOverride = n;
+    }
+
+    const hargaSatuan = (hargaOverride != null ? hargaOverride : hargaDefault);
+    const totalHarga = hargaSatuan * jumlahJual;
+
+    const cartItem = {
+        id: Date.now(),
+        productId: selectedProduct.id,
+        nama_barang: selectedProduct.nama_barang,
+        ukuran: selectedProduct.ukuran || null,
+        kategori: selectedProduct.kategori,
+        jumlah: jumlahJual,
+        hargaSatuan: hargaSatuan,
+        totalHarga: totalHarga,
+        hargaModal: selectedProduct.harga_modal
+    };
+
+    cart.push(cartItem);
+    updateCartDisplay();
+    resetForm();
+    showSaleSuccess('BARANG DITAMBAHKAN KE KERANJANG');
+}
+
+function removeFromCart(cartItemId) {
+    cart = cart.filter(item => item.id !== cartItemId);
+    updateCartDisplay();
+}
+
+function updateCartDisplay() {
+    const cartItemsEl = document.getElementById('cartItems');
+    const cartCountEl = document.getElementById('cartCount');
+    const cartSubtotalEl = document.getElementById('cartSubtotal');
+
+    if (!cartItemsEl || !cartCountEl || !cartSubtotalEl) return;
+
+    if (cart.length === 0) {
+        cartItemsEl.innerHTML = '<p class="cart-placeholder">No items in cart</p>';
+        cartCountEl.textContent = '0 items';
+        cartSubtotalEl.textContent = 'Rp 0';
+        return;
+    }
+
+    let html = '';
+    let subtotal = 0;
+
+    cart.forEach(item => {
+        subtotal += item.totalHarga;
+        const sizeInfo = item.ukuran ? `<span>Size: ${item.ukuran}</span>` : '';
+        html += `
+            <div class="cart-item">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.nama_barang.toUpperCase()}</div>
+                    <div class="cart-item-details">
+                        <span>Qty: ${item.jumlah}</span>
+                        ${sizeInfo}
+                    </div>
+                </div>
+                <div class="cart-item-price">Rp ${item.totalHarga.toLocaleString('id-ID')}</div>
+                <button class="cart-item-remove" onclick="removeFromCart(${item.id})">Remove</button>
+            </div>
+        `;
+    });
+
+    cartItemsEl.innerHTML = html;
+    cartCountEl.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
+    cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+}
+
+function resetForm() {
+    selectProduct.value = '';
+    selectedProduct = null;
+    inputJumlah.value = '1';
+    if (hargaOverrideEl) hargaOverrideEl.value = '';
+    boxUkuranSelect.classList.add('hidden');
+    selectUkuran.removeAttribute('required');
+    updatePricePreview();
 }
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
@@ -433,6 +533,7 @@ selectProduct.addEventListener('change', updatePricePreview);
 inputJumlah.addEventListener('input', updatePricePreview);
 document.getElementById('typeUmum').addEventListener('change', handleTypeChange);
 document.getElementById('typeMember').addEventListener('change', handleTypeChange);
+document.getElementById('btnAddToCart').addEventListener('click', addToCart);
 
 // Handle payment status changes
 const paymentStatusRadios = document.querySelectorAll('input[name="payment_status"]');
@@ -466,12 +567,10 @@ function updatePartialPaymentCalculation() {
 
 salesForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    if (!selectedProduct) return alert('[ALARM] GAGAL: PRODUK BELUM DIKUNCI.');
-    const jumlahJual = parseInt(inputJumlah.value);
-
-    if (selectedProduct.stok < jumlahJual) {
-        alert(`[GAGAL] STOK GUDANG KURANG! Sisa: ${selectedProduct.stok}`);
-        return;
+    
+    // Check if cart is empty
+    if (cart.length === 0) {
+        return alert('[ALARM] GAGAL: KERANJANG KOSONG. Tambahkan barang terlebih dahulu.');
     }
 
     const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
@@ -480,18 +579,8 @@ salesForm.addEventListener('submit', async (e) => {
     // Format struktur orang untuk disimpan ke sales_history (misal: "Member (08123456)")
     const identitasPembeli = tipePembeli === 'Member' ? `Member (${nomorTelpInfo})` : 'Umum';
 
-    const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
-
-    let hargaOverride = null;
-    if (hargaOverrideEl) {
-        const raw = String(hargaOverrideEl.value || '').trim();
-        const n = raw === '' ? null : Number(raw);
-        if (Number.isFinite(n) && n >= 0) hargaOverride = n;
-    }
-
-    const hargaSatuan = (hargaOverride != null ? hargaOverride : hargaDefault);
-    const totalHarga = hargaSatuan * jumlahJual;
-
+    // Calculate total from cart
+    const totalHarga = cart.reduce((sum, item) => sum + item.totalHarga, 0);
 
     // Metode Pembayaran (Cash / Transfer = Sudah Bayar) | (Belum Bayar = Unpaid)
     const metodePembayaran = document.querySelector('input[name="metode_pembayaran"]:checked')?.value || 'Cash';
@@ -522,13 +611,19 @@ salesForm.addEventListener('submit', async (e) => {
         invoiceStatus = 'pending';
     }
 
+    // Create product summary string for payment record
+    const productSummary = cart.map(item => {
+        const sizeInfo = item.ukuran ? ` [${item.ukuran}]` : '';
+        return `${item.nama_barang}${sizeInfo} x${item.jumlah}`;
+    }).join(', ');
+
     // Create invoice record with calculated payment status
     const paymentRecord = {
         id: 'pay_' + Date.now(),
         buyer: identitasPembeli,
-        product: selectedProduct.nama_barang,
-        ukuran: selectedProduct.ukuran || null,
-        jumlah: jumlahJual,
+        product: productSummary,
+        ukuran: null, // Multiple sizes, stored in sales_history
+        jumlah: cart.reduce((sum, item) => sum + item.jumlah, 0),
         total_harga: totalHarga,
         paid_amount: paidAmount,
         remaining_amount: remainingAmount,
@@ -571,41 +666,68 @@ salesForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    // 1. Potong Stok
-    const sisaStokBaru = selectedProduct.stok - jumlahJual;
-    const { error: updateError } = await supabaseClient.from('products').update({ stok: sisaStokBaru }).eq('id', selectedProduct.id);
-    if (updateError) return alert('Gagal potong stok: ' + updateError.message);
+    // Process each cart item: cut stock and save to sales_history
+    let stockUpdateErrors = [];
+    let historyErrors = [];
+    let totalItemsSold = 0;
 
-    // 2. Simpan Riwayat
-    const { error: historyError } = await supabaseClient.from('sales_history').insert([{
-        payment_id: paymentRecord.id,
-        product_id: selectedProduct.id,
-        nama_barang: selectedProduct.nama_barang,
-        kategori: selectedProduct.kategori,
-        ukuran: selectedProduct.ukuran || null,
-        jumlah: jumlahJual,
-        total_harga: totalHarga,
-        tipe_pembeli: identitasPembeli
-    }]);
+    for (const cartItem of cart) {
+        // 1. Potong Stok
+        const product = allProducts.find(p => p.id === cartItem.productId);
+        if (!product) {
+            stockUpdateErrors.push(`Produk tidak ditemukan: ${cartItem.nama_barang}`);
+            continue;
+        }
 
-    if (historyError) {
-        console.error('Sales history insert failed:', historyError.message);
-        alert('Stok terpotong, tapi riwayat gagal dicatat: ' + historyError.message);
+        if (product.stok < cartItem.jumlah) {
+            stockUpdateErrors.push(`Stok tidak cukup untuk ${cartItem.nama_barang}. Sisa: ${product.stok}, Butuh: ${cartItem.jumlah}`);
+            continue;
+        }
+
+        const sisaStokBaru = product.stok - cartItem.jumlah;
+        const { error: updateError } = await supabaseClient.from('products').update({ stok: sisaStokBaru }).eq('id', cartItem.productId);
+        
+        if (updateError) {
+            stockUpdateErrors.push(`Gagal potong stok ${cartItem.nama_barang}: ${updateError.message}`);
+            continue;
+        }
+
+        // 2. Simpan Riwayat
+        const { error: historyError } = await supabaseClient.from('sales_history').insert([{
+            payment_id: paymentRecord.id,
+            product_id: cartItem.productId,
+            nama_barang: cartItem.nama_barang,
+            kategori: cartItem.kategori,
+            ukuran: cartItem.ukuran || null,
+            jumlah: cartItem.jumlah,
+            total_harga: cartItem.totalHarga,
+            tipe_pembeli: identitasPembeli
+        }]);
+
+        if (historyError) {
+            historyErrors.push(`Gagal simpan riwayat ${cartItem.nama_barang}: ${historyError.message}`);
+        } else {
+            totalItemsSold += cartItem.jumlah;
+        }
+    }
+
+    // Check for errors
+    if (stockUpdateErrors.length > 0 || historyErrors.length > 0) {
+        const errorMsg = [...stockUpdateErrors, ...historyErrors].join('\n');
+        console.error('Errors during transaction:', errorMsg);
+        alert('⚠️ TRANSAKSI SEBAGIAN BERHASIL\n\nError:\n' + errorMsg);
     } else {
-
-        // Animasi inventory stok: keluar (-jumlahJual)
+        // Animasi inventory stok: keluar (-totalItemsSold)
         try {
-            window.InventoryManager?.applyStockDelta?.(-jumlahJual);
+            window.InventoryManager?.applyStockDelta?.(-totalItemsSold);
         } catch (e) {}
 
         // Broadcast agar halaman lain juga animasi
         try {
-            localStorage.setItem('inventory_stock_delta', JSON.stringify({ delta: -jumlahJual, t: Date.now() }));
+            localStorage.setItem('inventory_stock_delta', JSON.stringify({ delta: -totalItemsSold, t: Date.now() }));
         } catch (e) {}
 
         // Animasi inventory pembayaran (visual)
-        // Jika metode cash/transfer => payment langsung Sudah Bayar
-        // Jika metode Belum Bayar => pembayaran akan terselesaikan saat user konfirmasi di dashboard.
         try {
             if (invoiceStatus === 'paid') {
                 window.InventoryManager?.applyPaymentDelta?.();
@@ -627,17 +749,19 @@ salesForm.addEventListener('submit', async (e) => {
                 phone: '+62 812-3456-7890',
                 footer: 'Terima kasih atas kunjungan Anda!'
             };
-            window.ReceiptPrinter.showPrintDialog(paymentRecord, selectedProduct, companyInfo);
+            window.ReceiptPrinter.showPrintDialog(paymentRecord, cart, companyInfo);
         }
-        
-        salesForm.reset();
-
-        boxMemberSelect.classList.add('hidden');
-        await initTerminalData();
-        updatePricePreview();
-        await updateLedgerBookkeeping();
-        showSaleSuccess('TRANSAKSI TERJUAL // Buku kas menjadi lebih hidup.');
     }
+    
+    // Reset form and cart
+    salesForm.reset();
+    cart = [];
+    updateCartDisplay();
+    boxMemberSelect.classList.add('hidden');
+    await initTerminalData();
+    updatePricePreview();
+    await updateLedgerBookkeeping();
+    showSaleSuccess('TRANSAKSI TERJUAL // Buku kas menjadi lebih hidup.');
 });
 
 

@@ -77,6 +77,110 @@
                 grid-template-columns: 1fr !important;
             }
         }
+        .cart-section {
+            margin-top: 24px;
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius-lg);
+            background: var(--glass);
+            padding: 16px;
+        }
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--stroke);
+        }
+        .cart-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .cart-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--surface);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .cart-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+        }
+        .cart-placeholder {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 12px;
+            padding: 24px;
+            margin: 0;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--stroke);
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            margin-bottom: 8px;
+        }
+        .cart-item-info {
+            flex: 1;
+        }
+        .cart-item-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        .cart-item-details {
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            gap: 12px;
+        }
+        .cart-item-price {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--success);
+        }
+        .cart-item-remove {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cart-item-remove:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+        .cart-summary {
+            padding-top: 12px;
+            border-top: 1px solid var(--stroke);
+        }
+        .cart-summary__row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .cart-summary__label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .cart-summary__value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
     </style>
 </head>
 <body class="spectre-body">
@@ -326,6 +430,7 @@
                             </div>
 
                             <div class="form-actions">
+                                <button type="button" id="btnAddToCart" class="spectre-btn spectre-btn--primary">Add to Cart</button>
                                 <button type="button" id="btnScanTerjual" class="spectre-btn">Scan Camera</button>
                                 <button type="button" id="btnStopTerjual" class="spectre-btn spectre-btn--danger">Stop</button>
                             </div>
@@ -337,6 +442,23 @@
                             <div class="scan-video">
                                 <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
                                 <canvas id="scanTerjualCanvas" class="hidden"></canvas>
+                            </div>
+
+                            <!-- Cart Section -->
+                            <div class="cart-section">
+                                <div class="cart-header">
+                                    <h3>Shopping Cart</h3>
+                                    <span id="cartCount" class="cart-count">0 items</span>
+                                </div>
+                                <div id="cartItems" class="cart-items">
+                                    <p class="cart-placeholder">No items in cart</p>
+                                </div>
+                                <div class="cart-summary">
+                                    <div class="cart-summary__row">
+                                        <span class="cart-summary__label">Subtotal:</span>
+                                        <span id="cartSubtotal" class="cart-summary__value">Rp 0</span>
+                                    </div>
+                                </div>
                             </div>
 
                             <button type="submit" id="btnProses" class="spectre-btn spectre-btn--primary spectre-btn--full">Process Sale</button>

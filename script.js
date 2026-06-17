@@ -326,13 +326,23 @@ async function loadPayments() {
         `;
         payments.forEach(payment => {
             const statusClass = payment.status === 'Belum Bayar' ? 'status-belumbayar' : 'status-sudahbayar';
+            
+            // Extract sizes from product summary for multi-item payments
+            let displayUkuran = payment.ukuran || '—';
+            if (!payment.ukuran && payment.product) {
+                const sizeMatches = payment.product.match(/\[([^\]]+)\]/g);
+                if (sizeMatches && sizeMatches.length > 0) {
+                    displayUkuran = sizeMatches.map(s => s.replace(/[\[\]]/g, '')).join(', ');
+                }
+            }
+            
             html += `
                 <div class="p-3 border border-red-950/40 bg-black/40">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <div class="text-[10px] text-red-500 font-bold uppercase">${payment.displayName || payment.buyer}</div>
                             <div class="mt-1 text-[12px] font-bold text-white uppercase">${payment.product}</div>
-                            <div class="mt-1 text-[11px] text-slate-400">Ukuran: ${payment.ukuran || '—'}</div>
+                            <div class="mt-1 text-[11px] text-slate-400">Ukuran: ${displayUkuran}</div>
                             <div class="mt-1 text-[11px] text-rose-400 font-bold">Jumlah: ${payment.jumlah}</div>
                             <div class="mt-1 text-[12px] text-emerald-400 font-bold">${formatCurrency(payment.total_harga)}</div>
                             <div class="mt-1 text-[11px] text-slate-400">${payment.method}</div>
@@ -374,11 +384,21 @@ async function loadPayments() {
 
     payments.forEach(payment => {
         const statusClass = payment.status === 'Belum Bayar' ? 'status-belumbayar' : 'status-sudahbayar';
+        
+        // Extract sizes from product summary for multi-item payments
+        let displayUkuran = payment.ukuran || '—';
+        if (!payment.ukuran && payment.product) {
+            const sizeMatches = payment.product.match(/\[([^\]]+)\]/g);
+            if (sizeMatches && sizeMatches.length > 0) {
+                displayUkuran = sizeMatches.map(s => s.replace(/[\[\]]/g, '')).join(', ');
+            }
+        }
+        
         html += `
             <tr class="hover:bg-red-950/10 transition-colors">
                 <td class="p-3 font-bold">${payment.displayName || payment.buyer}</td>
                 <td class="p-3">${payment.product}</td>
-                <td class="p-3">${payment.ukuran || '—'}</td>
+                <td class="p-3">${displayUkuran}</td>
                 <td class="p-3 text-center">${payment.jumlah}</td>
                 <td class="p-3">${formatCurrency(payment.total_harga)}</td>
                 <td class="p-3">${payment.method}</td>
