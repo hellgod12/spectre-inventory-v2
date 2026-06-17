@@ -1104,6 +1104,7 @@ async function loadDashboard() {
     if (totalMembersEl) {
         const memberCount = members ? members.length : 0;
         totalMembersEl.innerText = memberCount + " Jiwa";
+        totalMembersEl.dataset.originalValue = memberCount + " Jiwa";
         console.log('Updated totalMembers to:', memberCount + " Jiwa");
     } else {
         console.error('totalMembers element not found');
