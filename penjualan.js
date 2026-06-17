@@ -155,7 +155,16 @@ function addToCart() {
     // Read customer type from cart section if available, otherwise from main form
     const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
     const tipePembeli = tipePembeliEl ? tipePembeliEl.value : 'Umum';
-    const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+
+    // Calculate member price based on discount from retail price
+    let hargaDefault = selectedProduct.harga_jual;
+    if (tipePembeli === 'Member') {
+        // Get selected member's discount percentage
+        const selectedMemberOption = selectMember.options[selectMember.selectedIndex];
+        const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
+        // Calculate member price: harga_jual - (diskon_persen × harga_jual)
+        hargaDefault = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
+    }
 
     let hargaOverride = null;
     if (hargaOverrideEl) {
@@ -327,7 +336,7 @@ async function initTerminalData() {
         } else if (mems && mems.length > 0) {
             selectMember.innerHTML = '<option value="">-- PILIH NO TELEPON MEMBER --</option>';
             mems.forEach(m => {
-                selectMember.innerHTML += `<option value="${m.telepon}">${m.telepon} [${(m.nama || '').toUpperCase()}]</option>`;
+                selectMember.innerHTML += `<option value="${m.telepon}" data-diskon="${m.diskon_persen || 0}">${m.telepon} [${(m.nama || '').toUpperCase()}] - ${m.diskon_persen || 0}% OFF</option>`;
             });
         } else {
             selectMember.innerHTML = '<option value="">>> MEMBER KOSONG</option>';
@@ -388,7 +397,14 @@ function updatePricePreview() {
     }
     // Force regular price when cart is empty, regardless of radio button state
     // Use actual harga_jual from database for each product
-    const hargaDefault = (cart.length === 0) ? selectedProduct.harga_jual : (tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual);
+    let hargaDefault = selectedProduct.harga_jual;
+    if (tipePembeli === 'Member') {
+        // Get selected member's discount percentage
+        const selectedMemberOption = selectMember.options[selectMember.selectedIndex];
+        const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
+        // Calculate member price: harga_jual - (diskon_persen × harga_jual)
+        hargaDefault = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
+    }
 
     let hargaOverride = null;
     if (hargaOverrideEl) {

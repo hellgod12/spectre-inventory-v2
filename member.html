@@ -302,6 +302,14 @@
                                     <input type="text" id="inputTelepon" class="form-input" placeholder="e.g. 0812345678" required>
                                 </div>
                             </div>
+                            <div class="form-group">
+                                <label class="form-label">Diskon Member (%)</label>
+                                <div class="form-input-wrapper">
+                                    <svg class="form-input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                                    <input type="number" id="inputDiskon" class="form-input" placeholder="e.g. 10" min="0" max="100" value="0">
+                                </div>
+                                <p class="text-xs text-slate-400 mt-1">Diskon dari harga retail (0-100%)</p>
+                            </div>
                             <button type="submit" class="spectre-btn spectre-btn--primary spectre-btn--full">Register Member</button>
                         </form>
                     </div>
@@ -420,6 +428,7 @@
                     recentMembers.forEach(m => {
                         const initial = m.nama.charAt(0).toUpperCase();
                         const regDate = new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                        const diskonDisplay = m.diskon_persen > 0 ? `<span class="text-xs text-emerald-400 font-bold">${m.diskon_persen}% OFF</span>` : '<span class="text-xs text-slate-500">0% OFF</span>';
                         insightsHtml += `<div class="member-insights-item">
                             <div class="member-insights-avatar">
                                 ${initial}
@@ -427,6 +436,7 @@
                             <div class="member-insights-info">
                                 <div class="member-insights-name">${m.nama}</div>
                                 <div class="member-insights-phone">${m.telepon}</div>
+                                <div class="member-insights-discount">${diskonDisplay}</div>
                             </div>
                             <div class="member-insights-date">
                                 ${regDate}
@@ -484,9 +494,14 @@
                             <span class="status-badge ${statusClass}">${statusText}</span>
                         </td>
                         <td class="spectre-table__cell">
-                            <button onclick="deleteMember('${member.id}', '${member.nama}')" data-role="admin-only" class="spectre-btn spectre-btn--danger spectre-btn--small">
-                                Delete
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="editMember('${member.id}', '${member.nama}', '${member.telepon}', ${member.diskon_persen || 0})" data-role="admin-only" class="spectre-btn spectre-btn--primary spectre-btn--small">
+                                    Edit
+                                </button>
+                                <button onclick="deleteMember('${member.id}', '${member.nama}')" data-role="admin-only" class="spectre-btn spectre-btn--danger spectre-btn--small">
+                                    Delete
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -546,20 +561,72 @@
             }
         };
 
+        window.editMember = async function(memberId, memberName, memberPhone, currentDiskon) {
+            if (!requireAdmin()) {
+                return;
+            }
+
+            const newDiskon = prompt(`Edit diskon untuk member ${memberName} (${memberPhone})\n\nDiskon saat ini: ${currentDiskon}%\n\nMasukkan diskon baru (0-100):`, currentDiskon);
+
+            if (newDiskon === null) {
+                return; // User cancelled
+            }
+
+            const diskonPersen = parseInt(newDiskon);
+
+            if (isNaN(diskonPersen) || diskonPersen < 0 || diskonPersen > 100) {
+                alert('Diskon harus berupa angka antara 0-100!');
+                return;
+            }
+
+            try {
+                const { error } = await supabaseClient
+                    .from('members')
+                    .update({ diskon_persen: diskonPersen })
+                    .eq('id', memberId);
+
+                if (error) {
+                    console.error('Failed to update member:', error);
+                    alert('Gagal mengupdate member: ' + error.message);
+                    return;
+                }
+
+                alert(`Diskon member ${memberName} berhasil diupdate menjadi ${diskonPersen}%!`);
+                await loadMemberKPIs();
+            } catch (err) {
+                console.error('Error updating member:', err);
+                alert('Error updating member: ' + err.message);
+            }
+        };
+
         loadMemberKPIs();
 
         document.getElementById('memberForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const nama = document.getElementById('inputNama').value;
             const telepon = document.getElementById('inputTelepon').value;
+            const diskon_persen = parseInt(document.getElementById('inputDiskon').value) || 0;
 
-            const { error } = await supabaseClient.from('members').insert([{ nama, telepon }]);
+            // Check if phone number already exists
+            const { data: existingMember, error: checkError } = await supabaseClient
+                .from('members')
+                .select('telepon, nama')
+                .eq('telepon', telepon)
+                .single();
+
+            if (existingMember) {
+                alert(`❌ NOMOR TELEPON SUDAH TERDAFTAR!\n\nNomor ${telepon} sudah digunakan oleh member: ${existingMember.nama}\n\nSilakan gunakan nomor telepon yang berbeda.`);
+                return;
+            }
+
+            const { error } = await supabaseClient.from('members').insert([{ nama, telepon, diskon_persen }]);
 
             if (error) {
                 alert('Gagal registrasi: ' + error.message);
             } else {
                 alert('🎉 MEMBER BERHASIL DIKUNCI KE DATABASE!');
                 document.getElementById('memberForm').reset();
+                document.getElementById('inputDiskon').value = 0;
                 loadMemberKPIs();
             }
         });
