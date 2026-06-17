@@ -181,6 +181,14 @@
             font-weight: 600;
             color: var(--text);
         }
+        .cart-payment-options {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--stroke);
+        }
+        .cart-payment-options.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="spectre-body">
@@ -378,24 +386,6 @@
                                 </div>
                             </div>
 
-                            <div class="form-group">
-                                <label class="form-label">Payment Status</label>
-                                <div class="form-radio-group">
-                                    <label class="form-radio">
-                                        <input type="radio" name="payment_status" value="paid_full" checked id="payFull">
-                                        <span>Paid Full</span>
-                                    </label>
-                                    <label class="form-radio">
-                                        <input type="radio" name="payment_status" value="partial" id="payPartial">
-                                        <span>Partial Payment</span>
-                                    </label>
-                                    <label class="form-radio">
-                                        <input type="radio" name="payment_status" value="pay_later" id="payLater">
-                                        <span>Pay Later</span>
-                                    </label>
-                                </div>
-                            </div>
-
                             <div id="partialPaymentSection" class="form-group hidden">
                                 <label class="form-label">Amount Paid</label>
                                 <input type="number" id="amountPaid" class="form-input" min="0" step="1" placeholder="Enter payment amount">
@@ -412,20 +402,6 @@
                                         <span class="partial-payment-summary__label">Remaining:</span>
                                         <span id="partialRemaining" class="partial-payment-summary__value partial-payment-summary__value--warning">Rp 0</span>
                                     </div>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Payment Method</label>
-                                <div class="form-radio-group">
-                                    <label class="form-radio">
-                                        <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash">
-                                        <span>Cash</span>
-                                    </label>
-                                    <label class="form-radio">
-                                        <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer">
-                                        <span>Transfer</span>
-                                    </label>
                                 </div>
                             </div>
 
@@ -457,6 +433,60 @@
                                     <div class="cart-summary__row">
                                         <span class="cart-summary__label">Subtotal:</span>
                                         <span id="cartSubtotal" class="cart-summary__value">Rp 0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Payment Options (shown only when cart has items) -->
+                                <div id="cartPaymentOptions" class="cart-payment-options hidden">
+                                    <div class="form-group">
+                                        <label class="form-label">Payment Status</label>
+                                        <div class="form-radio-group">
+                                            <label class="form-radio">
+                                                <input type="radio" name="payment_status" value="paid_full" checked id="payFull">
+                                                <span>Paid Full</span>
+                                            </label>
+                                            <label class="form-radio">
+                                                <input type="radio" name="payment_status" value="partial" id="payPartial">
+                                                <span>Partial Payment</span>
+                                            </label>
+                                            <label class="form-radio">
+                                                <input type="radio" name="payment_status" value="pay_later" id="payLater">
+                                                <span>Pay Later</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div id="partialPaymentSection" class="form-group hidden">
+                                        <label class="form-label">Amount Paid</label>
+                                        <input type="number" id="amountPaid" class="form-input" min="0" step="1" placeholder="Enter payment amount">
+                                        <div class="partial-payment-summary">
+                                            <div class="partial-payment-summary__row">
+                                                <span class="partial-payment-summary__label">Total:</span>
+                                                <span id="partialTotal" class="partial-payment-summary__value">Rp 0</span>
+                                            </div>
+                                            <div class="partial-payment-summary__row">
+                                                <span class="partial-payment-summary__label">Paid:</span>
+                                                <span id="partialPaid" class="partial-payment-summary__value partial-payment-summary__value--success">Rp 0</span>
+                                            </div>
+                                            <div class="partial-payment-summary__row">
+                                                <span class="partial-payment-summary__label">Remaining:</span>
+                                                <span id="partialRemaining" class="partial-payment-summary__value partial-payment-summary__value--warning">Rp 0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Payment Method</label>
+                                        <div class="form-radio-group">
+                                            <label class="form-radio">
+                                                <input type="radio" name="metode_pembayaran" value="Cash" checked id="payCash">
+                                                <span>Cash</span>
+                                            </label>
+                                            <label class="form-radio">
+                                                <input type="radio" name="metode_pembayaran" value="Transfer" id="payTransfer">
+                                                <span>Transfer</span>
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

@@ -199,6 +199,7 @@ function updateCartDisplay() {
     const cartItemsEl = document.getElementById('cartItems');
     const cartCountEl = document.getElementById('cartCount');
     const cartSubtotalEl = document.getElementById('cartSubtotal');
+    const cartPaymentOptionsEl = document.getElementById('cartPaymentOptions');
 
     if (!cartItemsEl || !cartCountEl || !cartSubtotalEl) return;
 
@@ -206,6 +207,7 @@ function updateCartDisplay() {
         cartItemsEl.innerHTML = '<p class="cart-placeholder">No items in cart</p>';
         cartCountEl.textContent = '0 items';
         cartSubtotalEl.textContent = 'Rp 0';
+        if (cartPaymentOptionsEl) cartPaymentOptionsEl.classList.add('hidden');
         return;
     }
 
@@ -233,6 +235,28 @@ function updateCartDisplay() {
     cartItemsEl.innerHTML = html;
     cartCountEl.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
     cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+    
+    // Show payment options when cart has items
+    if (cartPaymentOptionsEl) {
+        cartPaymentOptionsEl.classList.remove('hidden');
+        // Update partial payment summary with cart subtotal
+        updatePartialPaymentSummary(subtotal);
+    }
+}
+
+function updatePartialPaymentSummary(totalHarga) {
+    const amountPaidInput = document.getElementById('amountPaid');
+    const partialTotalEl = document.getElementById('partialTotal');
+    const partialPaidEl = document.getElementById('partialPaid');
+    const partialRemainingEl = document.getElementById('partialRemaining');
+
+    if (!amountPaidInput || !partialTotalEl || !partialPaidEl || !partialRemainingEl) return;
+
+    const amountPaid = parseFloat(amountPaidInput.value) || 0;
+
+    partialTotalEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
+    partialPaidEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
+    partialRemainingEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
 }
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
@@ -554,7 +578,7 @@ paymentStatusRadios.forEach(radio => {
 amountPaidInput.addEventListener('input', updatePartialPaymentCalculation);
 
 function updatePartialPaymentCalculation() {
-    const totalHarga = parseFloat(previewTotal.innerText.replace(/[^0-9]/g, '')) || 0;
+    const totalHarga = cart.reduce((sum, item) => sum + item.totalHarga, 0);
     const amountPaid = parseFloat(amountPaidInput.value) || 0;
 
     partialTotalEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
