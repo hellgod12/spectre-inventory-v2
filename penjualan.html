@@ -197,6 +197,11 @@
         .cart-customer-options.hidden {
             display: none;
         }
+        .cart-price-info {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--stroke);
+        }
     </style>
 </head>
 <body class="spectre-body">
@@ -344,35 +349,6 @@
                                 <input type="number" id="inputJumlah" class="form-input" min="1" value="1">
                             </div>
 
-                            <div class="price-summary">
-                                <div class="price-summary__row">
-                                    <span class="price-summary__label">Unit Price:</span>
-                                    <span id="previewHargaSatuan" class="price-summary__value">Rp 0</span>
-                                </div>
-                                <div class="price-summary__row price-summary__row--total">
-                                    <span class="price-summary__label">Total:</span>
-                                    <span id="previewTotal" class="price-summary__value price-summary__value--total">Rp 0</span>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label">Price Information</label>
-                                <div class="price-info-grid">
-                                    <div>
-                                        <span class="price-info-label">Regular Price</span>
-                                        <span id="hargaUmumDefault" class="price-info-value">—</span>
-                                    </div>
-                                    <div>
-                                        <span class="price-info-label">Member Price</span>
-                                        <span id="hargaMemberDefault" class="price-info-value">—</span>
-                                    </div>
-                                </div>
-                                <div class="form-group" style="margin-top: 16px;">
-                                    <label class="form-label">Price Override (optional)</label>
-                                    <input type="number" id="harga_override" class="form-input" min="0" step="1" placeholder="Empty = use default price">
-                                </div>
-                            </div>
-
                             <div id="partialPaymentSection" class="form-group hidden">
                                 <label class="form-label">Amount Paid</label>
                                 <input type="number" id="amountPaid" class="form-input" min="0" step="1" placeholder="Enter payment amount">
@@ -420,6 +396,37 @@
                                     <div class="cart-summary__row">
                                         <span class="cart-summary__label">Subtotal:</span>
                                         <span id="cartSubtotal" class="cart-summary__value">Rp 0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Price Information for adding items -->
+                                <div class="cart-price-info">
+                                    <div class="form-group">
+                                        <label class="form-label">Price Information</label>
+                                        <div class="price-info-grid">
+                                            <div>
+                                                <span class="price-info-label">Regular Price</span>
+                                                <span id="hargaUmumDefault" class="price-info-value">—</span>
+                                            </div>
+                                            <div>
+                                                <span class="price-info-label">Member Price</span>
+                                                <span id="hargaMemberDefault" class="price-info-value">—</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Price Override (optional)</label>
+                                        <input type="number" id="harga_override" class="form-input" min="0" step="1" placeholder="Empty = use default price">
+                                    </div>
+                                    <div class="price-summary">
+                                        <div class="price-summary__row">
+                                            <span class="price-summary__label">Unit Price:</span>
+                                            <span id="previewHargaSatuan" class="price-summary__value">Rp 0</span>
+                                        </div>
+                                        <div class="price-summary__row price-summary__row--total">
+                                            <span class="price-summary__label">Total:</span>
+                                            <span id="previewTotal" class="price-summary__value price-summary__value--total">Rp 0</span>
+                                        </div>
                                     </div>
                                 </div>
 
