@@ -179,7 +179,14 @@ function addToCart() {
 
     cart.push(cartItem);
     updateCartDisplay();
-    resetForm();
+    // Clear form to make it clear cart is what matters for processing sale
+    selectProduct.value = '';
+    selectedProduct = null;
+    inputJumlah.value = '1';
+    if (hargaOverrideEl) hargaOverrideEl.value = '';
+    boxUkuranSelect.classList.add('hidden');
+    selectUkuran.removeAttribute('required');
+    updatePricePreview();
     showSaleSuccess('BARANG DITAMBAHKAN KE KERANJANG');
 }
 
@@ -226,16 +233,6 @@ function updateCartDisplay() {
     cartItemsEl.innerHTML = html;
     cartCountEl.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
     cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
-}
-
-function resetForm() {
-    selectProduct.value = '';
-    selectedProduct = null;
-    inputJumlah.value = '1';
-    if (hargaOverrideEl) hargaOverrideEl.value = '';
-    boxUkuranSelect.classList.add('hidden');
-    selectUkuran.removeAttribute('required');
-    updatePricePreview();
 }
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
