@@ -1095,19 +1095,13 @@ async function loadDashboard() {
 
     // Tarik data member
     const { data: members, error: membersError } = await supabaseClient.from('members').select('id');
-    console.log('Members query result:', members);
-    console.log('Members query error:', membersError);
 
     const totalMembersEl = document.getElementById('totalMembers');
-    console.log('totalMembers element:', totalMembersEl);
 
     if (totalMembersEl) {
         const memberCount = members ? members.length : 0;
         totalMembersEl.innerText = memberCount + " Jiwa";
         totalMembersEl.dataset.originalValue = memberCount + " Jiwa";
-        console.log('Updated totalMembers to:', memberCount + " Jiwa");
-    } else {
-        console.error('totalMembers element not found');
     }
 
     // Tarik data RIWAYAT PENJUALAN ASLI
@@ -1191,16 +1185,16 @@ async function loadDashboard() {
     }
 
     // Calculate revenue from payments table (only paid invoices)
-    // Revenue = SUM(paid_amount) dari transaksi PAID yang masih ada
+    // Revenue = SUM(total_harga) dari transaksi PAID yang masih ada
     const { data: payments } = await supabaseClient.from('payments').select('*');
     omsetAsli = 0;
     pendingRevenue = 0;
     if (payments) {
         payments.forEach(payment => {
             if (payment.status === 'paid') {
-                omsetAsli += parseFloat(payment.paid_amount || 0);
+                omsetAsli += parseFloat(payment.total_harga || 0);
             } else if (payment.status === 'pending' || payment.status === 'partial') {
-                pendingRevenue += parseFloat(payment.remaining_amount || 0);
+                pendingRevenue += parseFloat(payment.total_harga || 0);
             }
         });
     }
@@ -1224,20 +1218,19 @@ async function loadDashboard() {
     try {
         // Get marketplace data directly from online_orders table (Manual Entry)
         // Using order_date (actual order date) instead of created_at (database entry time)
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
+        // No time limit - get all data like POS data
         const { data: onlineOrders } = await supabaseClient
             .from('online_orders')
             .select('gross_sales, net_revenue')
-            .gte('order_date', thirtyDaysAgo.toISOString())
             .in('order_status', ['delivered', 'completed', 'paid', 'shipped']);
-        
+
         if (onlineOrders) {
             marketplaceRevenue = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
+            // Calculate marketplace profit as gross_sales - platform fees (if available)
+            // For now, use net_revenue as profit since we don't have cost data for marketplace
             marketplaceProfit = onlineOrders.reduce((sum, o) => sum + (parseFloat(o.net_revenue) || 0), 0);
             marketplaceOrders = onlineOrders.length;
-            
+
             combinedRevenue = omsetAsli + marketplaceRevenue;
             combinedProfit = profitAsli + marketplaceProfit;
             combinedOrders = totalTerjualCount + marketplaceOrders;
