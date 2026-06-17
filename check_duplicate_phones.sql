@@ -26,3 +26,15 @@ ALTER TABLE members ENABLE TRIGGER ALL;
 
 -- Verify the fix
 SELECT nama, telepon FROM members WHERE nama IN ('ILHAM', 'avril');
+
+-- ============================================================
+-- FIX UPDATED_AT TRIGGER ERROR
+-- ============================================================
+-- Add updated_at column to members table to fix trigger error
+ALTER TABLE members ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+-- Set updated_at to NOW() for existing records
+UPDATE members SET updated_at = NOW() WHERE updated_at IS NULL;
+
+-- Verify the changes
+SELECT nama, telepon, diskon_persen, updated_at FROM members;

@@ -365,11 +365,6 @@ function handleTypeChange() {
     updatePricePreview();
 }
 
-// Add event listener to update price info when member selection changes
-if (selectMember) {
-    selectMember.addEventListener('change', updatePricePreview);
-}
-
 function updatePricePreview() {
     const prodId = selectProduct.value;
     selectedProduct = allProducts.find(p => p.id == prodId);
@@ -835,6 +830,23 @@ salesForm.addEventListener('submit', async (e) => {
 });
 
 
-document.addEventListener('DOMContentLoaded', initTerminalData);
+document.addEventListener('DOMContentLoaded', () => {
+    initTerminalData();
+
+    // Add event listener to update price info when member selection changes
+    const selectMemberEl = document.getElementById('selectMember');
+    if (selectMemberEl) {
+        selectMemberEl.addEventListener('change', updatePricePreview);
+    }
+
+    // Add event listeners to update price when customer type radio buttons change
+    const radioButtons = document.querySelectorAll('input[name="tipe_pembeli"]');
+    radioButtons.forEach(radio => {
+        radio.addEventListener('change', () => {
+            handleTypeChange();
+            updatePricePreview();
+        });
+    });
+});
 
 
