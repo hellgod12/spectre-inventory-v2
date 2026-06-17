@@ -387,15 +387,9 @@ function updatePricePreview() {
         tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
     }
     // Force regular price when cart is empty, regardless of radio button state
-    const hargaDefault = (cart.length === 0) ? selectedProduct.harga_jual : (tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual);
-
-    console.log('Price calculation debug:', {
-        cartLength: cart.length,
-        tipePembeli,
-        harga_jual: selectedProduct.harga_jual,
-        harga_member: selectedProduct.harga_member,
-        hargaDefault
-    });
+    // Use consistent regular price for all products (highest harga_jual from all products)
+    const baseRegularPrice = allProducts.length > 0 ? Math.max(...allProducts.map(p => p.harga_jual)) : selectedProduct.harga_jual;
+    const hargaDefault = (cart.length === 0) ? baseRegularPrice : (tipePembeli === 'Member' ? selectedProduct.harga_member : baseRegularPrice);
 
     let hargaOverride = null;
     if (hargaOverrideEl) {
@@ -412,10 +406,10 @@ function updatePricePreview() {
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
 
-    // Update price information display
+    // Update price information display with consistent regular price
     const hargaUmumDefaultEl = document.getElementById('hargaUmumDefault');
     const hargaMemberDefaultEl = document.getElementById('hargaMemberDefault');
-    if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_jual).toLocaleString('id-ID');
+    if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(baseRegularPrice).toLocaleString('id-ID');
     if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_member).toLocaleString('id-ID');
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
