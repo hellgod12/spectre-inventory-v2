@@ -1097,7 +1097,17 @@ async function loadDashboard() {
     const { data: members, error: membersError } = await supabaseClient.from('members').select('id');
     console.log('Members query result:', members);
     console.log('Members query error:', membersError);
-    document.getElementById('totalMembers').innerText = (members ? members.length : 0) + " Jiwa";
+
+    const totalMembersEl = document.getElementById('totalMembers');
+    console.log('totalMembers element:', totalMembersEl);
+
+    if (totalMembersEl) {
+        const memberCount = members ? members.length : 0;
+        totalMembersEl.innerText = memberCount + " Jiwa";
+        console.log('Updated totalMembers to:', memberCount + " Jiwa");
+    } else {
+        console.error('totalMembers element not found');
+    }
 
     // Tarik data RIWAYAT PENJUALAN ASLI
     const { data: salesHistory, error: salesError } = await supabaseClient
