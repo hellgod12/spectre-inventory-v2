@@ -418,11 +418,68 @@ async function loadPayments() {
 }
 
 async function deletePayment(id) {
-    const konfirmasi = confirm('[PERINGATAN] HAPUS RECORD PEMBAYARAN INI? Log penjualan tetap jalan. Tidak bisa dikembalikan.');
+    const konfirmasi = confirm('[PERINGATAN] HAPUS RECORD PEMBAYARAN INI? Stok akan dikembalikan dan sales_history akan dihapus. Tidak bisa dikembalikan.');
     if (!konfirmasi) return;
 
     try {
-        // Hapus payment record saja, sales_history tetap ada
+        // First, get the payment record to get invoice_number
+        const { data: paymentData, error: fetchError } = await supabaseClient
+            .from('payments')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !paymentData) {
+            console.error('Gagal mengambil payment:', fetchError);
+            alert('❌ Gagal mengambil data pembayaran');
+            return;
+        }
+
+        // Fetch sales_history records associated with this payment
+        const { data: salesHistory, error: salesError } = await supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('invoice_number', paymentData.invoice_number);
+
+        if (salesError) {
+            console.error('Gagal mengambil sales_history:', salesError);
+        }
+
+        // Restore stock for each sales_history record
+        if (salesHistory && salesHistory.length > 0) {
+            for (const sale of salesHistory) {
+                // Get current stock
+                const { data: productData } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', sale.product_id)
+                    .single();
+
+                if (productData) {
+                    const newStock = productData.stok + sale.jumlah;
+                    const { error: stockError } = await supabaseClient
+                        .from('products')
+                        .update({ stok: newStock })
+                        .eq('id', sale.product_id);
+
+                    if (stockError) {
+                        console.error('Gagal mengembalikan stok:', stockError);
+                    }
+                }
+            }
+
+            // Delete sales_history records
+            const { error: deleteSalesError } = await supabaseClient
+                .from('sales_history')
+                .delete()
+                .eq('invoice_number', paymentData.invoice_number);
+
+            if (deleteSalesError) {
+                console.error('Gagal menghapus sales_history:', deleteSalesError);
+            }
+        }
+
+        // Delete payment record
         const { error: delPayment } = await supabaseClient
             .from('payments')
             .delete()
@@ -434,13 +491,11 @@ async function deletePayment(id) {
         } else {
             // jika pembayaran dihapus => turunkan animasi pembayaran
             try {
-                // untuk kesan "turun" kita panggil applyPaymentDelta juga (candle manager sudah punya pulse)
-                // namun kita biarkan sebagai visual umum.
                 window.CandleManager?.applyPaymentDelta?.();
                 localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
             } catch (e) {}
 
-            alert('✅ RECORD PEMBAYARAN BERHASIL DIHAPUS');
+            alert('✅ RECORD PEMBAYARAN BERHASIL DIHAPUS. Stok dikembalikan dan sales_history dihapus.');
             await loadPayments();
         }
     } catch (err) {
