@@ -1257,9 +1257,13 @@ async function loadDashboard() {
     const displayOrders = combinedOrders > 0 ? combinedOrders : totalTerjualCount;
 
     document.getElementById('totalStock').innerText = totalStock;
+    document.getElementById('totalStock').dataset.originalValue = totalStock;
     document.getElementById('totalOmset').innerText = 'Rp ' + displayRevenue.toLocaleString('id-ID');
+    document.getElementById('totalOmset').dataset.originalValue = 'Rp ' + displayRevenue.toLocaleString('id-ID');
     document.getElementById('totalProfit').innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
+    document.getElementById('totalProfit').dataset.originalValue = 'Rp ' + displayProfit.toLocaleString('id-ID');
     document.getElementById('totalSalesCount').innerText = displayOrders + " Barang";
+    document.getElementById('totalSalesCount').dataset.originalValue = displayOrders + " Barang";
 
     // Hide loading skeleton after data is loaded
     hideLoadingSkeleton();
