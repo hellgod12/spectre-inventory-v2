@@ -244,19 +244,50 @@ async function loadPayments() {
     let supabaseError = null;
 
     try {
-        // Fetch payments, members, and sales_history data
-        const [paymentsResult, membersResult, salesHistoryResult] = await Promise.all([
+        // Fetch payments, online_orders, members, and sales_history data
+        const [paymentsResult, onlineOrdersResult, membersResult, salesHistoryResult] = await Promise.all([
             supabaseClient.from('payments').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('online_orders').select('*').order('order_date', { ascending: false }),
             supabaseClient.from('members').select('*'),
             supabaseClient.from('sales_history').select('*')
         ]);
 
         const { data, error } = paymentsResult;
+        const { data: onlineOrders } = onlineOrdersResult;
         const { data: members } = membersResult;
         const { data: salesHistory } = salesHistoryResult;
 
         if (error) supabaseError = error;
         else payments = normalizePayments(data);
+
+        // Normalize online_orders to match payments structure
+        let normalizedOnlineOrders = [];
+        if (onlineOrders && onlineOrders.length > 0) {
+            normalizedOnlineOrders = onlineOrders.map(order => ({
+                id: order.id,
+                buyer: order.customer_name || 'Online Customer',
+                product: order.product_name,
+                ukuran: order.size || null,
+                jumlah: order.quantity,
+                total_harga: order.total_amount,
+                method: order.payment_method || 'Online',
+                status: mapOrderStatus(order.order_status),
+                invoice_number: order.order_number,
+                source: 'online',
+                created_at: order.order_date,
+                paid_amount: order.paid_amount || 0,
+                remaining_amount: order.remaining_amount || order.total_amount
+            }));
+        }
+
+        // Combine payments and online_orders
+        payments = [
+            ...payments.map(p => ({ ...p, source: 'in-store' })),
+            ...normalizedOnlineOrders
+        ];
+
+        // Sort by created_at/order_date
+        payments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         
         // Create phone to name map
         const phoneToName = new Map();
@@ -340,7 +371,10 @@ async function loadPayments() {
                 <div class="p-3 border border-red-950/40 bg-black/40">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <div class="text-[10px] text-red-500 font-bold uppercase">${payment.displayName || payment.buyer}</div>
+                            <div class="flex items-center gap-2">
+                                <div class="text-[10px] text-red-500 font-bold uppercase">${payment.displayName || payment.buyer}</div>
+                                ${payment.source === 'online' ? '<span class="text-[8px] bg-blue-900/50 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">ONLINE</span>' : '<span class="text-[8px] bg-emerald-900/50 text-emerald-300 px-1.5 py-0.5 rounded font-bold uppercase">IN-STORE</span>'}
+                            </div>
                             <div class="mt-1 text-[12px] font-bold text-white uppercase">${payment.product}</div>
                             <div class="mt-1 text-[11px] text-slate-400">Ukuran: ${displayUkuran}</div>
                             <div class="mt-1 text-[11px] text-rose-400 font-bold">Jumlah: ${payment.jumlah}</div>
@@ -396,7 +430,12 @@ async function loadPayments() {
         
         html += `
             <tr class="hover:bg-red-950/10 transition-colors">
-                <td class="p-3 font-bold">${payment.displayName || payment.buyer}</td>
+                <td class="p-3 font-bold">
+                    <div class="flex items-center gap-2">
+                        ${payment.displayName || payment.buyer}
+                        ${payment.source === 'online' ? '<span class="text-[8px] bg-blue-900/50 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">ONLINE</span>' : '<span class="text-[8px] bg-emerald-900/50 text-emerald-300 px-1.5 py-0.5 rounded font-bold uppercase">IN-STORE</span>'}
+                    </div>
+                </td>
                 <td class="p-3">${payment.product}</td>
                 <td class="p-3">${displayUkuran}</td>
                 <td class="p-3 text-center">${payment.jumlah}</td>
@@ -422,81 +461,112 @@ async function deletePayment(id) {
     if (!konfirmasi) return;
 
     try {
-        // First, get the payment record to get invoice_number
-        const { data: paymentData, error: fetchError } = await supabaseClient
-            .from('payments')
-            .select('*')
-            .eq('id', id)
-            .single();
+        // First, check if this is an online order or in-store payment
+        // Fetch both tables to determine the source
+        const [paymentCheck, onlineCheck] = await Promise.all([
+            supabaseClient.from('payments').select('id').eq('id', id).single(),
+            supabaseClient.from('online_orders').select('id').eq('id', id).single()
+        ]);
 
-        if (fetchError || !paymentData) {
-            console.error('Gagal mengambil payment:', fetchError);
-            alert('❌ Gagal mengambil data pembayaran');
+        let source = 'in-store';
+        if (onlineCheck.data) {
+            source = 'online';
+        } else if (!paymentCheck.data) {
+            alert('❌ Data tidak ditemukan');
             return;
         }
 
-        // Fetch sales_history records associated with this payment
-        const { data: salesHistory, error: salesError } = await supabaseClient
-            .from('sales_history')
-            .select('*')
-            .eq('invoice_number', paymentData.invoice_number);
+        if (source === 'online') {
+            // Delete from online_orders table
+            const { error: delOnline } = await supabaseClient
+                .from('online_orders')
+                .delete()
+                .eq('id', id);
 
-        if (salesError) {
-            console.error('Gagal mengambil sales_history:', salesError);
-        }
+            if (delOnline) {
+                console.error('Gagal hapus online order:', delOnline);
+                alert('❌ Gagal menghapus: ' + delOnline.message);
+            } else {
+                alert('✅ ONLINE ORDER BERHASIL DIHAPUS.');
+                await loadPayments();
+            }
+        } else {
+            // Delete from payments table (in-store)
+            const { data: paymentData, error: fetchError } = await supabaseClient
+                .from('payments')
+                .select('*')
+                .eq('id', id)
+                .single();
 
-        // Restore stock for each sales_history record
-        if (salesHistory && salesHistory.length > 0) {
-            for (const sale of salesHistory) {
-                // Get current stock
-                const { data: productData } = await supabaseClient
-                    .from('products')
-                    .select('stok')
-                    .eq('id', sale.product_id)
-                    .single();
+            if (fetchError || !paymentData) {
+                console.error('Gagal mengambil payment:', fetchError);
+                alert('❌ Gagal mengambil data pembayaran');
+                return;
+            }
 
-                if (productData) {
-                    const newStock = productData.stok + sale.jumlah;
-                    const { error: stockError } = await supabaseClient
+            // Fetch sales_history records associated with this payment
+            const { data: salesHistory, error: salesError } = await supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('invoice_number', paymentData.invoice_number);
+
+            if (salesError) {
+                console.error('Gagal mengambil sales_history:', salesError);
+            }
+
+            // Restore stock for each sales_history record
+            if (salesHistory && salesHistory.length > 0) {
+                for (const sale of salesHistory) {
+                    // Get current stock
+                    const { data: productData } = await supabaseClient
                         .from('products')
-                        .update({ stok: newStock })
-                        .eq('id', sale.product_id);
+                        .select('stok')
+                        .eq('id', sale.product_id)
+                        .single();
 
-                    if (stockError) {
-                        console.error('Gagal mengembalikan stok:', stockError);
+                    if (productData) {
+                        const newStock = productData.stok + sale.jumlah;
+                        const { error: stockError } = await supabaseClient
+                            .from('products')
+                            .update({ stok: newStock })
+                            .eq('id', sale.product_id);
+
+                        if (stockError) {
+                            console.error('Gagal mengembalikan stok:', stockError);
+                        }
                     }
+                }
+
+                // Delete sales_history records
+                const { error: deleteSalesError } = await supabaseClient
+                    .from('sales_history')
+                    .delete()
+                    .eq('invoice_number', paymentData.invoice_number);
+
+                if (deleteSalesError) {
+                    console.error('Gagal menghapus sales_history:', deleteSalesError);
                 }
             }
 
-            // Delete sales_history records
-            const { error: deleteSalesError } = await supabaseClient
-                .from('sales_history')
+            // Delete payment record
+            const { error: delPayment } = await supabaseClient
+                .from('payments')
                 .delete()
-                .eq('invoice_number', paymentData.invoice_number);
+                .eq('id', id);
 
-            if (deleteSalesError) {
-                console.error('Gagal menghapus sales_history:', deleteSalesError);
+            if (delPayment) {
+                console.error('Gagal hapus payment:', delPayment);
+                alert('❌ Gagal menghapus: ' + delPayment.message);
+            } else {
+                // jika pembayaran dihapus => turunkan animasi pembayaran
+                try {
+                    window.CandleManager?.applyPaymentDelta?.();
+                    localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
+                } catch (e) {}
+
+                alert('✅ RECORD PEMBAYARAN BERHASIL DIHAPUS. Stok dikembalikan dan sales_history dihapus.');
+                await loadPayments();
             }
-        }
-
-        // Delete payment record
-        const { error: delPayment } = await supabaseClient
-            .from('payments')
-            .delete()
-            .eq('id', id);
-
-        if (delPayment) {
-            console.error('Gagal hapus payment:', delPayment);
-            alert('❌ Gagal menghapus: ' + delPayment.message);
-        } else {
-            // jika pembayaran dihapus => turunkan animasi pembayaran
-            try {
-                window.CandleManager?.applyPaymentDelta?.();
-                localStorage.setItem('candle_payment_delta', JSON.stringify({ t: Date.now() }));
-            } catch (e) {}
-
-            alert('✅ RECORD PEMBAYARAN BERHASIL DIHAPUS. Stok dikembalikan dan sales_history dihapus.');
-            await loadPayments();
         }
     } catch (err) {
         console.error('Error deleting payment:', err);
@@ -1581,6 +1651,18 @@ async function loadBestSellingProduct(startDate, endDate) {
     } catch (error) {
         console.error('Error loading best selling product:', error);
     }
+}
+
+// Map online order status to payment status
+function mapOrderStatus(orderStatus) {
+    const statusMap = {
+        'pending': 'Belum Bayar',
+        'paid': 'Sudah Bayar',
+        'shipped': 'Sudah Bayar',
+        'delivered': 'Sudah Bayar',
+        'cancelled': 'Batal'
+    };
+    return statusMap[orderStatus] || 'Belum Bayar';
 }
 
 // Load recent online orders
