@@ -431,6 +431,8 @@ function updatePricePreview() {
     const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
     const hargaMemberDisplay = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
 
+    console.log('updatePricePreview - diskonPersen:', diskonPersen, 'hargaMemberDisplay:', hargaMemberDisplay, 'selectedProduct.harga_jual:', selectedProduct.harga_jual);
+
     // Display member price with discount info
     if (diskonPersen > 0) {
         const diskonAmount = selectedProduct.harga_jual * (diskonPersen / 100);
@@ -846,13 +848,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Add event listener to update price info when member selection changes
     const selectMemberEl = document.getElementById('selectMember');
     if (selectMemberEl) {
-        selectMemberEl.addEventListener('change', updatePricePreview);
+        console.log('Adding change event listener to selectMember');
+        selectMemberEl.addEventListener('change', () => {
+            console.log('Member selection changed');
+            updatePricePreview();
+        });
+    } else {
+        console.log('selectMember element not found');
     }
 
     // Add event listeners to update price when customer type radio buttons change
     const radioButtons = document.querySelectorAll('input[name="tipe_pembeli"]');
+    console.log('Found radio buttons:', radioButtons.length);
     radioButtons.forEach(radio => {
         radio.addEventListener('change', () => {
+            console.log('Radio button changed to:', radio.value);
             handleTypeChange();
             updatePricePreview();
         });
