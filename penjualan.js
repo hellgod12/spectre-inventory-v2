@@ -431,13 +431,11 @@ function updatePricePreview() {
     const hargaMemberDefaultEl = document.getElementById('hargaMemberDefault');
     if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_jual).toLocaleString('id-ID');
 
-    // Calculate dynamic member price based on selected member's discount
-    let hargaMemberDisplay = selectedProduct.harga_member;
-    if (tipePembeli === 'Member') {
-        const selectedMemberOption = selectMember.options[selectMember.selectedIndex];
-        const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
-        hargaMemberDisplay = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
-    }
+    // Calculate dynamic member price based on selected member's discount (always calculate like cashier system)
+    let hargaMemberDisplay = selectedProduct.harga_jual; // Default to retail price
+    const selectedMemberOption = selectMember.options[selectMember.selectedIndex];
+    const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
+    hargaMemberDisplay = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
     if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerText = 'Rp ' + Number(hargaMemberDisplay).toLocaleString('id-ID');
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
