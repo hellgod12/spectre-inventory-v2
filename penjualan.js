@@ -386,8 +386,16 @@ function updatePricePreview() {
         const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
         tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
     }
-    // Always use regular price when cart is empty
+    // Force regular price when cart is empty, regardless of radio button state
     const hargaDefault = (cart.length === 0) ? selectedProduct.harga_jual : (tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual);
+
+    console.log('Price calculation debug:', {
+        cartLength: cart.length,
+        tipePembeli,
+        harga_jual: selectedProduct.harga_jual,
+        harga_member: selectedProduct.harga_member,
+        hargaDefault
+    });
 
     let hargaOverride = null;
     if (hargaOverrideEl) {
