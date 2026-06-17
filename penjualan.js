@@ -386,7 +386,8 @@ function updatePricePreview() {
         const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
         tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
     }
-    const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
+    // Always use regular price when cart is empty
+    const hargaDefault = (cart.length === 0) ? selectedProduct.harga_jual : (tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual);
 
     let hargaOverride = null;
     if (hargaOverrideEl) {
