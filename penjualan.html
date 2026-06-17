@@ -189,6 +189,14 @@
         .cart-payment-options.hidden {
             display: none;
         }
+        .cart-customer-options {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--stroke);
+        }
+        .cart-customer-options.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body class="spectre-body">
@@ -332,27 +340,6 @@
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Customer Type</label>
-                                <div class="form-radio-group">
-                                    <label class="form-radio">
-                                        <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum">
-                                        <span>Regular Customer</span>
-                                    </label>
-                                    <label class="form-radio">
-                                        <input type="radio" name="tipe_pembeli" value="Member" id="typeMember">
-                                        <span>Member</span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div id="boxMemberSelect" class="form-group hidden">
-                                <label class="form-label">Select Member</label>
-                                <select id="selectMember" class="form-input">
-                                    <option value="">-- Select Member Phone --</option>
-                                </select>
-                            </div>
-
-                            <div class="form-group">
                                 <label class="form-label">Quantity</label>
                                 <input type="number" id="inputJumlah" class="form-input" min="1" value="1">
                             </div>
@@ -433,6 +420,30 @@
                                     <div class="cart-summary__row">
                                         <span class="cart-summary__label">Subtotal:</span>
                                         <span id="cartSubtotal" class="cart-summary__value">Rp 0</span>
+                                    </div>
+                                </div>
+
+                                <!-- Customer Options (shown only when cart has items) -->
+                                <div id="cartCustomerOptions" class="cart-customer-options hidden">
+                                    <div class="form-group">
+                                        <label class="form-label">Customer Type</label>
+                                        <div class="form-radio-group">
+                                            <label class="form-radio">
+                                                <input type="radio" name="tipe_pembeli" value="Umum" checked id="typeUmum">
+                                                <span>Regular Customer</span>
+                                            </label>
+                                            <label class="form-radio">
+                                                <input type="radio" name="tipe_pembeli" value="Member" id="typeMember">
+                                                <span>Member</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div id="boxMemberSelect" class="form-group hidden">
+                                        <label class="form-label">Select Member</label>
+                                        <select id="selectMember" class="form-input">
+                                            <option value="">-- Select Member Phone --</option>
+                                        </select>
                                     </div>
                                 </div>
 

@@ -152,7 +152,9 @@ function addToCart() {
         return;
     }
 
-    const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
+    // Read customer type from cart section if available, otherwise from main form
+    const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
+    const tipePembeli = tipePembeliEl ? tipePembeliEl.value : 'Umum';
     const hargaDefault = tipePembeli === 'Member' ? selectedProduct.harga_member : selectedProduct.harga_jual;
 
     let hargaOverride = null;
@@ -199,6 +201,7 @@ function updateCartDisplay() {
     const cartItemsEl = document.getElementById('cartItems');
     const cartCountEl = document.getElementById('cartCount');
     const cartSubtotalEl = document.getElementById('cartSubtotal');
+    const cartCustomerOptionsEl = document.getElementById('cartCustomerOptions');
     const cartPaymentOptionsEl = document.getElementById('cartPaymentOptions');
 
     if (!cartItemsEl || !cartCountEl || !cartSubtotalEl) return;
@@ -207,6 +210,7 @@ function updateCartDisplay() {
         cartItemsEl.innerHTML = '<p class="cart-placeholder">No items in cart</p>';
         cartCountEl.textContent = '0 items';
         cartSubtotalEl.textContent = 'Rp 0';
+        if (cartCustomerOptionsEl) cartCustomerOptionsEl.classList.add('hidden');
         if (cartPaymentOptionsEl) cartPaymentOptionsEl.classList.add('hidden');
         return;
     }
@@ -236,7 +240,8 @@ function updateCartDisplay() {
     cartCountEl.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
     cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
     
-    // Show payment options when cart has items
+    // Show customer and payment options when cart has items
+    if (cartCustomerOptionsEl) cartCustomerOptionsEl.classList.remove('hidden');
     if (cartPaymentOptionsEl) {
         cartPaymentOptionsEl.classList.remove('hidden');
         // Update partial payment summary with cart subtotal
@@ -339,12 +344,14 @@ async function initTerminalData() {
 function handleTypeChange() {
     const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
     if (tipePembeli === 'Member') {
-        boxMemberSelect.classList.remove('hidden');
-        selectMember.setAttribute('required', 'true');
+        if (boxMemberSelect) boxMemberSelect.classList.remove('hidden');
+        if (selectMember) selectMember.setAttribute('required', 'true');
     } else {
-        boxMemberSelect.classList.add('hidden');
-        selectMember.removeAttribute('required');
-        selectMember.value = "";
+        if (boxMemberSelect) boxMemberSelect.classList.add('hidden');
+        if (selectMember) {
+            selectMember.removeAttribute('required');
+            selectMember.value = "";
+        }
     }
     updatePricePreview();
 }
@@ -594,8 +601,10 @@ salesForm.addEventListener('submit', async (e) => {
         return alert('[ALARM] GAGAL: KERANJANG KOSONG. Tambahkan barang terlebih dahulu.');
     }
 
-    const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
-    const nomorTelpInfo = selectMember.value; 
+    // Read customer type from cart section
+    const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
+    const tipePembeli = tipePembeliEl ? tipePembeliEl.value : 'Umum';
+    const nomorTelpInfo = selectMember ? selectMember.value : ''; 
     
     // Format struktur orang untuk disimpan ke sales_history (misal: "Member (08123456)")
     const identitasPembeli = tipePembeli === 'Member' ? `Member (${nomorTelpInfo})` : 'Umum';
