@@ -83,13 +83,14 @@ function initDOM() {
 async function loadProducts() {
     try {
         const { data, error } = await supabase
-            .from('barang')
-            .select('*')
+            .from('products')
+            .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
+            .eq('is_active', true)
             .order('nama_barang', { ascending: true });
         
         if (error) throw error;
         
-        POS.products = data;
+        POS.products = data || [];
         populateProductDropdown();
     } catch (error) {
         console.error('Error loading products:', error);
@@ -334,51 +335,122 @@ async function processSale(e) {
     // Calculate payment amounts
     let paidAmount = 0;
     let remainingAmount = total;
+    let invoiceStatus = 'paid';
     
     if (POS.paymentStatus === 'paid_full') {
         paidAmount = total;
         remainingAmount = 0;
+        invoiceStatus = 'paid';
     } else if (POS.paymentStatus === 'partial') {
         paidAmount = parseFloat(DOM.amountPaidCheckout?.value) || 0;
         remainingAmount = total - paidAmount;
+        invoiceStatus = 'partial';
+    } else if (POS.paymentStatus === 'pay_later') {
+        paidAmount = 0;
+        remainingAmount = total;
+        invoiceStatus = 'pending';
     }
     
     // Generate invoice number
     const invoiceNumber = 'INV-' + Date.now();
     
-    // Build sale record
-    const saleRecord = {
-        invoice_number: invoiceNumber,
-        tanggal: new Date().toISOString(),
-        items: POS.cart,
+    // Build buyer identity
+    const buyerIdentity = POS.customerType === 'Member' && POS.selectedMember 
+        ? POS.selectedMember.nomor_telp 
+        : POS.customerType;
+    
+    // Build product summary for payments table
+    const productSummary = POS.cart.map(item => {
+        const sizeInfo = item.ukuran ? ` (${item.ukuran})` : '';
+        return `${item.nama_barang}${sizeInfo} x${item.jumlah}`;
+    }).join(', ');
+    
+    // Create payment record (matching old POS structure)
+    const paymentRecord = {
+        id: 'pay_' + Date.now(),
+        buyer: buyerIdentity,
+        product: productSummary,
+        ukuran: null,
+        jumlah: POS.cart.reduce((sum, item) => sum + item.jumlah, 0),
         total_harga: total,
-        tipe_pembeli: POS.customerType,
-        nomor_telp_info: POS.selectedMember?.nomor_telp || '',
-        metode_pembayaran: POS.paymentMethod,
-        payment_status: POS.paymentStatus,
         paid_amount: paidAmount,
         remaining_amount: remainingAmount,
-        invoice_status: POS.paymentStatus === 'paid_full' ? 'paid' : 'pending'
+        method: POS.paymentMethod,
+        status: invoiceStatus,
+        invoice_number: invoiceNumber,
+        confirmed_at: invoiceStatus === 'paid' ? new Date().toISOString() : null,
+        created_at: new Date().toISOString()
     };
     
     try {
-        // Insert sale record
-        const { error: saleError } = await supabase
-            .from('sales_history')
-            .insert([saleRecord]);
+        // Insert payment record (matching old POS)
+        const { data: paymentData, error: payErr } = await supabase
+            .from('payments')
+            .insert([{
+                id: paymentRecord.id,
+                buyer: paymentRecord.buyer,
+                product: paymentRecord.product,
+                ukuran: paymentRecord.ukuran,
+                jumlah: paymentRecord.jumlah,
+                total_harga: paymentRecord.total_harga,
+                paid_amount: paymentRecord.paid_amount,
+                remaining_amount: paymentRecord.remaining_amount,
+                method: paymentRecord.method,
+                status: paymentRecord.status,
+                invoice_number: paymentRecord.invoice_number,
+                confirmed_at: paymentRecord.confirmed_at,
+                created_at: paymentRecord.created_at
+            }])
+            .select();
         
-        if (saleError) throw saleError;
+        if (payErr) throw payErr;
         
-        // Update stock
+        // Process each cart item: cut stock and save to sales_history
+        let stockUpdateErrors = [];
+        let historyErrors = [];
+        
         for (const item of POS.cart) {
+            // 1. Update stock
             const product = POS.products.find(p => p.id == item.productId);
-            if (product) {
-                const newStock = product.stok - item.jumlah;
-                await supabase
-                    .from('barang')
-                    .update({ stok: newStock })
-                    .eq('id', product.id);
+            if (!product) {
+                stockUpdateErrors.push(`Product not found: ${item.nama_barang}`);
+                continue;
             }
+            
+            const newStock = product.stok - item.jumlah;
+            const { error: updateError } = await supabase
+                .from('products')
+                .update({ stok: newStock })
+                .eq('id', product.id);
+            
+            if (updateError) {
+                stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError.message}`);
+                continue;
+            }
+            
+            // 2. Save to sales_history (matching old POS structure)
+            const { error: historyError } = await supabase
+                .from('sales_history')
+                .insert([{
+                    payment_id: paymentRecord.id,
+                    product_id: item.productId,
+                    nama_barang: item.nama_barang,
+                    kategori: item.kategori,
+                    ukuran: item.ukuran || null,
+                    jumlah: item.jumlah,
+                    total_harga: item.totalPrice,
+                    tipe_pembeli: buyerIdentity
+                }]);
+            
+            if (historyError) {
+                historyErrors.push(`Failed to save history for ${item.nama_barang}: ${historyError.message}`);
+            }
+        }
+        
+        // Check for errors
+        if (stockUpdateErrors.length > 0 || historyErrors.length > 0) {
+            const errorMsg = [...stockUpdateErrors, ...historyErrors].join('\n');
+            alert('Sale completed with errors:\n' + errorMsg);
         }
         
         // Clear cart
