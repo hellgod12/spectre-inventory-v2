@@ -457,6 +457,10 @@ function updatePricePreview() {
     // Update price preview
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
+    
+    // Update summary quantity in checkout summary
+    const summaryQuantityEl = document.getElementById('summaryQuantity');
+    if (summaryQuantityEl) summaryQuantityEl.innerText = jumlah;
 
     // Update price information display with actual harga_jual from database
     const hargaUmumDefaultEl = document.getElementById('hargaUmumDefault');
