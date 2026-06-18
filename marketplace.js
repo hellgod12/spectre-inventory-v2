@@ -436,6 +436,39 @@ async function handleImportOrder(e) {
                 tax: tax
             });
         
+        // Deduct stock from products table
+        try {
+            const { data: currentProduct, error: fetchError } = await supabaseClient
+                .from('products')
+                .select('stok')
+                .eq('id', productId)
+                .single();
+            
+            if (fetchError) {
+                console.error('Failed to fetch current stock:', fetchError);
+                alert('Order added but stock deduction failed. Manual adjustment required.');
+            } else if (currentProduct) {
+                const newStock = currentProduct.stok - quantity;
+                if (newStock < 0) {
+                    console.error('Insufficient stock for marketplace order');
+                    alert('Warning: Order added but stock is insufficient. Current stock: ' + currentProduct.stok + ', Requested: ' + quantity);
+                } else {
+                    const { error: updateError } = await supabaseClient
+                        .from('products')
+                        .update({ stok: newStock })
+                        .eq('id', productId);
+                    
+                    if (updateError) {
+                        console.error('Failed to deduct stock:', updateError);
+                        alert('Order added but stock deduction failed. Manual adjustment required.');
+                    }
+                }
+            }
+        } catch (stockError) {
+            console.error('Stock deduction error:', stockError);
+            alert('Order added but stock deduction failed. Manual adjustment required.');
+        }
+        
         alert('Order added successfully!');
         closeImportModal();
         await loadOrders();
@@ -448,12 +481,80 @@ async function handleImportOrder(e) {
 // Update order status action
 async function updateOrderStatusAction(orderId, status) {
     try {
+        // Get current order status to prevent duplicate stock deduction
+        const { data: currentOrder, error: fetchError } = await supabaseClient
+            .from('online_orders')
+            .select('order_status')
+            .eq('id', orderId)
+            .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Determine if this is a status change that requires stock deduction
+        const previousStatus = currentOrder.order_status;
+        const finalStatuses = ['shipped', 'delivered', 'completed'];
+        const intermediateStatuses = ['pending', 'processing'];
+        
+        const isTransitionToFinal = finalStatuses.includes(status.toLowerCase()) && 
+                                    intermediateStatuses.includes(previousStatus.toLowerCase());
+        
+        // Update order status
         const { error } = await supabaseClient
             .from('online_orders')
             .update({ order_status: status })
             .eq('id', orderId);
         
         if (error) throw error;
+        
+        // Deduct stock if transitioning to final status
+        if (isTransitionToFinal) {
+            try {
+                // Get order items
+                const { data: orderItems, error: itemsError } = await supabaseClient
+                    .from('order_items')
+                    .select('product_id, quantity')
+                    .eq('online_order_id', orderId);
+                
+                if (itemsError) {
+                    console.error('Failed to fetch order items for stock deduction:', itemsError);
+                    alert(`Order marked as ${status}, but stock deduction failed. Manual adjustment required.`);
+                } else if (orderItems && orderItems.length > 0) {
+                    // Deduct stock for each item
+                    for (const item of orderItems) {
+                        try {
+                            const { data: currentProduct, error: fetchProductError } = await supabaseClient
+                                .from('products')
+                                .select('stok')
+                                .eq('id', item.product_id)
+                                .single();
+                            
+                            if (fetchProductError) {
+                                console.error('Failed to fetch product stock:', fetchProductError);
+                            } else if (currentProduct) {
+                                const newStock = currentProduct.stok - item.quantity;
+                                if (newStock >= 0) {
+                                    const { error: updateError } = await supabaseClient
+                                        .from('products')
+                                        .update({ stok: newStock })
+                                        .eq('id', item.product_id);
+                                    
+                                    if (updateError) {
+                                        console.error('Failed to deduct stock for product:', item.product_id, updateError);
+                                    }
+                                } else {
+                                    console.warn('Insufficient stock for product:', item.product_id, 'Current:', currentProduct.stok, 'Requested:', item.quantity);
+                                }
+                            }
+                        } catch (stockError) {
+                            console.error('Stock deduction error for item:', item.product_id, stockError);
+                        }
+                    }
+                }
+            } catch (stockDeductionError) {
+                console.error('Stock deduction process failed:', stockDeductionError);
+                alert(`Order marked as ${status}, but stock deduction failed. Manual adjustment required.`);
+            }
+        }
         
         alert(`Order marked as ${status}`);
         closeOrderModal();

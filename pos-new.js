@@ -307,6 +307,14 @@ function removeFromCart(cartItemId) {
     updateCartDisplay();
 }
 
+// Utility function to escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Update Cart Display
 function updateCartDisplay() {
     if (!DOM.cartItems || !DOM.cartCount || !DOM.cartTotal) return;
@@ -318,28 +326,56 @@ function updateCartDisplay() {
         return;
     }
     
-    let html = '';
+    // Use DOM API instead of innerHTML for security
+    DOM.cartItems.innerHTML = '';
+    
     POS.cart.forEach(item => {
-        // Handle null/empty ukuran in cart display
-        const variantInfo = item.ukuran ? `<span>Variant: ${item.ukuran}</span>` : '';
+        const cartItemDiv = document.createElement('div');
+        cartItemDiv.className = 'cart-item';
         
-        html += `
-            <div class="cart-item">
-                <div class="cart-item-info">
-                    <div class="cart-item-name">${item.nama_barang.toUpperCase()}</div>
-                    <div class="cart-item-details">
-                        <span>Qty: ${item.jumlah}</span>
-                        ${variantInfo}
-                        <span>Unit: Rp ${item.unitPrice.toLocaleString('id-ID')}</span>
-                    </div>
-                </div>
-                <div class="cart-item-price">Rp ${item.totalPrice.toLocaleString('id-ID')}</div>
-                <button class="cart-item-remove" onclick="removeFromCart(${item.id})">Remove</button>
-            </div>
-        `;
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'cart-item-info';
+        
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'cart-item-name';
+        nameDiv.textContent = item.nama_barang.toUpperCase();
+        
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'cart-item-details';
+        
+        const qtySpan = document.createElement('span');
+        qtySpan.textContent = 'Qty: ' + item.jumlah;
+        detailsDiv.appendChild(qtySpan);
+        
+        if (item.ukuran) {
+            const variantSpan = document.createElement('span');
+            variantSpan.textContent = 'Variant: ' + item.ukuran;
+            detailsDiv.appendChild(variantSpan);
+        }
+        
+        const unitSpan = document.createElement('span');
+        unitSpan.textContent = 'Unit: Rp ' + item.unitPrice.toLocaleString('id-ID');
+        detailsDiv.appendChild(unitSpan);
+        
+        infoDiv.appendChild(nameDiv);
+        infoDiv.appendChild(detailsDiv);
+        
+        const priceDiv = document.createElement('div');
+        priceDiv.className = 'cart-item-price';
+        priceDiv.textContent = 'Rp ' + item.totalPrice.toLocaleString('id-ID');
+        
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'cart-item-remove';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => removeFromCart(item.id);
+        
+        cartItemDiv.appendChild(infoDiv);
+        cartItemDiv.appendChild(priceDiv);
+        cartItemDiv.appendChild(removeBtn);
+        
+        DOM.cartItems.appendChild(cartItemDiv);
     });
     
-    DOM.cartItems.innerHTML = html;
     DOM.cartCount.textContent = `${POS.cart.length} item${POS.cart.length > 1 ? 's' : ''}`;
     
     const total = calculateTotal();
@@ -433,12 +469,28 @@ function handlePaymentMethodChange(method) {
 }
 
 // Process Sale
+let isProcessingSale = false; // Flag to prevent double-submit
+
 async function processSale(e) {
     e.preventDefault();
+    
+    // Prevent double-submit
+    if (isProcessingSale) {
+        alert('Sale is already being processed. Please wait...');
+        return;
+    }
     
     if (POS.cart.length === 0) {
         alert('Cart is empty');
         return;
+    }
+    
+    // Set processing flag and disable button
+    isProcessingSale = true;
+    const btnProses = DOM.btnProses || document.getElementById('btnProses');
+    if (btnProses) {
+        btnProses.disabled = true;
+        btnProses.textContent = 'Processing...';
     }
     
     const total = calculateTotal();
@@ -454,6 +506,30 @@ async function processSale(e) {
         invoiceStatus = 'paid';
     } else if (POS.paymentStatus === 'partial') {
         paidAmount = parseFloat(DOM.amountPaidCheckout?.value) || 0;
+        
+        // Validate payment amount
+        if (paidAmount < 0) {
+            alert('Payment amount cannot be negative');
+            isProcessingSale = false;
+            const btnProses = DOM.btnProses || document.getElementById('btnProses');
+            if (btnProses) {
+                btnProses.disabled = false;
+                btnProses.textContent = 'Process Sale';
+            }
+            return;
+        }
+        
+        if (paidAmount > total) {
+            alert(`Payment amount (Rp ${paidAmount.toLocaleString('id-ID')}) cannot exceed total (Rp ${total.toLocaleString('id-ID')})`);
+            isProcessingSale = false;
+            const btnProses = DOM.btnProses || document.getElementById('btnProses');
+            if (btnProses) {
+                btnProses.disabled = false;
+                btnProses.textContent = 'Process Sale';
+            }
+            return;
+        }
+        
         remainingAmount = total - paidAmount;
         invoiceStatus = 'partial';
     } else if (POS.paymentStatus === 'pay_later') {
@@ -523,38 +599,22 @@ async function processSale(e) {
         
         try {
             for (const item of POS.cart) {
-                // 1. Fetch CURRENT stock from database (not in-memory)
-                const { data: currentProduct, error: fetchError } = await supabaseClient
+                // Use atomic stock decrement to prevent race conditions
+                // This is a single atomic operation at database level
+                const { data: updatedProduct, error: updateError } = await supabaseClient
                     .from('products')
-                    .select('stok')
+                    .update({ stok: supabaseClient.raw('stok - ?', [item.jumlah]) })
                     .eq('id', item.productId)
+                    .gte('stok', item.jumlah)
+                    .select('stok')
                     .single();
                 
-                if (fetchError || !currentProduct) {
-                    stockUpdateErrors.push(`Failed to fetch current stock for ${item.nama_barang}: ${fetchError?.message || 'Product not found'}`);
+                if (updateError || !updatedProduct) {
+                    stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError?.message || 'Insufficient stock'}`);
                     continue;
                 }
                 
-                // 2. Validate stock availability
-                if (currentProduct.stok < item.jumlah) {
-                    stockUpdateErrors.push(`Insufficient stock for ${item.nama_barang} (${item.ukuran || 'Standard'}). Available: ${currentProduct.stok}, Requested: ${item.jumlah}`);
-                    continue;
-                }
-                
-                // 3. Update stock with atomic operation
-                const newStock = currentProduct.stok - item.jumlah;
-                const { error: updateError } = await supabaseClient
-                    .from('products')
-                    .update({ stok: newStock })
-                    .eq('id', item.productId)
-                    .gt('stok', item.jumlah - 1); // Ensure stock is still sufficient
-                
-                if (updateError) {
-                    stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError.message}`);
-                    continue;
-                }
-                
-                // 4. Save to sales_history (matching old POS structure)
+                // Save to sales_history (matching old POS structure)
                 const { error: historyError } = await supabaseClient
                     .from('sales_history')
                     .insert([{
@@ -565,6 +625,8 @@ async function processSale(e) {
                         ukuran: item.ukuran || null,
                         jumlah: item.jumlah,
                         total_harga: item.totalPrice,
+                        harga_modal: item.hargaModal,
+                        profit: item.totalPrice - (item.hargaModal * item.jumlah),
                         tipe_pembeli: buyerIdentity
                     }]);
                 
@@ -573,18 +635,40 @@ async function processSale(e) {
                     // Rollback stock deduction
                     await supabaseClient
                         .from('products')
-                        .update({ stok: currentProduct.stok })
+                        .update({ stok: supabaseClient.raw('stok + ?', [item.jumlah]) })
                         .eq('id', item.productId);
                     continue;
                 }
                 
-                processedItems.push({ item, originalStock: currentProduct.stok });
+                processedItems.push({ item, newStock: updatedProduct.stok });
             }
             
-            // Check for critical errors
+            // Check for critical errors - rollback entire transaction if any errors occurred
             if (stockUpdateErrors.length > 0 || historyErrors.length > 0) {
                 const errorMsg = [...stockUpdateErrors, ...historyErrors].join('\n');
-                alert('Sale completed with errors:\n' + errorMsg);
+                console.error('Transaction failed with errors, rolling back:', errorMsg);
+                
+                // Rollback all stock deductions
+                for (const processed of processedItems) {
+                    try {
+                        await supabaseClient
+                            .from('products')
+                            .update({ stok: supabaseClient.raw('stok + ?', [processed.item.jumlah]) })
+                            .eq('id', processed.item.productId);
+                    } catch (rollbackError) {
+                        console.error('Failed to rollback stock for item:', processed.item.nama_barang, rollbackError);
+                    }
+                }
+                
+                // Delete payment record since sale failed
+                try {
+                    await supabaseClient.from('payments').delete().eq('id', paymentRecord.id);
+                } catch (deleteError) {
+                    console.error('Failed to delete payment record:', deleteError);
+                }
+                
+                alert('Transaction failed and rolled back:\n' + errorMsg + '\n\nPlease try again.');
+                throw new Error('Transaction failed with errors');
             }
             
         } catch (error) {
@@ -623,6 +707,14 @@ async function processSale(e) {
     } catch (error) {
         console.error('Error processing sale:', error);
         alert('Failed to process sale: ' + error.message);
+    } finally {
+        // Reset processing flag and re-enable button
+        isProcessingSale = false;
+        const btnProses = DOM.btnProses || document.getElementById('btnProses');
+        if (btnProses) {
+            btnProses.disabled = false;
+            btnProses.textContent = 'Process Sale';
+        }
     }
 }
 

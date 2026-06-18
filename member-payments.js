@@ -226,24 +226,41 @@ async function cancelPayment(paymentId) {
         const { data: salesHistory } = await supabaseClient.from('sales_history').select('*').eq('payment_id', paymentId);
 
         if (salesHistory && salesHistory.length > 0) {
-            // Restore stock for each sales record
+            let stockRestoreErrors = [];
+            
+            // Restore stock for each sales record using atomic increment
             for (const sale of salesHistory) {
-                const { data: product } = await supabaseClient.from('products').select('stok').eq('id', sale.product_id).single();
-
-                if (product) {
-                    const newStock = product.stok + sale.jumlah;
-                    await supabaseClient.from('products').update({ stok: newStock }).eq('id', sale.product_id);
+                try {
+                    const { data: updatedProduct, error: updateError } = await supabaseClient
+                        .from('products')
+                        .update({ stok: supabaseClient.raw('stok + ?', [sale.jumlah]) })
+                        .eq('id', sale.product_id)
+                        .select('stok')
+                        .single();
+                    
+                    if (updateError || !updatedProduct) {
+                        stockRestoreErrors.push(`Failed to restore stock for ${sale.nama_barang}: ${updateError?.message || 'Product not found'}`);
+                    }
+                } catch (stockError) {
+                    stockRestoreErrors.push(`Stock restore error for ${sale.nama_barang}: ${stockError.message}`);
                 }
+            }
+            
+            // Only update payment status if all stock restoration succeeded
+            if (stockRestoreErrors.length > 0) {
+                const errorMsg = stockRestoreErrors.join('\n');
+                alert(`Payment NOT cancelled. Stock restoration failed:\n${errorMsg}\n\nPlease try again or contact administrator.`);
+                return;
             }
         }
 
-        // Update payment status to cancelled
+        // Update payment status to cancelled (only if stock restoration succeeded)
         const { error } = await supabaseClient.from('payments').update({ status: 'cancelled' }).eq('id', paymentId);
 
         if (error) {
-            alert('Failed to cancel payment: ' + error.message);
+            alert('Stock restored but failed to cancel payment status. Manual adjustment required: ' + error.message);
         } else {
-            alert('Payment cancelled and stock restored');
+            alert('Payment cancelled and stock restored successfully');
             loadMemberPayments();
         }
     } catch (err) {

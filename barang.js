@@ -326,6 +326,22 @@ productForm.addEventListener('submit', async (e) => {
         return;
     }
 
+    // Validate price relationships
+    if (harga_jual < harga_modal) {
+        alert(`Selling price (Rp ${harga_jual.toLocaleString('id-ID')}) cannot be less than cost price (Rp ${harga_modal.toLocaleString('id-ID')}).`);
+        return;
+    }
+
+    if (harga_member < harga_modal) {
+        alert(`Member price (Rp ${harga_member.toLocaleString('id-ID')}) cannot be less than cost price (Rp ${harga_modal.toLocaleString('id-ID')}).`);
+        return;
+    }
+
+    if (harga_member > harga_jual) {
+        alert(`Member price (Rp ${harga_member.toLocaleString('id-ID')}) cannot be greater than selling price (Rp ${harga_jual.toLocaleString('id-ID')}).`);
+        return;
+    }
+
     // Generate product records for each variant
     const productRecords = [];
     for (let i = 0; i < variants.length; i++) {

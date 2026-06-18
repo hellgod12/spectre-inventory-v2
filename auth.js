@@ -1,6 +1,14 @@
 // Authentication and Role Management System
-const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
+// SECURITY NOTE: In production, these should be set as environment variables
+// For Vercel deployment: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in project settings
+// For local development: Create .env file with these variables
+const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 
+                     process.env?.VITE_SUPABASE_URL || 
+                     'https://kbaltquoajrmpixgsiec.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 
+                         process.env?.VITE_SUPABASE_ANON_KEY || 
+                         'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
+
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
         persistSession: true,
@@ -139,16 +147,35 @@ function hideElementsForCashier() {
     }
 }
 
+// Utility function to escape HTML to prevent XSS
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Show user info in UI
 function showUserInfo() {
     const userInfoEl = document.getElementById('userInfo');
     if (userInfoEl) {
-        userInfoEl.innerHTML = `
-            <div class="flex items-center gap-2">
-                <span class="text-sm font-semibold">${currentUserEmail}</span>
-                <span class="text-xs px-2 py-1 rounded ${currentUserRole === 'ADMIN' ? 'bg-purple-600/20 text-purple-400' : 'bg-blue-600/20 text-blue-400'}">${currentUserRole}</span>
-            </div>
-        `;
+        // Use DOM API instead of innerHTML for security
+        const container = document.createElement('div');
+        container.className = 'flex items-center gap-2';
+        
+        const emailSpan = document.createElement('span');
+        emailSpan.className = 'text-sm font-semibold';
+        emailSpan.textContent = currentUserEmail;
+        
+        const roleSpan = document.createElement('span');
+        roleSpan.className = `text-xs px-2 py-1 rounded ${currentUserRole === 'ADMIN' ? 'bg-purple-600/20 text-purple-400' : 'bg-blue-600/20 text-blue-400'}`;
+        roleSpan.textContent = currentUserRole;
+        
+        container.appendChild(emailSpan);
+        container.appendChild(roleSpan);
+        
+        userInfoEl.innerHTML = '';
+        userInfoEl.appendChild(container);
     }
 }
 

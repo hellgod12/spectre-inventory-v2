@@ -45,28 +45,69 @@ async function loadMemberKPIs() {
         const memberInsightsEl = document.getElementById('memberInsights');
         if (memberInsightsEl && members && members.length > 0) {
             const recentMembers = members.slice(-3).reverse();
-            let insightsHtml = '<div class="space-y-3">';
-            insightsHtml += '<div class="text-xs uppercase tracking-wide text-muted mb-2">Recent Members</div>';
+            
+            // Use DOM API instead of innerHTML for security
+            const container = document.createElement('div');
+            container.className = 'space-y-3';
+            
+            const titleDiv = document.createElement('div');
+            titleDiv.className = 'text-xs uppercase tracking-wide text-muted mb-2';
+            titleDiv.textContent = 'Recent Members';
+            container.appendChild(titleDiv);
+            
             recentMembers.forEach(m => {
                 const initial = m.nama.charAt(0).toUpperCase();
                 const regDate = new Date(m.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-                const diskonDisplay = m.diskon_persen > 0 ? `<span class="text-xs text-emerald-400 font-bold">${m.diskon_persen}% OFF</span>` : '<span class="text-xs text-slate-500">0% OFF</span>';
-                insightsHtml += `<div class="member-insights-item">
-                    <div class="member-insights-avatar">
-                        ${initial}
-                    </div>
-                    <div class="member-insights-info">
-                        <div class="member-insights-name">${m.nama}</div>
-                        <div class="member-insights-phone">${m.telepon}</div>
-                        <div class="member-insights-discount">${diskonDisplay}</div>
-                    </div>
-                    <div class="member-insights-date">
-                        ${regDate}
-                    </div>
-                </div>`;
+                
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'member-insights-item';
+                
+                const avatarDiv = document.createElement('div');
+                avatarDiv.className = 'member-insights-avatar';
+                avatarDiv.textContent = initial;
+                
+                const infoDiv = document.createElement('div');
+                infoDiv.className = 'member-insights-info';
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = 'member-insights-name';
+                nameDiv.textContent = m.nama;
+                
+                const phoneDiv = document.createElement('div');
+                phoneDiv.className = 'member-insights-phone';
+                phoneDiv.textContent = m.telepon;
+                
+                const discountDiv = document.createElement('div');
+                discountDiv.className = 'member-insights-discount';
+                if (m.diskon_persen > 0) {
+                    const discountSpan = document.createElement('span');
+                    discountSpan.className = 'text-xs text-emerald-400 font-bold';
+                    discountSpan.textContent = m.diskon_persen + '% OFF';
+                    discountDiv.appendChild(discountSpan);
+                } else {
+                    const discountSpan = document.createElement('span');
+                    discountSpan.className = 'text-xs text-slate-500';
+                    discountSpan.textContent = '0% OFF';
+                    discountDiv.appendChild(discountSpan);
+                }
+                
+                const dateDiv = document.createElement('div');
+                dateDiv.className = 'member-insights-date';
+                dateDiv.textContent = regDate;
+                
+                infoDiv.appendChild(nameDiv);
+                infoDiv.appendChild(phoneDiv);
+                infoDiv.appendChild(discountDiv);
+                
+                itemDiv.appendChild(avatarDiv);
+                itemDiv.appendChild(infoDiv);
+                itemDiv.appendChild(dateDiv);
+                
+                container.appendChild(itemDiv);
             });
-            insightsHtml += '</div>';
-            memberInsightsEl.innerHTML = insightsHtml;
+            
+            memberInsightsEl.innerHTML = '';
+            memberInsightsEl.appendChild(container);
         }
 
         loadMemberTable(members, payments);
