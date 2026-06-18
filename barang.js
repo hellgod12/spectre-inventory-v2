@@ -300,8 +300,8 @@ productForm.addEventListener('submit', async (e) => {
     const image_url = document.getElementById('image_url').value || null;
 
     // Parse variants and stock
-    const variants = variantsInput.split(',').map(v => v.trim()).filter(Boolean);
-    const stocks = stockPerVariantInput.split(',').map(s => parseInt(s.trim())).filter(s => !isNaN(s));
+    const variants = variantsInput.split(',').map(v => v.trim()).filter(v => v.length > 0);
+    const stocks = stockPerVariantInput.split(',').map(s => parseInt(s.trim())).filter(s => !isNaN(s) && s >= 0);
 
     // Validate
     if (variants.length === 0) {
@@ -309,8 +309,20 @@ productForm.addEventListener('submit', async (e) => {
         return;
     }
 
+    if (stocks.length === 0) {
+        alert('Please enter stock quantities for each variant');
+        return;
+    }
+
     if (variants.length !== stocks.length) {
         alert(`Variants count (${variants.length}) must match stock count (${stocks.length})`);
+        return;
+    }
+
+    // Check for duplicate variant names
+    const uniqueVariants = new Set(variants);
+    if (uniqueVariants.size !== variants.length) {
+        alert('Duplicate variant names detected. Each variant must be unique.');
         return;
     }
 

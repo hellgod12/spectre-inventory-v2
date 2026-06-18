@@ -103,12 +103,20 @@ async function loadProducts() {
         POS.products = data || [];
         
         // Group products by nama_barang for variant selection
+        // Use composite key to avoid collisions with same name but different categories
         POS.groupedProducts = {};
+        POS.productDisplayNames = {}; // Maps composite key to display name
+        
         POS.products.forEach(product => {
-            if (!POS.groupedProducts[product.nama_barang]) {
-                POS.groupedProducts[product.nama_barang] = [];
+            // Create composite key: nama_barang + kategori
+            const compositeKey = `${product.nama_barang}|||${product.kategori || ''}`;
+            const displayName = product.nama_barang; // Display only nama_barang to user
+            
+            if (!POS.groupedProducts[compositeKey]) {
+                POS.groupedProducts[compositeKey] = [];
+                POS.productDisplayNames[compositeKey] = displayName;
             }
-            POS.groupedProducts[product.nama_barang].push(product);
+            POS.groupedProducts[compositeKey].push(product);
         });
         
         populateProductDropdown();
@@ -124,25 +132,34 @@ function populateProductDropdown() {
     
     DOM.selectProduct.innerHTML = '<option value="">-- Select --</option>';
     
-    // Show unique product names only
-    Object.keys(POS.groupedProducts).forEach(productName => {
+    // Show unique product names using composite keys
+    Object.keys(POS.groupedProducts).forEach(compositeKey => {
+        const displayName = POS.productDisplayNames[compositeKey] || compositeKey;
         const option = document.createElement('option');
-        option.value = productName;
-        option.textContent = productName;
+        option.value = compositeKey; // Store composite key as value
+        option.textContent = displayName; // Display only nama_barang to user
         DOM.selectProduct.appendChild(option);
     });
 }
 
 // Handle product selection - show variant dropdown
 function handleProductSelection() {
-    const productName = DOM.selectProduct?.value;
-    if (!productName) {
+    const compositeKey = DOM.selectProduct?.value;
+    if (!compositeKey) {
         DOM.boxVariantSelect?.classList.add('hidden');
         POS.selectedVariant = null;
         return;
     }
     
-    const variants = POS.groupedProducts[productName] || [];
+    const variants = POS.groupedProducts[compositeKey] || [];
+    
+    if (variants.length === 0) {
+        // No variants found - this shouldn't happen but handle gracefully
+        DOM.boxVariantSelect?.classList.add('hidden');
+        POS.selectedVariant = null;
+        alert('No variants found for this product');
+        return;
+    }
     
     if (variants.length > 1) {
         // Multiple variants - show dropdown
@@ -152,7 +169,9 @@ function handleProductSelection() {
         variants.forEach(variant => {
             const option = document.createElement('option');
             option.value = variant.id;
-            option.textContent = `${variant.ukuran} (${variant.stok} available)`;
+            // Handle null/empty ukuran display
+            const displayUkuran = variant.ukuran || 'Standard';
+            option.textContent = `${displayUkuran} (${variant.stok || 0} available)`;
             DOM.selectVariant.appendChild(option);
         });
         
@@ -172,12 +191,27 @@ function handleVariantSelection() {
         return;
     }
     
-    // Find selected variant from all products
-    for (const productName in POS.groupedProducts) {
-        const variant = POS.groupedProducts[productName].find(v => v.id == variantId);
-        if (variant) {
-            POS.selectedVariant = variant;
-            break;
+    // Get currently selected composite key for efficient lookup
+    const compositeKey = DOM.selectProduct?.value;
+    if (!compositeKey) {
+        POS.selectedVariant = null;
+        return;
+    }
+    
+    // Find variant in the selected product's variants only (more efficient)
+    const variants = POS.groupedProducts[compositeKey] || [];
+    const variant = variants.find(v => v.id == variantId);
+    
+    if (variant) {
+        POS.selectedVariant = variant;
+    } else {
+        // Fallback to search all products if not found (shouldn't happen)
+        for (const key in POS.groupedProducts) {
+            const found = POS.groupedProducts[key].find(v => v.id == variantId);
+            if (found) {
+                POS.selectedVariant = found;
+                break;
+            }
         }
     }
 }
@@ -210,8 +244,8 @@ async function loadMembers() {
 
 // Add to Cart
 function addToCart() {
-    const productName = DOM.selectProduct?.value;
-    if (!productName) {
+    const compositeKey = DOM.selectProduct?.value;
+    if (!compositeKey) {
         alert('Please select a product');
         return;
     }
@@ -230,8 +264,10 @@ function addToCart() {
         return;
     }
     
-    if (variant.stok < qty) {
-        alert(`Insufficient stock for variant ${variant.ukuran}. Available: ${variant.stok}`);
+    const availableStock = variant.stok || 0;
+    if (availableStock < qty) {
+        const displayUkuran = variant.ukuran || 'Standard';
+        alert(`Insufficient stock for variant ${displayUkuran}. Available: ${availableStock}`);
         return;
     }
     
@@ -284,6 +320,7 @@ function updateCartDisplay() {
     
     let html = '';
     POS.cart.forEach(item => {
+        // Handle null/empty ukuran in cart display
         const variantInfo = item.ukuran ? `<span>Variant: ${item.ukuran}</span>` : '';
         
         html += `
