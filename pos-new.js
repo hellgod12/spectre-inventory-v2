@@ -128,7 +128,7 @@ async function loadMembers() {
         const { data, error } = await supabaseClient
             .from('members')
             .select('*')
-            .order('nomor_telp', { ascending: true });
+            .order('nama', { ascending: true });
         
         if (error) throw error;
         
@@ -138,8 +138,8 @@ async function loadMembers() {
         
         data.forEach(member => {
             const option = document.createElement('option');
-            option.value = member.nomor_telp;
-            option.textContent = `${member.nama} (${member.nomor_telp})`;
+            option.value = member.telepon;
+            option.textContent = `${member.telepon} [${(member.nama || '').toUpperCase()}] - ${member.diskon_persen || 0}% OFF`;
             option.dataset.diskon = member.diskon_persen || 0;
             DOM.selectMember.appendChild(option);
         });
@@ -287,7 +287,7 @@ function handleMemberSelection() {
     const option = DOM.selectMember.querySelector(`option[value="${memberPhone}"]`);
     if (option) {
         POS.selectedMember = {
-            nomor_telp: memberPhone,
+            telepon: memberPhone,
             diskon_persen: parseInt(option.dataset.diskon) || 0
         };
     }
@@ -366,7 +366,7 @@ async function processSale(e) {
     
     // Build buyer identity
     const buyerIdentity = POS.customerType === 'Member' && POS.selectedMember 
-        ? POS.selectedMember.nomor_telp 
+        ? POS.selectedMember.telepon 
         : POS.customerType;
     
     // Build product summary for payments table
