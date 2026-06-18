@@ -145,11 +145,17 @@ function showSaleSuccess(message) {
 // Cart Management Functions
 function addToCart() {
     console.log('Add button clicked - addToCart() called');
+    console.log('Selected product ID:', selectProduct.value);
+    console.log('Selected size:', selectUkuran ? selectUkuran.value : null);
+    console.log('Qty:', inputJumlah ? inputJumlah.value : null);
     
     if (!selectedProduct) {
+        console.log('ERROR: selectedProduct is null/undefined');
         alert('[ALARM] GAGAL: PRODUK BELUM DIKUNCI.');
         return;
     }
+    
+    console.log('Found product:', selectedProduct);
 
     const jumlahJual = parseInt(inputJumlah.value);
     if (selectedProduct.stok < jumlahJual) {
@@ -196,8 +202,16 @@ function addToCart() {
         hargaModal: selectedProduct.harga_modal
     };
 
+    console.log('Cart before push:', cart);
+    console.log('Cart item to push:', cartItem);
+
     cart.push(cartItem);
+    
+    console.log('Cart after push:', cart);
+    console.log('Calling updateCartDisplay()');
+    
     updateCartDisplay();
+    console.log('updateCartDisplay() completed');
     // Clear form to make it clear cart is what matters for processing sale
     selectProduct.value = '';
     selectedProduct = null;
