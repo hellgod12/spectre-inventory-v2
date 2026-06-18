@@ -404,7 +404,7 @@ async function loadPayments() {
                                 ${payment.source === 'online' ? '<span class="text-[8px] bg-blue-900/50 text-blue-300 px-1.5 py-0.5 rounded font-bold uppercase">ONLINE</span>' : '<span class="text-[8px] bg-emerald-900/50 text-emerald-300 px-1.5 py-0.5 rounded font-bold uppercase">IN-STORE</span>'}
                             </div>
                             <div class="mt-1 text-[12px] font-bold text-white uppercase">${payment.product}</div>
-                            <div class="mt-1 text-[11px] text-slate-400">Ukuran: ${displayUkuran}</div>
+                            <div class="mt-1 text-[11px] text-slate-400">Variant: ${displayUkuran}</div>
                             <div class="mt-1 text-[11px] text-rose-400 font-bold">Jumlah: ${payment.jumlah}</div>
                             <div class="mt-1 text-[12px] text-emerald-400 font-bold">${formatCurrency(payment.total_harga)}</div>
                             <div class="mt-1 text-[11px] text-slate-400">${payment.method}</div>
@@ -431,7 +431,7 @@ async function loadPayments() {
                 <tr class="bg-black/60 border-b border-red-950 text-red-500/80 uppercase text-[10px]">
                     <th class="p-3 font-bold tracking-wider">PEMBELI</th>
                     <th class="p-3 font-bold tracking-wider">PRODUK</th>
-                    <th class="p-3 font-bold tracking-wider">UKURAN</th>
+                    <th class="p-3 font-bold tracking-wider">VARIANT</th>
                     <th class="p-3 font-bold text-center tracking-wider">JUMLAH</th>
                     <th class="p-3 font-bold tracking-wider">TOTAL</th>
 
@@ -1427,7 +1427,7 @@ async function loadDashboard() {
                                 <div class="text-[10px] font-mono text-muted mb-1">${item.sku || '-'}</div>
                                 <div class="text-[11px] text-white font-bold uppercase leading-4">${item.nama_barang}</div>
                                 <div class="mt-2 text-[11px] text-muted">${item.kategori || '-'}</div>
-                                <div class="mt-2 text-[11px] text-slate-400">Size: ${item.ukuran || '-'}</div>
+                                <div class="mt-2 text-[11px] text-slate-400">Variant: ${item.ukuran || '-'}</div>
                                 <div class="mt-2">${stockBadge}</div>
                                 <div class="mt-2 text-[11px] text-slate-500">
                                     Modal: Rp ${Number(item.harga_modal).toLocaleString('id-ID')}<br/>

@@ -291,18 +291,51 @@ productForm.addEventListener('submit', async (e) => {
     const nama_barang = document.getElementById('nama_barang').value;
     const sku = document.getElementById('sku').value;
     const kategori = document.getElementById('kategori').value;
-    const ukuran = document.getElementById('ukuran').value || null;
-    const stok = parseInt(document.getElementById('stok').value);
+    const variantsInput = document.getElementById('variants').value;
+    const stockPerVariantInput = document.getElementById('stock_per_variant').value;
     const harga_modal = parseFloat(document.getElementById('harga_modal').value);
     const harga_jual = parseFloat(document.getElementById('harga_jual').value);
     const harga_member = parseFloat(document.getElementById('harga_member').value);
     const low_stock_threshold = parseInt(document.getElementById('low_stock_threshold').value) || 5;
     const image_url = document.getElementById('image_url').value || null;
 
-    // Mengirimkan semua data termasuk variabel 'kategori' ke tabel Supabase
+    // Parse variants and stock
+    const variants = variantsInput.split(',').map(v => v.trim()).filter(Boolean);
+    const stocks = stockPerVariantInput.split(',').map(s => parseInt(s.trim())).filter(s => !isNaN(s));
+
+    // Validate
+    if (variants.length === 0) {
+        alert('Please enter at least one variant');
+        return;
+    }
+
+    if (variants.length !== stocks.length) {
+        alert(`Variants count (${variants.length}) must match stock count (${stocks.length})`);
+        return;
+    }
+
+    // Generate product records for each variant
+    const productRecords = [];
+    for (let i = 0; i < variants.length; i++) {
+        productRecords.push({
+            nama_barang,
+            sku: sku ? `${sku}-${variants[i]}` : null, // Append variant to SKU if SKU exists
+            kategori,
+            ukuran: variants[i], // Store variant in ukuran column for backward compatibility
+            stok: stocks[i],
+            harga_modal,
+            harga_jual,
+            harga_member,
+            low_stock_threshold,
+            image_url,
+            is_active: true
+        });
+    }
+
+    // Insert all product records
     const { data, error } = await supabaseClient
         .from('products')
-        .insert([{ nama_barang, sku, kategori, ukuran, stok, harga_modal, harga_jual, harga_member, low_stock_threshold, image_url }]);
+        .insert(productRecords);
 
 
     const statusPanel = document.getElementById('stockEntryStatus');
@@ -317,36 +350,39 @@ productForm.addEventListener('submit', async (e) => {
             statusPanel.innerHTML = `<strong class="block text-red-400 mb-2">ERROR: INJEKSI GAGAL</strong><span>${error.message}</span>`;
         }
     } else {
-        alert(`🎉 BERHASIL SERAM: [${kategori}] "${nama_barang.toUpperCase()}" sudah masuk ke gudang.`);
+        const totalStock = stocks.reduce((sum, stock) => sum + stock, 0);
+        alert(`🎉 BERHASIL: ${variants.length} variant(s) of "${nama_barang.toUpperCase()}" created (${totalStock} total units).`);
         productForm.reset();
         if (statusPanel) {
             statusPanel.innerHTML = `
                 <strong class="block text-emerald-300 mb-2">INJEKSI BERHASIL</strong>
-                <span>${stok} unit ${nama_barang.toUpperCase()} berhasil disuntik ke gudang.</span>
+                <span>${variants.length} variant(s) of ${nama_barang.toUpperCase()} (${totalStock} total units) berhasil disuntik ke gudang.</span>
             `;
         }
         
-        // Log activity
-        if (data && data[0]) {
-            await logActivity('product_created', 'product', data[0].id, {
-                nama_barang,
-                sku,
-                kategori,
-                stok,
-                harga_jual
-            });
+        // Log activity for each variant
+        if (data && data.length > 0) {
+            for (const product of data) {
+                await logActivity('product_created', 'product', product.id, {
+                    nama_barang,
+                    sku: product.sku,
+                    kategori,
+                    stok: product.stok,
+                    harga_jual
+                });
+            }
         }
         
         await refreshStockProgress();
 
-        // Animasi candel stok: masuk (+stok)
+        // Animasi candel stok: masuk (+totalStock)
         try {
-            window.CandleManager?.applyStockDelta?.(stok);
+            window.CandleManager?.applyStockDelta?.(totalStock);
         } catch (e) {}
 
         // Broadcast agar halaman lain juga animasi
         try {
-            localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: stok, t: Date.now() }));
+            localStorage.setItem('candle_stock_delta', JSON.stringify({ delta: totalStock, t: Date.now() }));
         } catch (e) {}
 
     }

@@ -242,16 +242,16 @@
                                 </select>
                             </div>
 
-                            <div id="sizeContainer" class="form-group hidden">
-                                <label class="form-label">Size</label>
-                                <select id="ukuran" class="form-input">
-                                    <option value="">-- Select Size --</option>
-                                </select>
+                            <div class="form-group">
+                                <label class="form-label">Variants (comma-separated)</label>
+                                <input type="text" id="variants" class="form-input" placeholder="e.g. S,M,L,XL,XXL or 8.0,8.125,8.25 or OS">
+                                <p class="text-xs text-muted mt-1">Enter product variants (sizes, widths, etc.) separated by commas</p>
                             </div>
 
                             <div class="form-group">
-                                <label class="form-label">Stock Quantity</label>
-                                <input type="number" id="stok" class="form-input" placeholder="0" required>
+                                <label class="form-label">Stock per Variant (comma-separated)</label>
+                                <input type="text" id="stock_per_variant" class="form-input" placeholder="e.g. 10,15,8,5,2">
+                                <p class="text-xs text-muted mt-1">Enter stock quantity for each variant, in the same order as variants</p>
                             </div>
 
                             <div class="form-group-grid">
@@ -384,34 +384,6 @@
         </div>
     </div>
 
-    <script>
-        const sizeApparel = ['XS','S','M','L','XL','XXL','XXXL'];
-        const sizeSkateboard = ['7.5"','7.75"','8.0"','8.25"','8.5"','8.75"','9.0"'];
-
-        const kategoriEl = document.getElementById('kategori');
-        const sizeContainer = document.getElementById('sizeContainer');
-        const ukuranEl = document.getElementById('ukuran');
-
-        function updateSizeOptions() {
-            const val = kategoriEl.value;
-            sizeContainer.classList.add('hidden');
-            ukuranEl.innerHTML = '<option value="">-- PILIH UKURAN --</option>';
-            ukuranEl.required = false;
-
-            if (val === 'Apparel') {
-                sizeApparel.forEach(s => ukuranEl.innerHTML += `<option value="${s}">${s}</option>`);
-                sizeContainer.classList.remove('hidden');
-                ukuranEl.required = true;
-            } else if (val === 'Skateboard') {
-                sizeSkateboard.forEach(s => ukuranEl.innerHTML += `<option value="${s}">${s}</option>`);
-                sizeContainer.classList.remove('hidden');
-                ukuranEl.required = true;
-            }
-        }
-
-        kategoriEl.addEventListener('change', updateSizeOptions);
-        updateSizeOptions();
-    </script>
     <script src="scan-helper.js"></script>
     <script src="barang-scan-ui.js"></script>
     <script src="candle-manager.js"></script>

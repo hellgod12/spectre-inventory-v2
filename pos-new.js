@@ -22,12 +22,12 @@ const POS = {
 const DOM = {
     // Product Selection
     selectProduct: null,
-    selectUkuran: null,
+    selectVariant: null,
     inputJumlah: null,
     hargaOverride: null,
     btnAddToCart: null,
     btnScanTerjual: null,
-    boxUkuranSelect: null,
+    boxVariantSelect: null,
     
     // Shopping Cart
     cartItems: null,
@@ -57,12 +57,12 @@ const DOM = {
 // Initialize DOM references
 function initDOM() {
     DOM.selectProduct = document.getElementById('selectProduct');
-    DOM.selectUkuran = document.getElementById('selectUkuran');
+    DOM.selectVariant = document.getElementById('selectVariant');
     DOM.inputJumlah = document.getElementById('inputJumlah');
     DOM.hargaOverride = document.getElementById('harga_override');
     DOM.btnAddToCart = document.getElementById('btnAddToCart');
     DOM.btnScanTerjual = document.getElementById('btnScanTerjual');
-    DOM.boxUkuranSelect = document.getElementById('boxUkuranSelect');
+    DOM.boxVariantSelect = document.getElementById('boxVariantSelect');
     
     DOM.cartItems = document.getElementById('cartItems');
     DOM.cartCount = document.getElementById('cartCount');
@@ -101,6 +101,16 @@ async function loadProducts() {
         if (error) throw error;
         
         POS.products = data || [];
+        
+        // Group products by nama_barang for variant selection
+        POS.groupedProducts = {};
+        POS.products.forEach(product => {
+            if (!POS.groupedProducts[product.nama_barang]) {
+                POS.groupedProducts[product.nama_barang] = [];
+            }
+            POS.groupedProducts[product.nama_barang].push(product);
+        });
+        
         populateProductDropdown();
     } catch (error) {
         console.error('Error loading products:', error);
@@ -108,18 +118,68 @@ async function loadProducts() {
     }
 }
 
-// Populate product dropdown
+// Populate product dropdown with unique product names
 function populateProductDropdown() {
     if (!DOM.selectProduct) return;
     
     DOM.selectProduct.innerHTML = '<option value="">-- Select --</option>';
     
-    POS.products.forEach(product => {
+    // Show unique product names only
+    Object.keys(POS.groupedProducts).forEach(productName => {
         const option = document.createElement('option');
-        option.value = product.id;
-        option.textContent = `${product.nama_barang} - ${product.kategori}`;
+        option.value = productName;
+        option.textContent = productName;
         DOM.selectProduct.appendChild(option);
     });
+}
+
+// Handle product selection - show variant dropdown
+function handleProductSelection() {
+    const productName = DOM.selectProduct?.value;
+    if (!productName) {
+        DOM.boxVariantSelect?.classList.add('hidden');
+        POS.selectedVariant = null;
+        return;
+    }
+    
+    const variants = POS.groupedProducts[productName] || [];
+    
+    if (variants.length > 1) {
+        // Multiple variants - show dropdown
+        DOM.boxVariantSelect?.classList.remove('hidden');
+        DOM.selectVariant.innerHTML = '<option value="">-- Select Variant --</option>';
+        
+        variants.forEach(variant => {
+            const option = document.createElement('option');
+            option.value = variant.id;
+            option.textContent = `${variant.ukuran} (${variant.stok} available)`;
+            DOM.selectVariant.appendChild(option);
+        });
+        
+        POS.selectedVariant = null;
+    } else if (variants.length === 1) {
+        // Single variant - auto-select
+        DOM.boxVariantSelect?.classList.add('hidden');
+        POS.selectedVariant = variants[0];
+    }
+}
+
+// Handle variant selection
+function handleVariantSelection() {
+    const variantId = DOM.selectVariant?.value;
+    if (!variantId) {
+        POS.selectedVariant = null;
+        return;
+    }
+    
+    // Find selected variant from all products
+    for (const productName in POS.groupedProducts) {
+        const variant = POS.groupedProducts[productName].find(v => v.id == variantId);
+        if (variant) {
+            POS.selectedVariant = variant;
+            break;
+        }
+    }
 }
 
 // Load members from Supabase
@@ -150,15 +210,17 @@ async function loadMembers() {
 
 // Add to Cart
 function addToCart() {
-    const productId = DOM.selectProduct?.value;
-    if (!productId) {
+    const productName = DOM.selectProduct?.value;
+    if (!productName) {
         alert('Please select a product');
         return;
     }
     
-    const product = POS.products.find(p => p.id == productId);
-    if (!product) {
-        alert('Product not found');
+    const variantId = DOM.selectVariant?.value;
+    const variant = POS.selectedVariant;
+    
+    if (!variant) {
+        alert('Please select a variant');
         return;
     }
     
@@ -168,16 +230,16 @@ function addToCart() {
         return;
     }
     
-    if (product.stok < qty) {
-        alert(`Insufficient stock. Available: ${product.stok}`);
+    if (variant.stok < qty) {
+        alert(`Insufficient stock for variant ${variant.ukuran}. Available: ${variant.stok}`);
         return;
     }
     
     // Calculate price based on customer type
-    let unitPrice = product.harga_jual;
+    let unitPrice = variant.harga_jual;
     if (POS.customerType === 'Member' && POS.selectedMember) {
         const discount = POS.selectedMember.diskon_persen || 0;
-        unitPrice = product.harga_jual * (1 - discount / 100);
+        unitPrice = variant.harga_jual * (1 - discount / 100);
     }
     
     // Apply override if provided
@@ -188,14 +250,14 @@ function addToCart() {
     
     const cartItem = {
         id: Date.now(),
-        productId: product.id,
-        nama_barang: product.nama_barang,
-        ukuran: product.ukuran || null,
-        kategori: product.kategori,
+        productId: variant.id,
+        nama_barang: variant.nama_barang,
+        ukuran: variant.ukuran || null,
+        kategori: variant.kategori,
         jumlah: qty,
         unitPrice: unitPrice,
         totalPrice: unitPrice * qty,
-        hargaModal: product.harga_modal
+        hargaModal: variant.harga_modal
     };
     
     POS.cart.push(cartItem);
@@ -222,7 +284,7 @@ function updateCartDisplay() {
     
     let html = '';
     POS.cart.forEach(item => {
-        const sizeInfo = item.ukuran ? `<span>Size: ${item.ukuran}</span>` : '';
+        const variantInfo = item.ukuran ? `<span>Variant: ${item.ukuran}</span>` : '';
         
         html += `
             <div class="cart-item">
@@ -230,7 +292,7 @@ function updateCartDisplay() {
                     <div class="cart-item-name">${item.nama_barang.toUpperCase()}</div>
                     <div class="cart-item-details">
                         <span>Qty: ${item.jumlah}</span>
-                        ${sizeInfo}
+                        ${variantInfo}
                         <span>Unit: Rp ${item.unitPrice.toLocaleString('id-ID')}</span>
                     </div>
                 </div>
@@ -255,9 +317,11 @@ function calculateTotal() {
 // Clear Form
 function clearForm() {
     if (DOM.selectProduct) DOM.selectProduct.value = '';
+    if (DOM.selectVariant) DOM.selectVariant.value = '';
     if (DOM.inputJumlah) DOM.inputJumlah.value = '1';
     if (DOM.hargaOverride) DOM.hargaOverride.value = '';
-    if (DOM.boxUkuranSelect) DOM.boxUkuranSelect.classList.add('hidden');
+    if (DOM.boxVariantSelect) DOM.boxVariantSelect.classList.add('hidden');
+    POS.selectedVariant = null;
 }
 
 // Handle Customer Type Change
@@ -504,22 +568,9 @@ function initEventListeners() {
     
     // Product Selection
     DOM.selectProduct?.addEventListener('change', handleProductSelection);
-}
-
-// Handle Product Selection
-function handleProductSelection() {
-    const productId = DOM.selectProduct?.value;
-    if (!productId) {
-        DOM.boxUkuranSelect?.classList.add('hidden');
-        return;
-    }
     
-    const product = POS.products.find(p => p.id == productId);
-    if (product && product.ukuran) {
-        DOM.boxUkuranSelect?.classList.remove('hidden');
-    } else {
-        DOM.boxUkuranSelect?.classList.add('hidden');
-    }
+    // Variant Selection
+    DOM.selectVariant?.addEventListener('change', handleVariantSelection);
 }
 
 // Initialize
