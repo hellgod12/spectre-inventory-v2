@@ -256,30 +256,16 @@ function updateCartDisplay() {
         subtotal += item.totalHarga;
         const sizeInfo = item.ukuran ? `<span>Size: ${item.ukuran}</span>` : '';
         
-        // Check customer type to determine if member price should be shown
-        const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
-        const tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
-        const isMember = tipePembeli === 'Member';
-        
-        // Show pricing information in cart item
-        const priceInfo = `
-            <div class="cart-item-pricing">
-                <div class="cart-item-price-label">Regular: Rp ${item.regular_price.toLocaleString('id-ID')}</div>
-                ${isMember ? `<div class="cart-item-price-label">Member: Rp ${item.member_price.toLocaleString('id-ID')}</div>` : ''}
-                ${item.price_override ? `<div class="cart-item-price-override">Override: Rp ${item.price_override.toLocaleString('id-ID')}</div>` : ''}
-            </div>
-        `;
-        
+        // Simplified cart item display - no duplicate pricing info
         html += `
             <div class="cart-item">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.nama_barang.toUpperCase()}</div>
                     <div class="cart-item-details">
                         <span>Qty: ${item.jumlah}</span>
-                        <span>Unit: Rp ${item.final_unit_price.toLocaleString('id-ID')}</span>
                         ${sizeInfo}
+                        <span>Unit: Rp ${item.final_unit_price.toLocaleString('id-ID')}</span>
                     </div>
-                    ${priceInfo}
                 </div>
                 <div class="cart-item-price">Rp ${item.totalHarga.toLocaleString('id-ID')}</div>
                 <button class="cart-item-remove" onclick="removeFromCart(${item.id})">Remove</button>
@@ -289,7 +275,13 @@ function updateCartDisplay() {
 
     cartItemsEl.innerHTML = html;
     cartCountEl.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
-    cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+    
+    // Update cart total (new element)
+    const cartTotalEl = document.getElementById('cartTotal');
+    if (cartTotalEl) cartTotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+    
+    // Update cart subtotal (legacy element, if exists)
+    if (cartSubtotalEl) cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
     
     // Show customer and payment options when cart has items
     if (cartCustomerOptionsEl) cartCustomerOptionsEl.classList.remove('hidden');
@@ -394,6 +386,7 @@ async function initTerminalData() {
 // 2. Tampilkan/Sembunyikan Pilihan No Telepon Tergantung Radio Button yang Dipilih
 function handleTypeChange() {
     const tipePembeli = document.querySelector('input[name="tipe_pembeli"]:checked').value;
+    // Hide member selection by default, show only when customer type is Member
     if (tipePembeli === 'Member') {
         if (boxMemberSelect) boxMemberSelect.classList.remove('hidden');
         if (selectMember) selectMember.setAttribute('required', 'true');
@@ -462,45 +455,6 @@ function updatePricePreview() {
     // Update price preview
     previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
     previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
-    
-    // Update summary quantity in checkout summary
-    const summaryQuantityEl = document.getElementById('summaryQuantity');
-    if (summaryQuantityEl) summaryQuantityEl.innerText = jumlah;
-
-    // Update price information display with actual harga_jual from database
-    const hargaUmumDefaultEl = document.getElementById('hargaUmumDefault');
-    const hargaMemberDefaultEl = document.getElementById('hargaMemberDefault');
-    if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_jual).toLocaleString('id-ID');
-
-    // Use the same hargaDefault calculation for Price Information display
-    // This ensures consistency between Unit Price preview and Price Information
-    const hargaMemberDisplay = hargaDefault;
-    
-    console.log('[updatePricePreview] Price Information sync - hargaMemberDisplay:', hargaMemberDisplay, 'hargaDefault:', hargaDefault, 'tipePembeli:', tipePembeli);
-
-    // Display member price only when customer type is Member
-    if (tipePembeli === 'Member' && diskonPersen > 0) {
-        const diskonAmount = selectedProduct.harga_jual * (diskonPersen / 100);
-        if (hargaMemberDefaultEl) {
-            hargaMemberDefaultEl.innerHTML = `
-                <span class="text-slate-400 line-through text-xs">Rp ${Number(selectedProduct.harga_jual).toLocaleString('id-ID')}</span>
-                <span class="text-emerald-400 font-bold ml-2">Rp ${Number(hargaMemberDisplay).toLocaleString('id-ID')}</span>
-                <span class="text-xs text-emerald-400 ml-1">(-${diskonPersen}%)</span>
-            `;
-            hargaMemberDefaultEl.style.display = 'block';
-        }
-    } else if (tipePembeli === 'Member') {
-        // Member selected but no discount
-        if (hargaMemberDefaultEl) {
-            hargaMemberDefaultEl.innerText = 'Rp ' + Number(hargaMemberDisplay).toLocaleString('id-ID');
-            hargaMemberDefaultEl.style.display = 'block';
-        }
-    } else {
-        // Regular customer - hide member price
-        if (hargaMemberDefaultEl) {
-            hargaMemberDefaultEl.style.display = 'none';
-        }
-    }
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
     if (selectedProduct.kategori === 'Skateboard') sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
