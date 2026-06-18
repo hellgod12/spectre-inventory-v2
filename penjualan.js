@@ -427,14 +427,11 @@ function updatePricePreview() {
         selectUkuran.value = '';
     }
 
-    // Read customer type from cart section, default to Umum if cart is empty or not selected
-    let tipePembeli = 'Umum';
-    if (cart.length > 0) {
-        const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
-        tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
-    }
-    // Force regular price when cart is empty, regardless of radio button state
-    // Use actual harga_jual from database for each product
+    // Read customer type from radio button (always respect user selection)
+    const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
+    const tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
+    
+    // Calculate price based on customer type
     let hargaDefault = selectedProduct.harga_jual;
     if (tipePembeli === 'Member') {
         // Get selected member's discount percentage
@@ -442,6 +439,8 @@ function updatePricePreview() {
         const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
         // Calculate member price: harga_jual - (diskon_persen × harga_jual)
         hargaDefault = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
+        
+        console.log('[updatePricePreview] Member pricing applied - diskonPersen:', diskonPersen, 'hargaDefault:', hargaDefault, 'harga_jual:', selectedProduct.harga_jual);
     }
 
     let hargaOverride = null;
@@ -464,15 +463,14 @@ function updatePricePreview() {
     const hargaMemberDefaultEl = document.getElementById('hargaMemberDefault');
     if (hargaUmumDefaultEl) hargaUmumDefaultEl.innerText = 'Rp ' + Number(selectedProduct.harga_jual).toLocaleString('id-ID');
 
-    // Calculate dynamic member price based on selected member's discount (always calculate like cashier system)
-    const selectedMemberOption = selectMember.options[selectMember.selectedIndex];
-    const diskonPersen = selectedMemberOption ? parseInt(selectedMemberOption.dataset.diskon) || 0 : 0;
-    const hargaMemberDisplay = selectedProduct.harga_jual - (selectedProduct.harga_jual * (diskonPersen / 100));
-
-    console.log('updatePricePreview - diskonPersen:', diskonPersen, 'hargaMemberDisplay:', hargaMemberDisplay, 'selectedProduct.harga_jual:', selectedProduct.harga_jual);
+    // Use the same hargaDefault calculation for Price Information display
+    // This ensures consistency between Unit Price preview and Price Information
+    const hargaMemberDisplay = hargaDefault;
+    
+    console.log('[updatePricePreview] Price Information sync - hargaMemberDisplay:', hargaMemberDisplay, 'hargaDefault:', hargaDefault, 'tipePembeli:', tipePembeli);
 
     // Display member price with discount info
-    if (diskonPersen > 0) {
+    if (tipePembeli === 'Member' && diskonPersen > 0) {
         const diskonAmount = selectedProduct.harga_jual * (diskonPersen / 100);
         if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerHTML = `
             <span class="text-slate-400 line-through text-xs">Rp ${Number(selectedProduct.harga_jual).toLocaleString('id-ID')}</span>
@@ -645,6 +643,7 @@ async function cancelInvoice(invoiceId) {
 if (selectProduct) selectProduct.addEventListener('change', updatePricePreview);
 if (inputJumlah) inputJumlah.addEventListener('input', updatePricePreview);
 if (hargaOverrideEl) hargaOverrideEl.addEventListener('input', updatePricePreview);
+if (selectMember) selectMember.addEventListener('change', updatePricePreview);
 const typeUmumEl = document.getElementById('typeUmum');
 if (typeUmumEl) typeUmumEl.addEventListener('change', handleTypeChange);
 const typeMemberEl = document.getElementById('typeMember');
