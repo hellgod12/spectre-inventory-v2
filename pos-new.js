@@ -519,49 +519,96 @@ async function processSale(e) {
         // Process each cart item: cut stock and save to sales_history
         let stockUpdateErrors = [];
         let historyErrors = [];
+        let processedItems = []; // Track successfully processed items for rollback
         
-        for (const item of POS.cart) {
-            // 1. Update stock
-            const product = POS.products.find(p => p.id == item.productId);
-            if (!product) {
-                stockUpdateErrors.push(`Product not found: ${item.nama_barang}`);
-                continue;
+        try {
+            for (const item of POS.cart) {
+                // 1. Fetch CURRENT stock from database (not in-memory)
+                const { data: currentProduct, error: fetchError } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', item.productId)
+                    .single();
+                
+                if (fetchError || !currentProduct) {
+                    stockUpdateErrors.push(`Failed to fetch current stock for ${item.nama_barang}: ${fetchError?.message || 'Product not found'}`);
+                    continue;
+                }
+                
+                // 2. Validate stock availability
+                if (currentProduct.stok < item.jumlah) {
+                    stockUpdateErrors.push(`Insufficient stock for ${item.nama_barang} (${item.ukuran || 'Standard'}). Available: ${currentProduct.stok}, Requested: ${item.jumlah}`);
+                    continue;
+                }
+                
+                // 3. Update stock with atomic operation
+                const newStock = currentProduct.stok - item.jumlah;
+                const { error: updateError } = await supabaseClient
+                    .from('products')
+                    .update({ stok: newStock })
+                    .eq('id', item.productId)
+                    .gt('stok', item.jumlah - 1); // Ensure stock is still sufficient
+                
+                if (updateError) {
+                    stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError.message}`);
+                    continue;
+                }
+                
+                // 4. Save to sales_history (matching old POS structure)
+                const { error: historyError } = await supabaseClient
+                    .from('sales_history')
+                    .insert([{
+                        payment_id: paymentRecord.id,
+                        product_id: item.productId,
+                        nama_barang: item.nama_barang,
+                        kategori: item.kategori,
+                        ukuran: item.ukuran || null,
+                        jumlah: item.jumlah,
+                        total_harga: item.totalPrice,
+                        tipe_pembeli: buyerIdentity
+                    }]);
+                
+                if (historyError) {
+                    historyErrors.push(`Failed to save history for ${item.nama_barang}: ${historyError.message}`);
+                    // Rollback stock deduction
+                    await supabaseClient
+                        .from('products')
+                        .update({ stok: currentProduct.stok })
+                        .eq('id', item.productId);
+                    continue;
+                }
+                
+                processedItems.push({ item, originalStock: currentProduct.stok });
             }
             
-            const newStock = product.stok - item.jumlah;
-            const { error: updateError } = await supabaseClient
-                .from('products')
-                .update({ stok: newStock })
-                .eq('id', product.id);
-            
-            if (updateError) {
-                stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError.message}`);
-                continue;
+            // Check for critical errors
+            if (stockUpdateErrors.length > 0 || historyErrors.length > 0) {
+                const errorMsg = [...stockUpdateErrors, ...historyErrors].join('\n');
+                alert('Sale completed with errors:\n' + errorMsg);
             }
             
-            // 2. Save to sales_history (matching old POS structure)
-            const { error: historyError } = await supabaseClient
-                .from('sales_history')
-                .insert([{
-                    payment_id: paymentRecord.id,
-                    product_id: item.productId,
-                    nama_barang: item.nama_barang,
-                    kategori: item.kategori,
-                    ukuran: item.ukuran || null,
-                    jumlah: item.jumlah,
-                    total_harga: item.totalPrice,
-                    tipe_pembeli: buyerIdentity
-                }]);
-            
-            if (historyError) {
-                historyErrors.push(`Failed to save history for ${item.nama_barang}: ${historyError.message}`);
+        } catch (error) {
+            // Rollback all stock deductions on critical error
+            console.error('Critical error during sale processing, rolling back stock:', error);
+            for (const processed of processedItems) {
+                try {
+                    await supabaseClient
+                        .from('products')
+                        .update({ stok: processed.originalStock })
+                        .eq('id', processed.item.productId);
+                } catch (rollbackError) {
+                    console.error('Failed to rollback stock for item:', processed.item.nama_barang, rollbackError);
+                }
             }
-        }
-        
-        // Check for errors
-        if (stockUpdateErrors.length > 0 || historyErrors.length > 0) {
-            const errorMsg = [...stockUpdateErrors, ...historyErrors].join('\n');
-            alert('Sale completed with errors:\n' + errorMsg);
+            
+            // Delete payment record since sale failed
+            try {
+                await supabaseClient.from('payments').delete().eq('id', paymentRecord.id);
+            } catch (deleteError) {
+                console.error('Failed to delete payment record:', deleteError);
+            }
+            
+            throw error; // Re-throw to be caught by outer try-catch
         }
         
         // Clear cart

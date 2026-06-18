@@ -344,10 +344,11 @@ productForm.addEventListener('submit', async (e) => {
         });
     }
 
-    // Insert all product records
+    // Insert all product records with error handling
     const { data, error } = await supabaseClient
         .from('products')
-        .insert(productRecords);
+        .insert(productRecords)
+        .select();
 
 
     const statusPanel = document.getElementById('stockEntryStatus');
