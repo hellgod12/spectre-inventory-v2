@@ -8,8 +8,10 @@ async function loadMemberPayments() {
         const { data: payments } = await supabaseClient.from('payments').select('*').order('created_at', { ascending: false });
 
         if (!payments || payments.length === 0) {
-            document.getElementById('memberDebtList').innerHTML = '<div class="p-8 text-center text-muted text-xs">No member debt found</div>';
-            document.getElementById('paymentHistory').innerHTML = '<div class="p-8 text-center text-muted text-xs">No payment history found</div>';
+            const memberDebtListEl = document.getElementById('memberDebtList');
+            if (memberDebtListEl) memberDebtListEl.innerHTML = '<div class="p-8 text-center text-muted text-xs">No member debt found</div>';
+            const paymentHistoryEl = document.getElementById('paymentHistory');
+            if (paymentHistoryEl) paymentHistoryEl.innerHTML = '<div class="p-8 text-center text-muted text-xs">No payment history found</div>';
             return;
         }
 
@@ -27,30 +29,33 @@ async function loadMemberPayments() {
         });
 
         const totalOutstanding = Array.from(memberDebt.values()).reduce((sum, debt) => sum + debt, 0);
-        document.getElementById('totalOutstanding').innerText = 'Rp ' + totalOutstanding.toLocaleString('id-ID');
+        const totalOutstandingEl = document.getElementById('totalOutstanding');
+        if (totalOutstandingEl) totalOutstandingEl.innerText = 'Rp ' + totalOutstanding.toLocaleString('id-ID');
 
         // Render member debt list
         const memberDebtListEl = document.getElementById('memberDebtList');
-        if (memberDebt.size === 0) {
-            memberDebtListEl.innerHTML = '<div class="p-8 text-center text-muted text-xs">No outstanding balances</div>';
-        } else {
-            let debtHtml = '<div class="space-y-3">';
-            memberDebt.forEach((debt, memberName) => {
-                debtHtml += `
-                    <div class="member-payment-card flex justify-between items-center">
-                        <div>
-                            <div class="font-semibold text-white">${memberName}</div>
-                            <div class="text-xs text-muted">Member</div>
+        if (memberDebtListEl) {
+            if (memberDebt.size === 0) {
+                memberDebtListEl.innerHTML = '<div class="p-8 text-center text-muted text-xs">No outstanding balances</div>';
+            } else {
+                let debtHtml = '<div class="space-y-3">';
+                memberDebt.forEach((debt, memberName) => {
+                    debtHtml += `
+                        <div class="member-payment-card flex justify-between items-center">
+                            <div>
+                                <div class="font-semibold text-white">${memberName}</div>
+                                <div class="text-xs text-muted">Member</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-semibold text-red-400">Rp ${debt.toLocaleString('id-ID')}</div>
+                                <div class="text-xs text-muted">Outstanding</div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <div class="font-semibold text-red-400">Rp ${debt.toLocaleString('id-ID')}</div>
-                            <div class="text-xs text-muted">Outstanding</div>
-                        </div>
-                    </div>
-                `;
-            });
-            debtHtml += '</div>';
-            memberDebtListEl.innerHTML = debtHtml;
+                    `;
+                });
+                debtHtml += '</div>';
+                memberDebtListEl.innerHTML = debtHtml;
+            }
         }
 
         // Render payment history
