@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-title" content="SPECTRE">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="auth.js"></script>
-    <script src="button-animations.js"></script>
+    <script src="pos-new.js"></script>
     <script src="receipt-printer.js"></script>
     <style>
         @supports (padding: env(safe-area-inset-top)) {
@@ -595,15 +595,7 @@
                                 </div>
                                 <div class="form-col form-col--actions">
                                     <button type="button" id="btnAddToCart" class="spectre-btn spectre-btn--primary">Add</button>
-                                    <button type="button" id="btnScanTerjual" class="spectre-btn">Scan</button>
                                 </div>
-                            </div>
-                            <div id="scanTerjualStatus" class="scan-status hidden">
-                                <strong class="scan-status__title">Scan Status: Ready</strong>
-                            </div>
-                            <div class="scan-video hidden">
-                                <video id="scanTerjualVideo" class="w-full bg-black rounded-lg" playsinline autoplay muted></video>
-                                <canvas id="scanTerjualCanvas" class="hidden"></canvas>
                             </div>
                         </form>
                     </div>
@@ -727,10 +719,7 @@
         </main>
     </div>
 
-    <script src="scan-helper.js"></script>
-    <script src="scan-terjual.js"></script>
     <script src="candle-manager.js"></script>
-    <script src="penjualan.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', async () => {
