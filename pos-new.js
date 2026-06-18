@@ -1,6 +1,12 @@
 // SPECTRE POS - Clean Architecture
 // Simple, dependency-free POS system
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[pos-new.js] supabaseClient not initialized. Ensure auth.js is loaded before pos-new.js');
+}
+
 // State
 const POS = {
     products: [],
@@ -81,8 +87,12 @@ function initDOM() {
 
 // Load products from Supabase
 async function loadProducts() {
+    console.log('supabaseClient object:', supabaseClient);
+    console.log('typeof supabaseClient:', typeof supabaseClient);
+    console.log('supabaseClient.from:', supabaseClient?.from);
+    
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('products')
             .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
             .eq('is_active', true)
@@ -115,7 +125,7 @@ function populateProductDropdown() {
 // Load members from Supabase
 async function loadMembers() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('members')
             .select('*')
             .order('nomor_telp', { ascending: true });
@@ -384,7 +394,7 @@ async function processSale(e) {
     
     try {
         // Insert payment record (matching old POS)
-        const { data: paymentData, error: payErr } = await supabase
+        const { data: paymentData, error: payErr } = await supabaseClient
             .from('payments')
             .insert([{
                 id: paymentRecord.id,
@@ -418,7 +428,7 @@ async function processSale(e) {
             }
             
             const newStock = product.stok - item.jumlah;
-            const { error: updateError } = await supabase
+            const { error: updateError } = await supabaseClient
                 .from('products')
                 .update({ stok: newStock })
                 .eq('id', product.id);
@@ -429,7 +439,7 @@ async function processSale(e) {
             }
             
             // 2. Save to sales_history (matching old POS structure)
-            const { error: historyError } = await supabase
+            const { error: historyError } = await supabaseClient
                 .from('sales_history')
                 .insert([{
                     payment_id: paymentRecord.id,
