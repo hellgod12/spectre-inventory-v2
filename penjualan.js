@@ -851,7 +851,10 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Adding change event listener to selectMember');
         selectMemberEl.addEventListener('change', () => {
             console.log('Member selection changed');
-            updatePricePreview();
+            setTimeout(() => {
+                console.log('Calling updatePricePreview after delay');
+                updatePricePreview();
+            }, 100);
         });
     } else {
         console.log('selectMember element not found');
