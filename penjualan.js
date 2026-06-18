@@ -283,7 +283,7 @@ function updateCartDisplay() {
     // Update cart subtotal (legacy element, if exists)
     if (cartSubtotalEl) cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
     
-    // Show customer and payment options when cart has items
+    // Show customer and payment options when cart has items (if elements exist)
     if (cartCustomerOptionsEl) cartCustomerOptionsEl.classList.remove('hidden');
     if (cartPaymentOptionsEl) {
         cartPaymentOptionsEl.classList.remove('hidden');
@@ -406,23 +406,24 @@ function updatePricePreview() {
     selectedProduct = allProducts.find(p => p.id == prodId);
 
     if (!selectedProduct) {
-        previewHargaSatuan.innerText = 'Rp 0';
-        previewTotal.innerText = 'Rp 0';
-        productDetail.innerHTML = '<p class="text-red-900/60 text-[10px] uppercase">>> MENUNGGU PILIHAN PRODUK...</p>';
-        boxUkuranSelect.classList.add('hidden');
-        selectUkuran.removeAttribute('required');
+        // Add null checks for removed preview elements
+        if (previewHargaSatuan) previewHargaSatuan.innerText = 'Rp 0';
+        if (previewTotal) previewTotal.innerText = 'Rp 0';
+        if (productDetail) productDetail.innerHTML = '<p class="text-red-900/60 text-[10px] uppercase">>> MENUNGGU PILIHAN PRODUK...</p>';
+        if (boxUkuranSelect) boxUkuranSelect.classList.add('hidden');
+        if (selectUkuran) selectUkuran.removeAttribute('required');
         return;
     }
 
     // Tampilkan ukuran kalau ada
     if (selectedProduct.ukuran) {
-        selectUkuran.innerHTML = `<option value="${selectedProduct.ukuran}">${selectedProduct.ukuran}</option>`;
-        boxUkuranSelect.classList.remove('hidden');
-        selectUkuran.setAttribute('required', 'true');
+        if (selectUkuran) selectUkuran.innerHTML = `<option value="${selectedProduct.ukuran}">${selectedProduct.ukuran}</option>`;
+        if (boxUkuranSelect) boxUkuranSelect.classList.remove('hidden');
+        if (selectUkuran) selectUkuran.setAttribute('required', 'true');
     } else {
-        boxUkuranSelect.classList.add('hidden');
-        selectUkuran.removeAttribute('required');
-        selectUkuran.value = '';
+        if (boxUkuranSelect) boxUkuranSelect.classList.add('hidden');
+        if (selectUkuran) selectUkuran.removeAttribute('required');
+        if (selectUkuran) selectUkuran.value = '';
     }
 
     // Read customer type from radio button (always respect user selection)
@@ -453,8 +454,8 @@ function updatePricePreview() {
     const total = hargaSatuan * jumlah;
 
     // Update price preview
-    previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
-    previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
+    if (previewHargaSatuan) previewHargaSatuan.innerText = 'Rp ' + Number(hargaSatuan).toLocaleString('id-ID');
+    if (previewTotal) previewTotal.innerText = 'Rp ' + total.toLocaleString('id-ID');
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
     if (selectedProduct.kategori === 'Skateboard') sectorLabel = `<span class="text-red-500 font-bold">[PAPAN_SKATE] 🛹</span>`;
@@ -465,15 +466,17 @@ function updatePricePreview() {
         ? `<div><span class="text-red-700 block text-[9px] uppercase">// HARGA_OVERRIDE</span> <b class="text-yellow-400">Rp ${Number(hargaSatuan).toLocaleString('id-ID')}</b></div>`
         : '';
 
-    productDetail.innerHTML = `
-        <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
-            <div><span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b></div>
-            <div><span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> ${sectorLabel}</div>
-            ${selectedProduct.ukuran ? `<div><span class="text-red-700 block text-[9px] uppercase">// UKURAN</span> <b class="text-yellow-400">${selectedProduct.ukuran}</b></div>` : ''}
-            ${hargaOverrideBadge}
-            <div><span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b></div>
-        </div>
-    `;
+    if (productDetail) {
+        productDetail.innerHTML = `
+            <div class="space-y-3 border border-red-950 p-4 bg-black/90 text-[11px]">
+                <div><span class="text-red-700 block text-[9px] uppercase">// KODE_BARANG</span> <b class="text-white tracking-wide text-xs uppercase">${selectedProduct.nama_barang}</b></div>
+                <div><span class="text-red-700 block text-[9px] uppercase">// SEKTOR_SISTEM</span> ${sectorLabel}</div>
+                ${selectedProduct.ukuran ? `<div><span class="text-red-700 block text-[9px] uppercase">// UKURAN</span> <b class="text-yellow-400">${selectedProduct.ukuran}</b></div>` : ''}
+                ${hargaOverrideBadge}
+                <div><span class="text-red-700 block text-[9px] uppercase">// CADANGAN_AMUNISI</span> <b class="${selectedProduct.stok <= 5 ? 'text-red-600 animate-pulse font-extrabold' : 'text-slate-300'}">${selectedProduct.stok} UNIT TERSISA</b></div>
+            </div>
+        `;
+    }
 }
 
 // Function to generate invoice number

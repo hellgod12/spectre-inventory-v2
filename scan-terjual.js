@@ -167,11 +167,13 @@ function attachScanUIHandlers() {
     }
   });
 
-  btnStop.addEventListener('click', () => {
-    scanner?.stop?.();
-    if (scanStatus) scanStatus.innerText = 'SCAN_DIHENTIKAN';
-    btnScan.disabled = false;
-  });
+  if (btnStop) {
+    btnStop.addEventListener('click', () => {
+      scanner?.stop?.();
+      if (scanStatus) scanStatus.innerText = 'SCAN_DIHENTIKAN';
+      btnScan.disabled = false;
+    });
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
