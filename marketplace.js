@@ -458,38 +458,6 @@ async function updateOrderStatusAction(orderId, status) {
     }
 }
 
-// Format currency
-function formatCurrency(amount) {
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    
-    if (isNaN(numericAmount)) {
-        return 'Rp 0';
-    }
-
-    return 'Rp ' + numericAmount.toLocaleString('id-ID', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    });
-}
-
-// Format date
-function formatDate(date, format = 'full') {
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-
-    if (isNaN(dateObj.getTime())) {
-        return 'Invalid Date';
-    }
-
-    const options = {
-        full: { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' },
-        short: { year: 'numeric', month: '2-digit', day: '2-digit' },
-        time: { hour: '2-digit', minute: '2-digit' },
-        date: { year: 'numeric', month: 'long', day: 'numeric' }
-    };
-
-    return dateObj.toLocaleDateString('id-ID', options[format] || options.full);
-}
-
 // Format order status
 function formatOrderStatus(status) {
     const statusNames = {
