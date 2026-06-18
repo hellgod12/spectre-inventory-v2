@@ -1,9 +1,9 @@
 // Export Utilities for SPECTRE Inventory System
 // Handles Excel (.xlsx) and PDF exports with authentication and performance optimization
-
-import * as XLSX from 'xlsx';
-import { jsPDF } from 'jspdf';
-import { autoTable } from 'jspdf-autotable';
+// NOTE: Libraries loaded via CDN in HTML files as global variables:
+// - XLSX (from xlsx CDN)
+// - jsPDF (from jspdf CDN as window.jspdf.jsPDF)
+// - autoTable (from jspdf-autotable CDN as window.jspdf.autoTable)
 
 // Authentication check
 function isAuthenticated() {
@@ -77,7 +77,7 @@ function generateFilename(prefix, extension) {
 // ============================================
 
 // Generic Excel export function
-export async function exportToExcel(data, headers, filename, sheetName = 'Sheet1') {
+async function exportToExcel(data, headers, filename, sheetName = 'Sheet1') {
     if (!isAuthenticated()) {
         alert('You must be logged in to export data');
         return;
@@ -109,7 +109,7 @@ export async function exportToExcel(data, headers, filename, sheetName = 'Sheet1
 }
 
 // Export Products to Excel
-export async function exportProductsToExcel(products) {
+async function exportProductsToExcel(products) {
     if (!products || products.length === 0) {
         alert('No products to export');
         return;
@@ -134,7 +134,7 @@ export async function exportProductsToExcel(products) {
 }
 
 // Export Sales History to Excel
-export async function exportSalesHistoryToExcel(salesHistory) {
+async function exportSalesHistoryToExcel(salesHistory) {
     if (!salesHistory || salesHistory.length === 0) {
         alert('No sales history to export');
         return;
@@ -161,7 +161,7 @@ export async function exportSalesHistoryToExcel(salesHistory) {
 }
 
 // Export Payments to Excel
-export async function exportPaymentsToExcel(payments) {
+async function exportPaymentsToExcel(payments) {
     if (!payments || payments.length === 0) {
         alert('No payments to export');
         return;
@@ -187,7 +187,7 @@ export async function exportPaymentsToExcel(payments) {
 }
 
 // Export Members to Excel
-export async function exportMembersToExcel(members) {
+async function exportMembersToExcel(members) {
     if (!members || members.length === 0) {
         alert('No members to export');
         return;
@@ -209,7 +209,7 @@ export async function exportMembersToExcel(members) {
 }
 
 // Export Marketplace Orders to Excel
-export async function exportMarketplaceOrdersToExcel(orders) {
+async function exportMarketplaceOrdersToExcel(orders) {
     if (!orders || orders.length === 0) {
         alert('No marketplace orders to export');
         return;
@@ -235,7 +235,7 @@ export async function exportMarketplaceOrdersToExcel(orders) {
 }
 
 // Export Inventory Logs to Excel
-export async function exportInventoryLogsToExcel(logs) {
+async function exportInventoryLogsToExcel(logs) {
     if (!logs || logs.length === 0) {
         alert('No inventory logs to export');
         return;
@@ -262,7 +262,7 @@ export async function exportInventoryLogsToExcel(logs) {
 // ============================================
 
 // Generic PDF export function
-export async function exportToPDF(title, data, headers, filename, options = {}) {
+async function exportToPDF(title, data, headers, filename, options = {}) {
     if (!isAuthenticated()) {
         alert('You must be logged in to export data');
         return;
@@ -272,7 +272,7 @@ export async function exportToPDF(title, data, headers, filename, options = {}) 
         showLoading('Generating PDF file...');
 
         // Create PDF document
-        const doc = new jsPDF(options.orientation || 'portrait', 'mm', options.format || 'a4');
+        const doc = new window.jspdf.jsPDF(options.orientation || 'portrait', 'mm', options.format || 'a4');
 
         // Add title
         doc.setFontSize(18);
@@ -287,7 +287,7 @@ export async function exportToPDF(title, data, headers, filename, options = {}) 
         doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, 14, 38);
 
         // Add table
-        autoTable(doc, {
+        window.jspdf.autoTable(doc, {
             startY: 45,
             head: headers,
             body: data,
@@ -331,7 +331,7 @@ export async function exportToPDF(title, data, headers, filename, options = {}) 
 }
 
 // Export Invoice to PDF
-export async function exportInvoiceToPDF(payment, salesHistory) {
+async function exportInvoiceToPDF(payment, salesHistory) {
     if (!payment) {
         alert('No payment data to export');
         return;
@@ -340,7 +340,7 @@ export async function exportInvoiceToPDF(payment, salesHistory) {
     try {
         showLoading('Generating invoice PDF...');
 
-        const doc = new jsPDF('portrait', 'mm', 'a4');
+        const doc = new window.jspdf.jsPDF('portrait', 'mm', 'a4');
 
         // Add header
         doc.setFontSize(20);
@@ -373,7 +373,7 @@ export async function exportInvoiceToPDF(payment, salesHistory) {
                 formatCurrency(s.total_harga)
             ]);
 
-            autoTable(doc, {
+            window.jspdf.autoTable(doc, {
                 startY: 85,
                 head: headers,
                 body: data,
@@ -409,7 +409,7 @@ export async function exportInvoiceToPDF(payment, salesHistory) {
 }
 
 // Export Sales Report to PDF
-export async function exportSalesReportToPDF(salesData, summary) {
+async function exportSalesReportToPDF(salesData, summary) {
     if (!salesData || salesData.length === 0) {
         alert('No sales data to export');
         return;
@@ -430,7 +430,7 @@ export async function exportSalesReportToPDF(salesData, summary) {
 }
 
 // Export Member Report to PDF
-export async function exportMemberReportToPDF(members, summary) {
+async function exportMemberReportToPDF(members, summary) {
     if (!members || members.length === 0) {
         alert('No member data to export');
         return;
@@ -450,7 +450,7 @@ export async function exportMemberReportToPDF(members, summary) {
 }
 
 // Export Inventory Report to PDF
-export async function exportInventoryReportToPDF(products, summary) {
+async function exportInventoryReportToPDF(products, summary) {
     if (!products || products.length === 0) {
         alert('No inventory data to export');
         return;

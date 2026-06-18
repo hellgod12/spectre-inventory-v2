@@ -2,12 +2,8 @@
 // SECURITY NOTE: In production, these should be set as environment variables
 // For Vercel deployment: Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in project settings
 // For local development: Create .env file with these variables
-const SUPABASE_URL = import.meta.env?.VITE_SUPABASE_URL || 
-                     process.env?.VITE_SUPABASE_URL || 
-                     'https://kbaltquoajrmpixgsiec.supabase.co';
-const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || 
-                         process.env?.VITE_SUPABASE_ANON_KEY || 
-                         'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
+const SUPABASE_URL = 'https://kbaltquoajrmpixgsiec.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_1LQ1lYO5I1MXJ0itz_PjBA_bvOLm9qP';
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
