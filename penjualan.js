@@ -186,7 +186,10 @@ function addToCart() {
         ukuran: selectedProduct.ukuran || null,
         kategori: selectedProduct.kategori,
         jumlah: jumlahJual,
-        hargaSatuan: hargaSatuan,
+        regular_price: selectedProduct.harga_jual,
+        member_price: selectedProduct.harga_member,
+        price_override: hargaOverride,
+        final_unit_price: hargaSatuan,
         totalHarga: totalHarga,
         hargaModal: selectedProduct.harga_modal
     };
@@ -206,6 +209,25 @@ function addToCart() {
 
 function removeFromCart(cartItemId) {
     cart = cart.filter(item => item.id !== cartItemId);
+    updateCartDisplay();
+}
+
+// Recalculate cart prices based on customer type
+function recalculateCartPrices() {
+    const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
+    const tipePembeli = tipePembeliEl ? tipePembeliEl.value : 'Umum';
+    
+    cart.forEach(item => {
+        let hargaDefault = item.regular_price;
+        if (tipePembeli === 'Member') {
+            hargaDefault = item.member_price;
+        }
+        
+        const hargaSatuan = (item.price_override != null ? item.price_override : hargaDefault);
+        item.final_unit_price = hargaSatuan;
+        item.totalHarga = hargaSatuan * item.jumlah;
+    });
+    
     updateCartDisplay();
 }
 
@@ -233,14 +255,26 @@ function updateCartDisplay() {
     cart.forEach(item => {
         subtotal += item.totalHarga;
         const sizeInfo = item.ukuran ? `<span>Size: ${item.ukuran}</span>` : '';
+        
+        // Show pricing information in cart item
+        const priceInfo = `
+            <div class="cart-item-pricing">
+                <div class="cart-item-price-label">Regular: Rp ${item.regular_price.toLocaleString('id-ID')}</div>
+                <div class="cart-item-price-label">Member: Rp ${item.member_price.toLocaleString('id-ID')}</div>
+                ${item.price_override ? `<div class="cart-item-price-override">Override: Rp ${item.price_override.toLocaleString('id-ID')}</div>` : ''}
+            </div>
+        `;
+        
         html += `
             <div class="cart-item">
                 <div class="cart-item-info">
                     <div class="cart-item-name">${item.nama_barang.toUpperCase()}</div>
                     <div class="cart-item-details">
                         <span>Qty: ${item.jumlah}</span>
+                        <span>Unit: Rp ${item.final_unit_price.toLocaleString('id-ID')}</span>
                         ${sizeInfo}
                     </div>
+                    ${priceInfo}
                 </div>
                 <div class="cart-item-price">Rp ${item.totalHarga.toLocaleString('id-ID')}</div>
                 <button class="cart-item-remove" onclick="removeFromCart(${item.id})">Remove</button>
@@ -366,6 +400,7 @@ function handleTypeChange() {
         }
     }
     updatePricePreview();
+    recalculateCartPrices(); // Recalculate cart prices when customer type changes
 }
 
 function updatePricePreview() {
@@ -609,6 +644,7 @@ async function cancelInvoice(invoiceId) {
 
 if (selectProduct) selectProduct.addEventListener('change', updatePricePreview);
 if (inputJumlah) inputJumlah.addEventListener('input', updatePricePreview);
+if (hargaOverrideEl) hargaOverrideEl.addEventListener('input', updatePricePreview);
 const typeUmumEl = document.getElementById('typeUmum');
 if (typeUmumEl) typeUmumEl.addEventListener('change', handleTypeChange);
 const typeMemberEl = document.getElementById('typeMember');
