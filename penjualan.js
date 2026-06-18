@@ -256,11 +256,16 @@ function updateCartDisplay() {
         subtotal += item.totalHarga;
         const sizeInfo = item.ukuran ? `<span>Size: ${item.ukuran}</span>` : '';
         
+        // Check customer type to determine if member price should be shown
+        const tipePembeliEl = document.querySelector('input[name="tipe_pembeli"]:checked');
+        const tipePembeli = (tipePembeliEl && tipePembeliEl.value) ? tipePembeliEl.value : 'Umum';
+        const isMember = tipePembeli === 'Member';
+        
         // Show pricing information in cart item
         const priceInfo = `
             <div class="cart-item-pricing">
                 <div class="cart-item-price-label">Regular: Rp ${item.regular_price.toLocaleString('id-ID')}</div>
-                <div class="cart-item-price-label">Member: Rp ${item.member_price.toLocaleString('id-ID')}</div>
+                ${isMember ? `<div class="cart-item-price-label">Member: Rp ${item.member_price.toLocaleString('id-ID')}</div>` : ''}
                 ${item.price_override ? `<div class="cart-item-price-override">Override: Rp ${item.price_override.toLocaleString('id-ID')}</div>` : ''}
             </div>
         `;
@@ -473,16 +478,28 @@ function updatePricePreview() {
     
     console.log('[updatePricePreview] Price Information sync - hargaMemberDisplay:', hargaMemberDisplay, 'hargaDefault:', hargaDefault, 'tipePembeli:', tipePembeli);
 
-    // Display member price with discount info
+    // Display member price only when customer type is Member
     if (tipePembeli === 'Member' && diskonPersen > 0) {
         const diskonAmount = selectedProduct.harga_jual * (diskonPersen / 100);
-        if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerHTML = `
-            <span class="text-slate-400 line-through text-xs">Rp ${Number(selectedProduct.harga_jual).toLocaleString('id-ID')}</span>
-            <span class="text-emerald-400 font-bold ml-2">Rp ${Number(hargaMemberDisplay).toLocaleString('id-ID')}</span>
-            <span class="text-xs text-emerald-400 ml-1">(-${diskonPersen}%)</span>
-        `;
+        if (hargaMemberDefaultEl) {
+            hargaMemberDefaultEl.innerHTML = `
+                <span class="text-slate-400 line-through text-xs">Rp ${Number(selectedProduct.harga_jual).toLocaleString('id-ID')}</span>
+                <span class="text-emerald-400 font-bold ml-2">Rp ${Number(hargaMemberDisplay).toLocaleString('id-ID')}</span>
+                <span class="text-xs text-emerald-400 ml-1">(-${diskonPersen}%)</span>
+            `;
+            hargaMemberDefaultEl.style.display = 'block';
+        }
+    } else if (tipePembeli === 'Member') {
+        // Member selected but no discount
+        if (hargaMemberDefaultEl) {
+            hargaMemberDefaultEl.innerText = 'Rp ' + Number(hargaMemberDisplay).toLocaleString('id-ID');
+            hargaMemberDefaultEl.style.display = 'block';
+        }
     } else {
-        if (hargaMemberDefaultEl) hargaMemberDefaultEl.innerText = 'Rp ' + Number(hargaMemberDisplay).toLocaleString('id-ID');
+        // Regular customer - hide member price
+        if (hargaMemberDefaultEl) {
+            hargaMemberDefaultEl.style.display = 'none';
+        }
     }
 
     let sectorLabel = `<span class="text-zinc-400 font-bold">[AKSESORIS]</span>`;
