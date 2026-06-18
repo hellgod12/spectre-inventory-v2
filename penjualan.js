@@ -144,6 +144,8 @@ function showSaleSuccess(message) {
 
 // Cart Management Functions
 function addToCart() {
+    console.log('Add button clicked - addToCart() called');
+    
     if (!selectedProduct) {
         alert('[ALARM] GAGAL: PRODUK BELUM DIKUNCI.');
         return;
@@ -618,24 +620,40 @@ async function cancelInvoice(invoiceId) {
     }
 }
 
+function updatePartialPaymentCalculation() {
+    const totalHarga = cart.reduce((sum, item) => sum + item.totalHarga, 0);
+    const amountPaid = amountPaidCheckoutInput ? parseFloat(amountPaidCheckoutInput.value) || 0 : 0;
+
+    if (partialTotalCheckoutEl) partialTotalCheckoutEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
+    if (partialPaidCheckoutEl) partialPaidCheckoutEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
+    if (partialRemainingCheckoutEl) partialRemainingCheckoutEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
+}
+
+// Event listener bindings
 if (selectProduct) selectProduct.addEventListener('change', updatePricePreview);
 if (inputJumlah) inputJumlah.addEventListener('input', updatePricePreview);
 if (hargaOverrideEl) hargaOverrideEl.addEventListener('input', updatePricePreview);
 if (selectMember) selectMember.addEventListener('change', updatePricePreview);
+
 const typeUmumEl = document.getElementById('typeUmum');
 if (typeUmumEl) typeUmumEl.addEventListener('change', handleTypeChange);
+
 const typeMemberEl = document.getElementById('typeMember');
 if (typeMemberEl) typeMemberEl.addEventListener('change', handleTypeChange);
+
 const btnAddToCartEl = document.getElementById('btnAddToCart');
-if (btnAddToCartEl) btnAddToCartEl.addEventListener('click', addToCart);
+console.log('Add button element found:', btnAddToCartEl);
+if (btnAddToCartEl) {
+    console.log('Adding click event listener to Add button');
+    btnAddToCartEl.addEventListener('click', addToCart);
+} else {
+    console.error('Add button element not found!');
+}
 
 // Handle payment status changes (cart checkout section)
 const paymentStatusRadios = document.querySelectorAll('input[name="payment_status"]');
 const partialPaymentSectionCheckout = document.getElementById('partialPaymentSectionCheckout');
 const amountPaidCheckoutInput = document.getElementById('amountPaidCheckout');
-const partialTotalCheckoutEl = document.getElementById('partialTotalCheckout');
-const partialPaidCheckoutEl = document.getElementById('partialPaidCheckout');
-const partialRemainingCheckoutEl = document.getElementById('partialRemainingCheckout');
 
 paymentStatusRadios.forEach(radio => {
     radio.addEventListener('change', () => {
@@ -650,15 +668,6 @@ paymentStatusRadios.forEach(radio => {
 
 if (amountPaidCheckoutInput) {
     amountPaidCheckoutInput.addEventListener('input', updatePartialPaymentCalculation);
-}
-
-function updatePartialPaymentCalculation() {
-    const totalHarga = cart.reduce((sum, item) => sum + item.totalHarga, 0);
-    const amountPaid = amountPaidCheckoutInput ? parseFloat(amountPaidCheckoutInput.value) || 0 : 0;
-
-    if (partialTotalCheckoutEl) partialTotalCheckoutEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
-    if (partialPaidCheckoutEl) partialPaidCheckoutEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
-    if (partialRemainingCheckoutEl) partialRemainingCheckoutEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
 }
 
 salesForm.addEventListener('submit', async (e) => {
