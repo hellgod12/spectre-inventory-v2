@@ -248,13 +248,25 @@ function recalculateCartPrices() {
 }
 
 function updateCartDisplay() {
+    console.log('updateCartDisplay() called');
+    console.log('Cart length:', cart.length);
+    
     const cartItemsEl = document.getElementById('cartItems');
     const cartCountEl = document.getElementById('cartCount');
     const cartSubtotalEl = document.getElementById('cartSubtotal');
     const cartCustomerOptionsEl = document.getElementById('cartCustomerOptions');
     const cartPaymentOptionsEl = document.getElementById('cartPaymentOptions');
 
-    if (!cartItemsEl || !cartCountEl || !cartSubtotalEl) return;
+    console.log('cartItemsEl:', cartItemsEl);
+    console.log('cartCountEl:', cartCountEl);
+    console.log('cartSubtotalEl:', cartSubtotalEl);
+    console.log('cartCustomerOptionsEl:', cartCustomerOptionsEl);
+    console.log('cartPaymentOptionsEl:', cartPaymentOptionsEl);
+
+    if (!cartItemsEl || !cartCountEl || !cartSubtotalEl) {
+        console.log('ERROR: Required cart elements not found!');
+        return;
+    }
 
     if (cart.length === 0) {
         cartItemsEl.innerHTML = '<p class="cart-placeholder">No items in cart</p>';
@@ -292,9 +304,17 @@ function updateCartDisplay() {
     cartItemsEl.innerHTML = html;
     cartCountEl.textContent = `${cart.length} item${cart.length > 1 ? 's' : ''}`;
     
+    console.log('Rendered HTML:', html);
+    
     // Update cart total (new element)
     const cartTotalEl = document.getElementById('cartTotal');
-    if (cartTotalEl) cartTotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+    console.log('cartTotalEl:', cartTotalEl);
+    if (cartTotalEl) {
+        cartTotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
+        console.log('Updated cartTotalEl to:', 'Rp ' + subtotal.toLocaleString('id-ID'));
+    } else {
+        console.log('ERROR: cartTotalEl not found!');
+    }
     
     // Update cart subtotal (legacy element, if exists)
     if (cartSubtotalEl) cartSubtotalEl.textContent = 'Rp ' + subtotal.toLocaleString('id-ID');
@@ -306,6 +326,8 @@ function updateCartDisplay() {
         // Update partial payment summary with cart subtotal
         updatePartialPaymentSummary(subtotal);
     }
+    
+    console.log('updateCartDisplay() completed successfully');
 }
 
 function updatePartialPaymentSummary(totalHarga) {
