@@ -1,6 +1,12 @@
 // Marketplace Orders Page Logic (Manual Entry System)
 // Direct Supabase queries for manual entry
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[marketplace.js] supabaseClient not initialized. Ensure auth.js is loaded before marketplace.js');
+}
+
 let allOrders = [];
 let filteredOrders = [];
 let products = [];

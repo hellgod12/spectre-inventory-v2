@@ -1,6 +1,12 @@
 // Returns and Refund Management Module for SPECTRE POS
 // Handles product returns, refunds, and stock restoration
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[returns-management.js] supabaseClient not initialized. Ensure auth.js is loaded before returns-management.js');
+}
+
 /**
  * Create a return record
  * @param {Object} returnData - Return data

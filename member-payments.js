@@ -1,6 +1,9 @@
 // Member Payments Management
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[member-payments.js] supabaseClient not initialized. Ensure auth.js is loaded before member-payments.js');
+}
 
 // Load member payments
 async function loadMemberPayments() {

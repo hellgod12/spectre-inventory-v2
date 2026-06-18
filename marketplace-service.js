@@ -2,6 +2,12 @@
 // Business logic for marketplace accounting system
 // Uses repository functions from marketplace-repository.js
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[marketplace-service.js] supabaseClient not initialized. Ensure auth.js is loaded before marketplace-service.js');
+}
+
 // ============================================
 // ORDER PROCESSING
 // ============================================

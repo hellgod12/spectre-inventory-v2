@@ -1,6 +1,12 @@
 // Tax Configuration Module for SPECTRE POS
 // Handles tax rates, tax calculations, and tax reporting
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[tax-config.js] supabaseClient not initialized. Ensure auth.js is loaded before tax-config.js');
+}
+
 /**
  * Get current tax configuration
  * @returns {Promise<Object>} Tax configuration
@@ -19,7 +25,21 @@ async function getTaxConfig() {
         }
 
         if (settings) {
-            return JSON.parse(settings.value);
+            try {
+                return JSON.parse(settings.value);
+            } catch (err) {
+                console.error('[tax-config.js] Failed to parse tax_config JSON:', err);
+                // Return default configuration if parsing fails
+                return {
+                    taxRate: 11,
+                    taxEnabled: true,
+                    taxIncluded: false,
+                    taxName: 'PPN',
+                    taxNumber: null,
+                    rounding: 'nearest',
+                    exemptCategories: []
+                };
+            }
         }
 
         // Return default configuration

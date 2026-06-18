@@ -1,6 +1,12 @@
 // Receipt Printing Module for SPECTRE POS
 // Supports thermal printers (58mm/80mm)
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[receipt-printer.js] supabaseClient not initialized. Ensure auth.js is loaded before receipt-printer.js');
+}
+
 /**
  * Generate receipt HTML for printing
  * @param {Object} paymentData - Payment record from database

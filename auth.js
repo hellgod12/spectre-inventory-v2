@@ -17,7 +17,25 @@ let currentUserId = null;
 
 // Track auth state changes
 supabaseClient.auth.onAuthStateChange((event, session) => {
-    // Auth state changed
+    console.log('Auth state changed:', event, session ? 'User logged in' : 'User logged out');
+    
+    if (event === 'SIGNED_IN') {
+        // Refresh user data
+        if (session) {
+            currentUserEmail = session.user.email;
+            currentUserId = session.user.id;
+            // Role will be fetched by initAuth
+        }
+    } else if (event === 'SIGNED_OUT') {
+        // Clear user data
+        currentUserEmail = null;
+        currentUserId = null;
+        currentUserRole = null;
+        // Clear localStorage
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userId');
+    }
 });
 
 // Initialize authentication

@@ -1,6 +1,12 @@
 // Discount and Promotion Management Module for SPECTRE POS
 // Handles product discounts, cart discounts, and promo codes
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[discount-system.js] supabaseClient not initialized. Ensure auth.js is loaded before discount-system.js');
+}
+
 /**
  * Create a discount/promotion
  * @param {Object} discountData - Discount data

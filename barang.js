@@ -1,5 +1,8 @@
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[barang.js] supabaseClient not initialized. Ensure auth.js is loaded before barang.js');
+}
 
 const productForm = document.getElementById('productForm');
 

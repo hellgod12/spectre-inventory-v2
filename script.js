@@ -1,5 +1,27 @@
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('supabaseClient not initialized. Ensure auth.js is loaded before script.js');
+}
+
+// Function stubs for onclick handlers (defined later in file)
+// These stubs prevent undefined function errors if HTML renders before full script loads
+window.addPartialPayment = function(invoiceId, paymentAmount) {
+    console.warn('addPartialPayment called but not yet initialized');
+    alert('Fitur ini sedang dimuat. Silakan coba lagi.');
+};
+window.markAsPaid = function(invoiceId) {
+    console.warn('markAsPaid called but not yet initialized');
+    alert('Fitur ini sedang dimuat. Silakan coba lagi.');
+};
+window.cancelInvoice = function(invoiceId) {
+    console.warn('cancelInvoice called but not yet initialized');
+    alert('Fitur ini sedang dimuat. Silakan coba lagi.');
+};
+window.deleteTransaction = function(invoiceId) {
+    console.warn('deleteTransaction called but not yet initialized');
+    alert('Fitur ini sedang dimuat. Silakan coba lagi.');
+};
 
 // Load marketplace data for combined POS + Marketplace analytics (Manual Entry System)
 // This ensures marketplace data is included in dashboard metrics
@@ -7,7 +29,7 @@
 // Sidebar Toggle Functionality
 function toggleSidebar() {
     const sidebar = document.querySelector('.spectre-sidebar');
-    sidebar.classList.toggle('spectre-sidebar--collapsed');
+    if (sidebar) sidebar.classList.toggle('spectre-sidebar--collapsed');
 }
 
 function formatCurrency(value) {
@@ -245,20 +267,26 @@ async function loadPayments() {
 
     try {
         // Fetch payments, online_orders, members, and sales_history data
-        const [paymentsResult, onlineOrdersResult, membersResult, salesHistoryResult] = await Promise.all([
+        const [paymentsResult, onlineOrdersResult, membersResult, salesHistoryResult] = await Promise.allSettled([
             supabaseClient.from('payments').select('*').order('created_at', { ascending: false }),
             supabaseClient.from('online_orders').select('*').order('order_date', { ascending: false }),
             supabaseClient.from('members').select('*'),
             supabaseClient.from('sales_history').select('*')
         ]);
 
-        const { data, error } = paymentsResult;
-        const { data: onlineOrders } = onlineOrdersResult;
-        const { data: members } = membersResult;
-        const { data: salesHistory } = salesHistoryResult;
+        // Handle each result safely
+        const paymentsData = paymentsResult.status === 'fulfilled' ? paymentsResult.value.data : [];
+        const onlineOrdersData = onlineOrdersResult.status === 'fulfilled' ? onlineOrdersResult.value.data : [];
+        const membersData = membersResult.status === 'fulfilled' ? membersResult.value.data : [];
+        const salesHistoryData = salesHistoryResult.status === 'fulfilled' ? salesHistoryResult.value.data : [];
+
+        const { data, error } = paymentsResult.status === 'fulfilled' ? paymentsResult.value : { data: null, error: null };
+        const onlineOrders = onlineOrdersData;
+        const members = membersData;
+        const salesHistory = salesHistoryData;
 
         if (error) supabaseError = error;
-        else payments = normalizePayments(data);
+        else payments = normalizePayments(paymentsData);
 
         // Normalize online_orders to match payments structure
         let normalizedOnlineOrders = [];
@@ -463,15 +491,18 @@ async function deletePayment(id) {
     try {
         // First, check if this is an online order or in-store payment
         // Fetch both tables to determine the source
-        const [paymentCheck, onlineCheck] = await Promise.all([
+        const [paymentCheck, onlineCheck] = await Promise.allSettled([
             supabaseClient.from('payments').select('id').eq('id', id).single(),
             supabaseClient.from('online_orders').select('id').eq('id', id).single()
         ]);
 
+        const paymentData = paymentCheck.status === 'fulfilled' ? paymentCheck.value.data : null;
+        const onlineData = onlineCheck.status === 'fulfilled' ? onlineCheck.value.data : null;
+
         let source = 'in-store';
-        if (onlineCheck.data) {
+        if (onlineData) {
             source = 'online';
-        } else if (!paymentCheck.data) {
+        } else if (!paymentData) {
             alert('❌ Data tidak ditemukan');
             return;
         }
@@ -1137,7 +1168,8 @@ async function loadDashboard() {
     // Hitung sisa stok di gudang saat ini (dari tabel products)
     if (products) {
         products.forEach(item => { totalStock += parseInt(item.stok || 0); });
-        document.getElementById('totalItems').innerText = products.length;
+        const totalItemsEl = document.getElementById('totalItems');
+        if (totalItemsEl) totalItemsEl.innerText = products.length;
     }
 
     // Pre-map produk modal per nama_barang (for profit calculation)
@@ -1249,14 +1281,26 @@ async function loadDashboard() {
     const displayProfit = combinedProfit > 0 ? combinedProfit : profitBersih;
     const displayOrders = combinedOrders > 0 ? combinedOrders : totalTerjualCount;
 
-    document.getElementById('totalStock').innerText = totalStock;
-    document.getElementById('totalStock').dataset.originalValue = totalStock;
-    document.getElementById('totalOmset').innerText = 'Rp ' + displayRevenue.toLocaleString('id-ID');
-    document.getElementById('totalOmset').dataset.originalValue = 'Rp ' + displayRevenue.toLocaleString('id-ID');
-    document.getElementById('totalProfit').innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
-    document.getElementById('totalProfit').dataset.originalValue = 'Rp ' + displayProfit.toLocaleString('id-ID');
-    document.getElementById('totalSalesCount').innerText = displayOrders + " Barang";
-    document.getElementById('totalSalesCount').dataset.originalValue = displayOrders + " Barang";
+    const totalStockEl = document.getElementById('totalStock');
+    if (totalStockEl) {
+        totalStockEl.innerText = totalStock;
+        totalStockEl.dataset.originalValue = totalStock;
+    }
+    const totalOmsetEl = document.getElementById('totalOmset');
+    if (totalOmsetEl) {
+        totalOmsetEl.innerText = 'Rp ' + displayRevenue.toLocaleString('id-ID');
+        totalOmsetEl.dataset.originalValue = 'Rp ' + displayRevenue.toLocaleString('id-ID');
+    }
+    const totalProfitEl = document.getElementById('totalProfit');
+    if (totalProfitEl) {
+        totalProfitEl.innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
+        totalProfitEl.dataset.originalValue = 'Rp ' + displayProfit.toLocaleString('id-ID');
+    }
+    const totalSalesCountEl = document.getElementById('totalSalesCount');
+    if (totalSalesCountEl) {
+        totalSalesCountEl.innerText = displayOrders + " Barang";
+        totalSalesCountEl.dataset.originalValue = displayOrders + " Barang";
+    }
 
     // Hide loading skeleton after data is loaded
     hideLoadingSkeleton();
@@ -1270,10 +1314,6 @@ async function loadDashboard() {
     renderInvoices(); // Render invoices and outstanding payments
     
     // Animate counters for key statistics
-    const totalOmsetEl = document.getElementById('totalOmset');
-    const totalProfitEl = document.getElementById('totalProfit');
-    const totalStockEl = document.getElementById('totalStock');
-    
     if (totalOmsetEl) {
         animateCounter(totalOmsetEl, displayRevenue, 1200);
     }
@@ -1289,8 +1329,10 @@ async function loadDashboard() {
     const kpiTotalStockEl = document.getElementById('kpiTotalStock');
     if (kpiTotalItemsEl) kpiTotalItemsEl.innerText = products.length;
     if (kpiTotalStockEl) kpiTotalStockEl.innerText = totalStock;
-    document.getElementById('totalExpenses').innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
-    document.getElementById('netProfit').innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
+    const totalExpensesEl = document.getElementById('totalExpenses');
+    if (totalExpensesEl) totalExpensesEl.innerText = 'Rp ' + totalExpenses.toLocaleString('id-ID');
+    const netProfitEl = document.getElementById('netProfit');
+    if (netProfitEl) netProfitEl.innerText = 'Rp ' + displayProfit.toLocaleString('id-ID');
 
     // Update trend indicators - set to 0% since we don't have historical data
     const revenueTrendEl = document.getElementById('revenueTrend');
@@ -1358,9 +1400,12 @@ async function loadDashboard() {
         });
     }
 
-    document.getElementById('inventoryValue').innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
-    document.getElementById('totalModalBarang').innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
-    document.getElementById('lowStockItems').innerText = lowStockItems;
+    const inventoryValueEl = document.getElementById('inventoryValue');
+    if (inventoryValueEl) inventoryValueEl.innerText = 'Rp ' + inventoryValue.toLocaleString('id-ID');
+    const totalModalBarangEl = document.getElementById('totalModalBarang');
+    if (totalModalBarangEl) totalModalBarangEl.innerText = 'Rp ' + totalModalBarang.toLocaleString('id-ID');
+    const lowStockItemsEl = document.getElementById('lowStockItems');
+    if (lowStockItemsEl) lowStockItemsEl.innerText = lowStockItems;
 
     // Render product inventory list
     if (products && products.length > 0) {
@@ -1515,18 +1560,30 @@ async function loadOnlineSalesStatistics(offlineRevenue = 0) {
         const aov = monthOrdersCount > 0 ? (monthRevenue / monthOrdersCount) : 0;
 
         // Update DOM elements
-        document.getElementById('onlineSalesTodayRevenue').innerText = 'Rp ' + todayRevenue.toLocaleString('id-ID');
-        document.getElementById('onlineSalesTodayOrders').innerText = todayOrdersCount;
-        document.getElementById('onlineSalesTodayTrend').innerText = `${todayGrowth >= 0 ? '↑' : '↓'} ${Math.abs(todayGrowth)}%`;
-        document.getElementById('onlineSalesTodayTrend').className = `spectre-kpi-trend ${todayGrowth >= 0 ? 'spectre-kpi-trend--up' : 'spectre-kpi-trend--down'}`;
+        const onlineSalesTodayRevenueEl = document.getElementById('onlineSalesTodayRevenue');
+        if (onlineSalesTodayRevenueEl) onlineSalesTodayRevenueEl.innerText = 'Rp ' + todayRevenue.toLocaleString('id-ID');
+        const onlineSalesTodayOrdersEl = document.getElementById('onlineSalesTodayOrders');
+        if (onlineSalesTodayOrdersEl) onlineSalesTodayOrdersEl.innerText = todayOrdersCount;
+        const onlineSalesTodayTrendEl = document.getElementById('onlineSalesTodayTrend');
+        if (onlineSalesTodayTrendEl) {
+            onlineSalesTodayTrendEl.innerText = `${todayGrowth >= 0 ? '↑' : '↓'} ${Math.abs(todayGrowth)}%`;
+            onlineSalesTodayTrendEl.className = `spectre-kpi-trend ${todayGrowth >= 0 ? 'spectre-kpi-trend--up' : 'spectre-kpi-trend--down'}`;
+        }
 
-        document.getElementById('onlineSalesMonthRevenue').innerText = 'Rp ' + monthRevenue.toLocaleString('id-ID');
-        document.getElementById('onlineSalesMonthOrders').innerText = monthOrdersCount;
-        document.getElementById('onlineSalesMonthTrend').innerText = `${monthGrowth >= 0 ? '↑' : '↓'} ${Math.abs(monthGrowth)}%`;
-        document.getElementById('onlineSalesMonthTrend').className = `spectre-kpi-trend ${monthGrowth >= 0 ? 'spectre-kpi-trend--up' : 'spectre-kpi-trend--down'}`;
+        const onlineSalesMonthRevenueEl = document.getElementById('onlineSalesMonthRevenue');
+        if (onlineSalesMonthRevenueEl) onlineSalesMonthRevenueEl.innerText = 'Rp ' + monthRevenue.toLocaleString('id-ID');
+        const onlineSalesMonthOrdersEl = document.getElementById('onlineSalesMonthOrders');
+        if (onlineSalesMonthOrdersEl) onlineSalesMonthOrdersEl.innerText = monthOrdersCount;
+        const onlineSalesMonthTrendEl = document.getElementById('onlineSalesMonthTrend');
+        if (onlineSalesMonthTrendEl) {
+            onlineSalesMonthTrendEl.innerText = `${monthGrowth >= 0 ? '↑' : '↓'} ${Math.abs(monthGrowth)}%`;
+            onlineSalesMonthTrendEl.className = `spectre-kpi-trend ${monthGrowth >= 0 ? 'spectre-kpi-trend--up' : 'spectre-kpi-trend--down'}`;
+        }
 
-        document.getElementById('totalSalesRevenue').innerText = 'Rp ' + totalRevenue.toLocaleString('id-ID');
-        document.getElementById('onlineAOV').innerText = 'Rp ' + aov.toLocaleString('id-ID');
+        const totalSalesRevenueEl = document.getElementById('totalSalesRevenue');
+        if (totalSalesRevenueEl) totalSalesRevenueEl.innerText = 'Rp ' + totalRevenue.toLocaleString('id-ID');
+        const onlineAOVEl = document.getElementById('onlineAOV');
+        if (onlineAOVEl) onlineAOVEl.innerText = 'Rp ' + aov.toLocaleString('id-ID');
 
         // Load top selling online products
         await loadTopSellingOnlineProducts(monthStart, monthEnd);
@@ -2584,20 +2641,28 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'inventory_stock_delta') {
             try {
                 const payload = JSON.parse(e.newValue || '{}');
-                window.InventoryManager?.applyStockDelta?.(payload.delta);
-            } catch (err) {}
+                if (typeof window.InventoryManager !== 'undefined' && window.InventoryManager) {
+                    window.InventoryManager.applyStockDelta?.(payload.delta);
+                }
+            } catch (err) {
+                console.error('[script.js] Failed to parse inventory_stock_delta JSON:', err);
+            }
         }
 
         if (e.key === 'inventory_payment_delta') {
             try {
-                window.InventoryManager?.applyPaymentDelta?.();
+                if (typeof window.InventoryManager !== 'undefined' && window.InventoryManager) {
+                    window.InventoryManager.applyPaymentDelta?.();
+                }
             } catch (err) {}
         }
     });
 
     // initial refresh jika container ada
     try {
-        window.InventoryManager?.refreshStockProgressFromProductsTotal?.();
+        if (typeof window.InventoryManager !== 'undefined' && window.InventoryManager) {
+            window.InventoryManager.refreshStockProgressFromProductsTotal?.();
+        }
     } catch (e) {}
 });
 

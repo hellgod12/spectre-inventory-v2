@@ -3,6 +3,11 @@
 
 // scan-helper.js attaches setupCameraScan to window
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[scan-terjual.js] supabaseClient not initialized. Ensure auth.js is loaded before scan-terjual.js');
+}
 
 function setSelectedProductByBarcode(raw) {
   if (!selectProduct) return false;

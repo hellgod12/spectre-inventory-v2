@@ -1,6 +1,12 @@
 // Sales Reports Module for SPECTRE POS
 // Provides comprehensive sales analytics and reporting
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[sales-reports.js] supabaseClient not initialized. Ensure auth.js is loaded before sales-reports.js');
+}
+
 /**
  * Get sales report for a specific date range
  * @param {Date} startDate - Start date

@@ -1,6 +1,12 @@
 // Inventory Movement Reports Module for SPECTRE POS
 // Tracks stock movements, low stock alerts, and inventory valuation
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[inventory-reports.js] supabaseClient not initialized. Ensure auth.js is loaded before inventory-reports.js');
+}
+
 /**
  * Get inventory movement report for date range
  * @param {Date} startDate - Start date

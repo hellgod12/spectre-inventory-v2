@@ -1,3 +1,12 @@
+// Scan Helper Module for SPECTRE POS
+// Camera scanning utilities for barcode scanning
+
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[scan-helper.js] supabaseClient not initialized. Ensure auth.js is loaded before scan-helper.js');
+}
+
 function setupCameraScan({ videoEl, canvasEl, onDecoded, onError, facingMode = 'environment', intervalMs = 350 } = {}) {
   if (!videoEl || !canvasEl) throw new Error('setupCameraScan: videoEl dan canvasEl wajib');
 

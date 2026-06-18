@@ -1,5 +1,8 @@
 // Supabase client is initialized in auth.js
 // Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[pengeluaran.js] supabaseClient not initialized. Ensure auth.js is loaded before pengeluaran.js');
+}
 
 const expenseForm = document.getElementById('expenseForm');
 const btnTambah = document.getElementById('btnTambah');

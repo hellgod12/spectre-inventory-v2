@@ -1,6 +1,12 @@
 // Purchase Orders Module for SPECTRE POS
 // Handles PO creation, tracking, and supplier orders
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[purchase-orders.js] supabaseClient not initialized. Ensure auth.js is loaded before purchase-orders.js');
+}
+
 /**
  * Create a new purchase order
  * @param {Object} poData - Purchase order data

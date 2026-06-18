@@ -1,5 +1,11 @@
 // member.js - Member Management Module
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[member.js] supabaseClient not initialized. Ensure auth.js is loaded before member.js');
+}
+
 // Local function: Load member KPIs and insights
 async function loadMemberKPIs() {
     try {

@@ -1,6 +1,12 @@
 // candle-manager.js
 // Sinkronisasi animasi candel untuk mutasi stok (produk masuk/keluar) dan pembayaran.
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[candle-manager.js] supabaseClient not initialized. Ensure auth.js is loaded before candle-manager.js');
+}
+
 (function () {
   function safeNumber(n, fallback = 0) {
     const x = typeof n === 'number' ? n : Number(n);
@@ -38,27 +44,46 @@
     }
   }
 
+  // Track active animation controllers per element to prevent memory leaks and race conditions
+  const activeControllers = new WeakMap();
+
   function pulseElement(el, { times = 2, duration = 220 } = {}) {
     if (!el) return;
+
+    // Clear any existing animation for this element to prevent duplicates
+    if (activeControllers.has(el)) {
+      const controller = activeControllers.get(el);
+      clearInterval(controller.interval);
+      controller.timeouts.forEach(t => clearTimeout(t));
+      activeControllers.delete(el);
+    }
 
     const baseTransform = el.style.transform || '';
     el.style.willChange = 'transform, box-shadow, filter, opacity';
 
     let i = 0;
+    const timeouts = [];
     const timer = setInterval(() => {
       i++;
       el.style.transform = 'scale(1.02)';
       el.style.filter = 'brightness(1.15)';
       el.style.boxShadow = '0 0 26px rgba(251, 113, 133, 0.35)';
 
-      setTimeout(() => {
+      const resetTimeout = setTimeout(() => {
         el.style.transform = baseTransform;
         el.style.filter = 'brightness(1)';
         el.style.boxShadow = '';
       }, duration);
+      timeouts.push(resetTimeout);
 
-      if (i >= times) clearInterval(timer);
+      if (i >= times) {
+        clearInterval(timer);
+        activeControllers.delete(el);
+      }
     }, duration);
+
+    // Store controller with both interval and timeouts for complete cleanup
+    activeControllers.set(el, { interval: timer, timeouts });
   }
 
   function flashInventory(delta, { scope = 'stock' } = {}) {

@@ -1,6 +1,12 @@
 // Marketplace Utility Functions
 // Helper functions for marketplace operations
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[marketplace-utils.js] supabaseClient not initialized. Ensure auth.js is loaded before marketplace-utils.js');
+}
+
 // ============================================
 // CSV IMPORT
 // ============================================

@@ -5,6 +5,9 @@ if (window.__PENJUALAN_INIT__) {
     window.__PENJUALAN_INIT__ = true;
     // Supabase client is initialized in auth.js
     // Use global supabaseClient from auth.js
+    if (typeof supabaseClient === 'undefined') {
+        console.error('[penjualan.js] supabaseClient not initialized. Ensure auth.js is loaded before penjualan.js');
+    }
 }
 
 
@@ -259,18 +262,18 @@ function updateCartDisplay() {
 }
 
 function updatePartialPaymentSummary(totalHarga) {
-    const amountPaidInput = document.getElementById('amountPaid');
-    const partialTotalEl = document.getElementById('partialTotal');
-    const partialPaidEl = document.getElementById('partialPaid');
-    const partialRemainingEl = document.getElementById('partialRemaining');
+    const amountPaidInitialInput = document.getElementById('amountPaidInitial');
+    const partialTotalInitialEl = document.getElementById('partialTotalInitial');
+    const partialPaidInitialEl = document.getElementById('partialPaidInitial');
+    const partialRemainingInitialEl = document.getElementById('partialRemainingInitial');
 
-    if (!amountPaidInput || !partialTotalEl || !partialPaidEl || !partialRemainingEl) return;
+    if (!amountPaidInitialInput || !partialTotalInitialEl || !partialPaidInitialEl || !partialRemainingInitialEl) return;
 
-    const amountPaid = parseFloat(amountPaidInput.value) || 0;
+    const amountPaid = parseFloat(amountPaidInitialInput.value) || 0;
 
-    partialTotalEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
-    partialPaidEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
-    partialRemainingEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
+    partialTotalInitialEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
+    partialPaidInitialEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
+    partialRemainingInitialEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
 }
 
 // 1. Ambil Produk & Ambil Nomor Telepon Member dari Supabase
@@ -604,40 +607,45 @@ async function cancelInvoice(invoiceId) {
     }
 }
 
-selectProduct.addEventListener('change', updatePricePreview);
-inputJumlah.addEventListener('input', updatePricePreview);
-document.getElementById('typeUmum').addEventListener('change', handleTypeChange);
-document.getElementById('typeMember').addEventListener('change', handleTypeChange);
-document.getElementById('btnAddToCart').addEventListener('click', addToCart);
+if (selectProduct) selectProduct.addEventListener('change', updatePricePreview);
+if (inputJumlah) inputJumlah.addEventListener('input', updatePricePreview);
+const typeUmumEl = document.getElementById('typeUmum');
+if (typeUmumEl) typeUmumEl.addEventListener('change', handleTypeChange);
+const typeMemberEl = document.getElementById('typeMember');
+if (typeMemberEl) typeMemberEl.addEventListener('change', handleTypeChange);
+const btnAddToCartEl = document.getElementById('btnAddToCart');
+if (btnAddToCartEl) btnAddToCartEl.addEventListener('click', addToCart);
 
-// Handle payment status changes
+// Handle payment status changes (cart checkout section)
 const paymentStatusRadios = document.querySelectorAll('input[name="payment_status"]');
-const partialPaymentSection = document.getElementById('partialPaymentSection');
-const amountPaidInput = document.getElementById('amountPaid');
-const partialTotalEl = document.getElementById('partialTotal');
-const partialPaidEl = document.getElementById('partialPaid');
-const partialRemainingEl = document.getElementById('partialRemaining');
+const partialPaymentSectionCheckout = document.getElementById('partialPaymentSectionCheckout');
+const amountPaidCheckoutInput = document.getElementById('amountPaidCheckout');
+const partialTotalCheckoutEl = document.getElementById('partialTotalCheckout');
+const partialPaidCheckoutEl = document.getElementById('partialPaidCheckout');
+const partialRemainingCheckoutEl = document.getElementById('partialRemainingCheckout');
 
 paymentStatusRadios.forEach(radio => {
     radio.addEventListener('change', () => {
         if (radio.value === 'partial') {
-            partialPaymentSection.classList.remove('hidden');
+            if (partialPaymentSectionCheckout) partialPaymentSectionCheckout.classList.remove('hidden');
             updatePartialPaymentCalculation();
         } else {
-            partialPaymentSection.classList.add('hidden');
+            if (partialPaymentSectionCheckout) partialPaymentSectionCheckout.classList.add('hidden');
         }
     });
 });
 
-amountPaidInput.addEventListener('input', updatePartialPaymentCalculation);
+if (amountPaidCheckoutInput) {
+    amountPaidCheckoutInput.addEventListener('input', updatePartialPaymentCalculation);
+}
 
 function updatePartialPaymentCalculation() {
     const totalHarga = cart.reduce((sum, item) => sum + item.totalHarga, 0);
-    const amountPaid = parseFloat(amountPaidInput.value) || 0;
+    const amountPaid = amountPaidCheckoutInput ? parseFloat(amountPaidCheckoutInput.value) || 0 : 0;
 
-    partialTotalEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
-    partialPaidEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
-    partialRemainingEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
+    if (partialTotalCheckoutEl) partialTotalCheckoutEl.innerText = 'Rp ' + totalHarga.toLocaleString('id-ID');
+    if (partialPaidCheckoutEl) partialPaidCheckoutEl.innerText = 'Rp ' + amountPaid.toLocaleString('id-ID');
+    if (partialRemainingCheckoutEl) partialRemainingCheckoutEl.innerText = 'Rp ' + Math.max(0, totalHarga - amountPaid).toLocaleString('id-ID');
 }
 
 salesForm.addEventListener('submit', async (e) => {
@@ -678,7 +686,7 @@ salesForm.addEventListener('submit', async (e) => {
         remainingAmount = 0;
         invoiceStatus = 'paid';
     } else if (paymentStatus === 'partial') {
-        const amountPaid = parseFloat(document.getElementById('amountPaid').value) || 0;
+        const amountPaid = parseFloat(document.getElementById('amountPaidCheckout').value) || 0;
         paidAmount = Math.min(amountPaid, totalHarga);
         remainingAmount = totalHarga - paidAmount;
         invoiceStatus = paidAmount > 0 ? 'partial' : 'pending';

@@ -1,6 +1,12 @@
 // Supplier Management Module for SPECTRE POS
 // Handles supplier information, contacts, and supplier performance
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[supplier-management.js] supabaseClient not initialized. Ensure auth.js is loaded before supplier-management.js');
+}
+
 /**
  * Create a new supplier
  * @param {Object} supplierData - Supplier data

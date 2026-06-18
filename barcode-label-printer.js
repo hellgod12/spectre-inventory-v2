@@ -1,6 +1,12 @@
 // Barcode Label Printing Module for SPECTRE POS
 // Generates and prints barcode labels for products
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[barcode-label-printer.js] supabaseClient not initialized. Ensure auth.js is loaded before barcode-label-printer.js');
+}
+
 /**
  * Generate barcode label HTML
  * @param {Object} product - Product data

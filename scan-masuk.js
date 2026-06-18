@@ -1,3 +1,12 @@
+// Scan Masuk Module for SPECTRE POS
+// Product entry scanning utilities
+
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[scan-masuk.js] supabaseClient not initialized. Ensure auth.js is loaded before scan-masuk.js');
+}
+
 const productInput = document.getElementById('nama_barang');
 const kategoriEl = document.getElementById('kategori');
 const stokEl = document.getElementById('stok');

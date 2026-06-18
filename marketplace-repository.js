@@ -2,6 +2,12 @@
 // Data access layer for marketplace accounting system
 // Uses global supabaseClient from auth.js
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[marketplace-repository.js] supabaseClient not initialized. Ensure auth.js is loaded before marketplace-repository.js');
+}
+
 // ============================================
 // MARKETPLACE ACCOUNTS
 // ============================================

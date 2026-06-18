@@ -1,6 +1,12 @@
 // Marketplace Reports Page Logic
 // Connects to marketplace-reporting.js for combined POS + Marketplace analytics
 
+// Supabase client is initialized in auth.js
+// Use global supabaseClient from auth.js
+if (typeof supabaseClient === 'undefined') {
+    console.error('[marketplace-reports.js] supabaseClient not initialized. Ensure auth.js is loaded before marketplace-reports.js');
+}
+
 let currentReportData = null;
 
 // Initialize page
