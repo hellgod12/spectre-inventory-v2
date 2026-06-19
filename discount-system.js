@@ -243,11 +243,23 @@ async function validatePromoCode(promoCode, isMember = false) {
  */
 async function incrementDiscountUsage(discountId) {
     try {
+        // Fetch current usage count
+        const { data: discount, error: fetchError } = await supabaseClient
+            .from('discounts')
+            .select('used_count')
+            .eq('id', discountId)
+            .single();
+        
+        if (fetchError || !discount) {
+            throw fetchError || new Error('Discount not found');
+        }
+        
+        // Increment usage count
+        const newCount = (discount.used_count || 0) + 1;
+        
         const { error } = await supabaseClient
             .from('discounts')
-            .update({
-                used_count: supabaseClient.raw('used_count + 1')
-            })
+            .update({ used_count: newCount })
             .eq('id', discountId);
 
         if (error) throw error;

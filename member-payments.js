@@ -228,12 +228,27 @@ async function cancelPayment(paymentId) {
         if (salesHistory && salesHistory.length > 0) {
             let stockRestoreErrors = [];
             
-            // Restore stock for each sales record using atomic increment
+            // Restore stock for each sales record
             for (const sale of salesHistory) {
                 try {
+                    // Fetch current stock first
+                    const { data: currentProduct, error: fetchError } = await supabaseClient
+                        .from('products')
+                        .select('stok')
+                        .eq('id', sale.product_id)
+                        .single();
+                    
+                    if (fetchError || !currentProduct) {
+                        stockRestoreErrors.push(`Failed to fetch stock for ${sale.nama_barang}: ${fetchError?.message || 'Product not found'}`);
+                        continue;
+                    }
+                    
+                    // Calculate new stock
+                    const newStock = currentProduct.stok + sale.jumlah;
+                    
                     const { data: updatedProduct, error: updateError } = await supabaseClient
                         .from('products')
-                        .update({ stok: supabaseClient.raw('stok + ?', [sale.jumlah]) })
+                        .update({ stok: newStock })
                         .eq('id', sale.product_id)
                         .select('stok')
                         .single();

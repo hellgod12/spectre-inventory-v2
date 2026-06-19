@@ -293,11 +293,27 @@ function addToCart() {
         const discount = POS.selectedMember.diskon_persen || 0;
         unitPrice = variant.harga_jual * (1 - discount / 100);
         console.log('addToCart - unitPrice after member discount:', unitPrice);
+        
+        // Validate that discounted price is not below modal price
+        if (unitPrice < variant.harga_modal) {
+            console.warn('addToCart - Discounted price below modal price:', unitPrice, '<', variant.harga_modal);
+            unitPrice = variant.harga_modal; // Limit to modal price
+            console.log('addToCart - unitPrice limited to modal price:', unitPrice);
+            
+            // Show warning to cashier
+            const discountPercent = discount;
+            alert(`PERINGATAN: Diskon member ${discountPercent}% membuat harga di bawah harga modal.\nHarga disesuaikan ke harga modal: Rp ${variant.harga_modal.toLocaleString('id-ID')}\n\nTransaksi ini tidak akan menyebabkan kerugian.`);
+        }
     }
     
     // Apply override if provided
     const overridePrice = DOM.hargaOverride?.value ? parseFloat(DOM.hargaOverride.value) : null;
     if (overridePrice !== null && overridePrice >= 0) {
+        // Validate override price is not below modal price
+        if (overridePrice < variant.harga_modal) {
+            console.warn('addToCart - Override price below modal price:', overridePrice, '<', variant.harga_modal);
+            alert(`PERINGATAN: Harga override Rp ${overridePrice.toLocaleString('id-ID')} di bawah harga modal Rp ${variant.harga_modal.toLocaleString('id-ID')}.\n\nTransaksi ini akan menyebabkan kerugian sebesar Rp ${(variant.harga_modal - overridePrice).toLocaleString('id-ID')} per unit.`);
+        }
         unitPrice = overridePrice;
         console.log('addToCart - unitPrice after override:', unitPrice);
     }
@@ -524,6 +540,46 @@ async function processSale(e) {
     let remainingAmount = total;
     let invoiceStatus = 'paid';
     
+    // Validate that no cart item has price below modal price (loss prevention)
+    let lossItems = [];
+    for (const item of POS.cart) {
+        if (item.unitPrice < item.hargaModal) {
+            const lossPerUnit = item.hargaModal - item.unitPrice;
+            const totalLoss = lossPerUnit * item.jumlah;
+            lossItems.push({
+                nama: item.nama_barang,
+                unitPrice: item.unitPrice,
+                modalPrice: item.hargaModal,
+                lossPerUnit: lossPerUnit,
+                totalLoss: totalLoss
+            });
+        }
+    }
+    
+    if (lossItems.length > 0) {
+        const lossSummary = lossItems.map(item => 
+            `${item.nama}: Rp ${item.unitPrice.toLocaleString('id-ID')} (modal: Rp ${item.modalPrice.toLocaleString('id-ID')}) - Kerugian: Rp ${item.totalLoss.toLocaleString('id-ID')}`
+        ).join('\n');
+        const totalLoss = lossItems.reduce((sum, item) => sum + item.totalLoss, 0);
+        
+        const confirmLoss = confirm(
+            `PERINGATAN: Transaksi ini akan menyebabkan kerugian!\n\n` +
+            `Item dengan harga di bawah modal:\n${lossSummary}\n\n` +
+            `Total kerugian: Rp ${totalLoss.toLocaleString('id-ID')}\n\n` +
+            `Apakah Anda yakin ingin melanjutkan transaksi ini?`
+        );
+        
+        if (!confirmLoss) {
+            isProcessingSale = false;
+            const btnProses = DOM.btnProses || document.getElementById('btnProses');
+            if (btnProses) {
+                btnProses.disabled = false;
+                btnProses.textContent = 'Process Sale';
+            }
+            return;
+        }
+    }
+    
     if (POS.paymentStatus === 'paid_full') {
         paidAmount = total;
         remainingAmount = 0;
@@ -623,18 +679,37 @@ async function processSale(e) {
         
         try {
             for (const item of POS.cart) {
-                // Use atomic stock decrement to prevent race conditions
-                // This is a single atomic operation at database level
+                // Fetch current stock first
+                const { data: currentProduct, error: fetchError } = await supabaseClient
+                    .from('products')
+                    .select('stok')
+                    .eq('id', item.productId)
+                    .single();
+                
+                if (fetchError || !currentProduct) {
+                    stockUpdateErrors.push(`Failed to fetch stock for ${item.nama_barang}: ${fetchError?.message || 'Product not found'}`);
+                    continue;
+                }
+                
+                // Check if sufficient stock
+                if (currentProduct.stok < item.jumlah) {
+                    stockUpdateErrors.push(`Insufficient stock for ${item.nama_barang}: ${currentProduct.stok} available, ${item.jumlah} requested`);
+                    continue;
+                }
+                
+                // Calculate new stock
+                const newStock = currentProduct.stok - item.jumlah;
+                
+                // Update stock
                 const { data: updatedProduct, error: updateError } = await supabaseClient
                     .from('products')
-                    .update({ stok: supabaseClient.raw('stok - ?', [item.jumlah]) })
+                    .update({ stok: newStock })
                     .eq('id', item.productId)
-                    .gte('stok', item.jumlah)
                     .select('stok')
                     .single();
                 
                 if (updateError || !updatedProduct) {
-                    stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError?.message || 'Insufficient stock'}`);
+                    stockUpdateErrors.push(`Failed to update stock for ${item.nama_barang}: ${updateError?.message || 'Update failed'}`);
                     continue;
                 }
                 
@@ -657,10 +732,19 @@ async function processSale(e) {
                 if (historyError) {
                     historyErrors.push(`Failed to save history for ${item.nama_barang}: ${historyError.message}`);
                     // Rollback stock deduction
-                    await supabaseClient
+                    const { data: rollbackProduct, error: rollbackError } = await supabaseClient
                         .from('products')
-                        .update({ stok: supabaseClient.raw('stok + ?', [item.jumlah]) })
-                        .eq('id', item.productId);
+                        .select('stok')
+                        .eq('id', item.productId)
+                        .single();
+                    
+                    if (rollbackProduct) {
+                        const rollbackStock = rollbackProduct.stok + item.jumlah;
+                        await supabaseClient
+                            .from('products')
+                            .update({ stok: rollbackStock })
+                            .eq('id', item.productId);
+                    }
                     continue;
                 }
                 
@@ -675,10 +759,19 @@ async function processSale(e) {
                 // Rollback all stock deductions
                 for (const processed of processedItems) {
                     try {
-                        await supabaseClient
+                        const { data: rollbackProduct, error: rollbackError } = await supabaseClient
                             .from('products')
-                            .update({ stok: supabaseClient.raw('stok + ?', [processed.item.jumlah]) })
-                            .eq('id', processed.item.productId);
+                            .select('stok')
+                            .eq('id', processed.item.productId)
+                            .single();
+                        
+                        if (rollbackProduct) {
+                            const rollbackStock = rollbackProduct.stok + processed.item.jumlah;
+                            await supabaseClient
+                                .from('products')
+                                .update({ stok: rollbackStock })
+                                .eq('id', processed.item.productId);
+                        }
                     } catch (rollbackError) {
                         console.error('Failed to rollback stock for item:', processed.item.nama_barang, rollbackError);
                     }
