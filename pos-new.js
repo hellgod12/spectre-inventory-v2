@@ -92,15 +92,26 @@ async function loadProducts() {
     console.log('supabaseClient.from:', supabaseClient?.from);
     
     try {
+        // Remove is_active filter to ensure products load even if column doesn't exist
         const { data, error } = await supabaseClient
             .from('products')
             .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
-            .eq('is_active', true)
             .order('nama_barang', { ascending: true });
+        
+        console.log('Products query result:', { data, error });
+        console.log('Number of products loaded:', data?.length || 0);
         
         if (error) throw error;
         
         POS.products = data || [];
+        
+        // Log first product to check price fields
+        if (POS.products.length > 0) {
+            console.log('First product data:', POS.products[0]);
+            console.log('First product harga_jual:', POS.products[0].harga_jual);
+            console.log('First product harga_member:', POS.products[0].harga_member);
+            console.log('First product harga_modal:', POS.products[0].harga_modal);
+        }
         
         // Group products by nama_barang for variant selection
         // Use composite key to avoid collisions with same name but different categories
@@ -253,6 +264,11 @@ function addToCart() {
     const variantId = DOM.selectVariant?.value;
     const variant = POS.selectedVariant;
     
+    console.log('addToCart - variant data:', variant);
+    console.log('addToCart - variant.harga_jual:', variant?.harga_jual);
+    console.log('addToCart - variant.harga_member:', variant?.harga_member);
+    console.log('addToCart - variant.harga_modal:', variant?.harga_modal);
+    
     if (!variant) {
         alert('Please select a variant');
         return;
@@ -273,16 +289,24 @@ function addToCart() {
     
     // Calculate price based on customer type
     let unitPrice = variant.harga_jual;
+    console.log('addToCart - initial unitPrice (harga_jual):', unitPrice);
+    
     if (POS.customerType === 'Member' && POS.selectedMember) {
         const discount = POS.selectedMember.diskon_persen || 0;
         unitPrice = variant.harga_jual * (1 - discount / 100);
+        console.log('addToCart - unitPrice after member discount:', unitPrice);
     }
     
     // Apply override if provided
     const overridePrice = DOM.hargaOverride?.value ? parseFloat(DOM.hargaOverride.value) : null;
     if (overridePrice !== null && overridePrice >= 0) {
         unitPrice = overridePrice;
+        console.log('addToCart - unitPrice after override:', unitPrice);
     }
+    
+    console.log('addToCart - final unitPrice:', unitPrice);
+    console.log('addToCart - quantity:', qty);
+    console.log('addToCart - totalPrice:', unitPrice * qty);
     
     const cartItem = {
         id: Date.now(),
@@ -295,6 +319,8 @@ function addToCart() {
         totalPrice: unitPrice * qty,
         hargaModal: variant.harga_modal
     };
+    
+    console.log('addToCart - cartItem:', cartItem);
     
     POS.cart.push(cartItem);
     updateCartDisplay();
