@@ -95,7 +95,7 @@ async function loadProducts() {
         // Remove is_active filter to ensure products load even if column doesn't exist
         const { data, error } = await supabaseClient
             .from('products')
-            .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,harga_member,kategori')
+            .select('id,nama_barang,ukuran,stok,harga_modal,harga_jual,kategori')
             .order('nama_barang', { ascending: true });
         
         console.log('Products query result:', { data, error });
@@ -109,7 +109,6 @@ async function loadProducts() {
         if (POS.products.length > 0) {
             console.log('First product data:', POS.products[0]);
             console.log('First product harga_jual:', POS.products[0].harga_jual);
-            console.log('First product harga_member:', POS.products[0].harga_member);
             console.log('First product harga_modal:', POS.products[0].harga_modal);
         }
         
@@ -266,7 +265,6 @@ function addToCart() {
     
     console.log('addToCart - variant data:', variant);
     console.log('addToCart - variant.harga_jual:', variant?.harga_jual);
-    console.log('addToCart - variant.harga_member:', variant?.harga_member);
     console.log('addToCart - variant.harga_modal:', variant?.harga_modal);
     
     if (!variant) {

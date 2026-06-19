@@ -12,7 +12,6 @@ const kategoriEl = document.getElementById('kategori');
 const stokEl = document.getElementById('stok');
 const hargaModalEl = document.getElementById('harga_modal');
 const hargaJualEl = document.getElementById('harga_jual');
-const hargaMemberEl = document.getElementById('harga_member');
 const skuInput = document.getElementById('sku');
 const stockEntryStatus = document.getElementById('stockEntryStatus');
 

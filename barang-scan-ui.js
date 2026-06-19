@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const stokInput = document.getElementById('stok');
   const hargaModalInput = document.getElementById('harga_modal');
   const hargaJualInput = document.getElementById('harga_jual');
-  const hargaMemberInput = document.getElementById('harga_member');
   const kategoriSelect = document.getElementById('kategori');
   const skuInput = document.getElementById('sku');
 
@@ -22,13 +21,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function parseScanPayload(raw) {
     // Supported format (recommended):
-    // NAMA_BARANG|qty|harga_modal|harga_jual|harga_member|kategori
+    // NAMA_BARANG|qty|harga_modal|harga_jual|kategori
     // Examples:
-    // T-SHIRT L|10|50000|90000|85000|Apparel
-    // SPECTRE DECK|3|120000|200000|190000|Skateboard
+    // T-SHIRT L|10|50000|90000|Apparel
+    // SPECTRE DECK|3|120000|200000|Skateboard
 
     // Optional simpler formats (fallback):
-    // - NAMA_BARANG|qty|harga_modal|harga_jual|harga_member
+    // - NAMA_BARANG|qty|harga_modal|harga_jual
     // - NAMA_BARANG (no qty/price)
 
     const text = String(raw || '').trim();
@@ -37,22 +36,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const parts = text.split('|').map(s => String(s).trim()).filter(Boolean);
     if (parts.length === 0) return null;
 
-    // Format target: NAMA_BARANG|qty|harga_modal|harga_jual|harga_member|kategori
+    // Format target: NAMA_BARANG|qty|harga_modal|harga_jual|kategori
     // Jadi parts[0] = nama, parts[1] = qty, ...
     const nama = parts[0];
     const qty = parts[1] != null ? Number(parts[1]) : null;
 
     const hargaModal = parts[2] != null ? Number(parts[2]) : null;
     const hargaJual = parts[3] != null ? Number(parts[3]) : null;
-    const hargaMember = parts[4] != null ? Number(parts[4]) : null;
-    const kategori = parts[5] != null ? parts[5] : null;
+    const kategori = parts[4] != null ? parts[4] : null;
 
     return {
       nama,
       qty: Number.isFinite(qty) ? qty : null,
       hargaModal: Number.isFinite(hargaModal) ? hargaModal : null,
       hargaJual: Number.isFinite(hargaJual) ? hargaJual : null,
-      hargaMember: Number.isFinite(hargaMember) ? hargaMember : null,
       kategori
     };
   }
@@ -61,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const payload = parseScanPayload(raw);
     if (!payload) return false;
 
-    // payload untuk scan masuk format: NAMA_BARANG|qty|harga_modal|harga_jual|harga_member|kategori
+    // payload untuk scan masuk format: NAMA_BARANG|qty|harga_modal|harga_jual|kategori
     const namaUpper = String(payload.nama || '').toUpperCase();
     namaBarangInput.value = namaUpper;
 

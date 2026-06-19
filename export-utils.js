@@ -115,7 +115,7 @@ async function exportProductsToExcel(products) {
         return;
     }
 
-    const headers = ['ID', 'Name', 'Category', 'Size', 'Stock', 'Cost Price', 'Selling Price', 'Member Price', 'SKU', 'Created At'];
+    const headers = ['ID', 'Name', 'Category', 'Size', 'Stock', 'Cost Price', 'Selling Price', 'SKU', 'Created At'];
     
     const data = products.map(p => [
         p.id,
@@ -125,7 +125,6 @@ async function exportProductsToExcel(products) {
         p.stok,
         formatCurrency(p.harga_modal),
         formatCurrency(p.harga_jual),
-        formatCurrency(p.harga_member),
         p.sku || '',
         formatDate(p.created_at)
     ]);
@@ -158,6 +157,33 @@ async function exportSalesHistoryToExcel(salesHistory) {
     ]);
 
     await exportToExcel(data, headers, 'sales-report', 'Sales History');
+}
+
+// Export Sales Report to Excel (matches button call in reports.html)
+async function exportSalesReportToExcel(salesData) {
+    if (!salesData || salesData.length === 0) {
+        alert('No sales data to export');
+        return;
+    }
+
+    const headers = ['ID', 'Payment ID', 'Product ID', 'Product Name', 'Category', 'Size', 'Quantity', 'Total Price', 'Cost Price', 'Profit', 'Buyer Type', 'Created At'];
+    
+    const data = salesData.map(s => [
+        s.id,
+        s.payment_id,
+        s.product_id,
+        s.nama_barang,
+        s.kategori || '',
+        s.ukuran || '',
+        s.jumlah,
+        formatCurrency(s.total_harga),
+        formatCurrency(s.harga_modal),
+        formatCurrency(s.profit),
+        s.tipe_pembeli,
+        formatDate(s.created_at)
+    ]);
+
+    await exportToExcel(data, headers, 'sales-report', 'Sales Report');
 }
 
 // Export Payments to Excel
@@ -232,6 +258,11 @@ async function exportMarketplaceOrdersToExcel(orders) {
     ]);
 
     await exportToExcel(data, headers, 'marketplace-orders-report', 'Marketplace Orders');
+}
+
+// Alias for marketplace report export (matches button call in marketplace-reports.html)
+async function exportMarketplaceReportToExcel(orders) {
+    return await exportMarketplaceOrdersToExcel(orders);
 }
 
 // Export Inventory Logs to Excel

@@ -530,6 +530,39 @@ async function getChannelPerformanceComparison(startDate, endDate) {
     }
 }
 
+// Export marketplace report to Excel
+async function exportMarketplaceReportToExcel() {
+    try {
+        showLoading('Loading marketplace data for export...');
+        
+        const { data: orders, error } = await supabaseClient
+            .from('online_orders')
+            .select('*')
+            .order('order_date', { ascending: false });
+        
+        if (error) {
+            console.error('Error loading marketplace orders for export:', error);
+            alert('Failed to load marketplace orders for export');
+            hideLoading();
+            return;
+        }
+        
+        if (!orders || orders.length === 0) {
+            alert('No marketplace orders to export');
+            hideLoading();
+            return;
+        }
+        
+        // Call the export function from export-utils.js
+        await window.exportMarketplaceReportToExcel(orders);
+        hideLoading();
+    } catch (error) {
+        console.error('Error exporting marketplace report:', error);
+        alert('Failed to export marketplace report');
+        hideLoading();
+    }
+}
+
 // Export functions for use in other files
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {

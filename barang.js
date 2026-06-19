@@ -173,6 +173,40 @@ async function toggleArchiveView() {
     }
 }
 
+// Export products to Excel
+async function exportProductsToExcel() {
+    try {
+        showLoading('Loading products for export...');
+        
+        const { data: products, error } = await supabaseClient
+            .from('products')
+            .select('*')
+            .eq('is_active', true)
+            .order('nama_barang', { ascending: true });
+        
+        if (error) {
+            console.error('Error loading products for export:', error);
+            alert('Failed to load products for export');
+            hideLoading();
+            return;
+        }
+        
+        if (!products || products.length === 0) {
+            alert('No products to export');
+            hideLoading();
+            return;
+        }
+        
+        // Call the export function from export-utils.js
+        await window.exportProductsToExcel(products);
+        hideLoading();
+    } catch (error) {
+        console.error('Error exporting products:', error);
+        alert('Failed to export products');
+        hideLoading();
+    }
+}
+
 // Load archived products
 async function loadArchivedProducts() {
     try {
@@ -295,7 +329,6 @@ productForm.addEventListener('submit', async (e) => {
     const stockPerVariantInput = document.getElementById('stock_per_variant').value;
     const harga_modal = parseFloat(document.getElementById('harga_modal').value);
     const harga_jual = parseFloat(document.getElementById('harga_jual').value);
-    const harga_member = parseFloat(document.getElementById('harga_member').value);
     const low_stock_threshold = parseInt(document.getElementById('low_stock_threshold').value) || 5;
     const image_url = document.getElementById('image_url').value || null;
 
@@ -332,16 +365,6 @@ productForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (harga_member < harga_modal) {
-        alert(`Member price (Rp ${harga_member.toLocaleString('id-ID')}) cannot be less than cost price (Rp ${harga_modal.toLocaleString('id-ID')}).`);
-        return;
-    }
-
-    if (harga_member > harga_jual) {
-        alert(`Member price (Rp ${harga_member.toLocaleString('id-ID')}) cannot be greater than selling price (Rp ${harga_jual.toLocaleString('id-ID')}).`);
-        return;
-    }
-
     // Generate product records for each variant
     const productRecords = [];
     for (let i = 0; i < variants.length; i++) {
@@ -353,7 +376,6 @@ productForm.addEventListener('submit', async (e) => {
             stok: stocks[i],
             harga_modal,
             harga_jual,
-            harga_member,
             low_stock_threshold,
             image_url,
             is_active: true

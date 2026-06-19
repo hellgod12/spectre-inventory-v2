@@ -6,6 +6,39 @@ if (typeof supabaseClient === 'undefined') {
     console.error('[member.js] supabaseClient not initialized. Ensure auth.js is loaded before member.js');
 }
 
+// Export members to Excel
+async function exportMembersToExcel() {
+    try {
+        showLoading('Loading members for export...');
+        
+        const { data: members, error } = await supabaseClient
+            .from('members')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            console.error('Error loading members for export:', error);
+            alert('Failed to load members for export');
+            hideLoading();
+            return;
+        }
+        
+        if (!members || members.length === 0) {
+            alert('No members to export');
+            hideLoading();
+            return;
+        }
+        
+        // Call the export function from export-utils.js
+        await window.exportMembersToExcel(members);
+        hideLoading();
+    } catch (error) {
+        console.error('Error exporting members:', error);
+        alert('Failed to export members');
+        hideLoading();
+    }
+}
+
 // Local function: Load member KPIs and insights
 async function loadMemberKPIs() {
     try {
